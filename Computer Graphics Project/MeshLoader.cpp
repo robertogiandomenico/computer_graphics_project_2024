@@ -25,8 +25,6 @@ struct Vertex {
 
 
 
-
-
 // MAIN ! 
 class MeshLoader : public BaseProject {
 	protected:
@@ -35,10 +33,17 @@ class MeshLoader : public BaseProject {
 	float Ar;
 
 	// Other application parameters
-	glm::vec3 CamPos = glm::vec3(0.0, 1.5, 7.0);
-	float CamAlpha = 0.0f;
-	float CamBeta = 0.0f;
-	float CamGamma = 0.0f;
+	glm::vec3 camPos = glm::vec3(0.0, 1.5, 7.0);
+	float camYaw = 0.0f;
+	float camPitch = glm::radians(-30.0f);
+	float camRoll = 0.0f;
+	float camDist = 0.0f;
+	const glm::vec3 CamTargetDelta = glm::vec3(0, 12, 0);
+	//const glm::vec3 Cam1stPos = glm::vec3(0.49061f, 2.07f, 2.7445f);
+	float Yaw = 0.0f;
+
+	// Cat initial position
+	glm::vec3 catPosition = glm::vec3(0, 0, 0);
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSL;
@@ -291,38 +296,60 @@ class MeshLoader : public BaseProject {
 
 
 		// Parameters for camera movement and rotation
-		const float ROT_SPEED = glm::radians(120.0f);
+		const float ROT_SPEED = glm::radians(90.0f);
 		const float MOVE_SPEED = 2.0f;
 
-		CamAlpha = CamAlpha - ROT_SPEED * deltaT * r.y;		// Yaw
-		CamBeta  = CamBeta  - ROT_SPEED * deltaT * r.x;		// Pitch
-		CamGamma = CamGamma - ROT_SPEED * deltaT * r.z;		// Roll
+		// Update camera yaw, pitch, and roll
+		camYaw = camYaw + ROT_SPEED * deltaT * r.y;
+		camPitch  = camPitch  - ROT_SPEED * deltaT * r.x;
+		camRoll = camRoll - ROT_SPEED * deltaT * r.z;
+		camDist -= MOVE_SPEED * deltaT * m.y;
 
-		CamBeta = CamBeta < glm::radians(-90.0f) ? glm::radians(-90.0f) :
-			(CamBeta > glm::radians(90.0f) ? glm::radians(90.0f) : CamBeta);
+		// Limit the pitch to avoid gimbal lock
+		camPitch = camPitch < glm::radians(-90.0f) ? glm::radians(-90.0f) :
+			(camPitch > glm::radians(90.0f) ? glm::radians(90.0f) : camPitch);
 
+		camDist = (camDist < 7.0f ? 7.0f : (camDist > 15.0f ? 15.0f : camDist));
 
-		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), CamAlpha, glm::vec3(0, 1, 0)) * glm::vec4(1, 0, 0, 1);
-		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), CamAlpha, glm::vec3(0, 1, 0)) * glm::vec4(0, 0, -1, 1);
+		// Camera movement
+		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(1, 0, 0, 1);
+		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(0, 0, -1, 1);
 
-		CamPos = CamPos + MOVE_SPEED * m.x * ux * deltaT;
-		CamPos = CamPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;
-		CamPos = CamPos + MOVE_SPEED * m.z * uz * deltaT;
+		// Cat movement
+		catPosition.x += m.x * MOVE_SPEED * deltaT;		// Move left/right
+		//catPosition.y += m.y * MOVE_SPEED * deltaT;	// Move up/down - do not enable otherwise cat flies
+		catPosition.z -= m.z * MOVE_SPEED * deltaT;		// Move forward/backward
+
+		glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
+			glm::vec4(CamTargetDelta, 1));
+
+		// Update the camera position relative to the cat's position
+//		camPos = catPosition + MOVE_SPEED * m.x * ux * deltaT;
+		//camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;
+		//camPos = camPos + MOVE_SPEED * m.z * uz * deltaT;
+
+//		camPos.y += 4.0f;
+		//camPos.z += 3.0f;
+
+		camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
+			glm::vec4(0, 0, camDist, 1));
+
 
 		// Parameters
 		// Camera FOV-y, Near Plane and Far Plane
 		// Set up the view and projection matrices
 		const float FOVy = glm::radians(45.0f);
 		const float nearPlane = 0.1f;
-		const float farPlane = 160.0f;
+		const float farPlane = 300.0f;
 		
 		glm::mat4 M = glm::perspective(FOVy, Ar, nearPlane, farPlane);
 		M[1][1] *= -1;
 
-		glm::mat4 Mv = glm::rotate(glm::mat4(1.0f), -CamBeta, glm::vec3(1, 0, 0)) *
-				glm::rotate(glm::mat4(1.0f), -CamAlpha, glm::vec3(0, 1, 0)) *
-				glm::rotate(glm::mat4(1.0f), -CamGamma, glm::vec3(0, 0, 1)) *
-				glm::translate(glm::mat4(1.0f), -CamPos);
+		// View matrix for camera following the cat
+		glm::mat4 Mv = glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
+				glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
+				glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
+				glm::translate(glm::mat4(1.0f), -camPos);
 
 		glm::mat4 ViewPrj = M * Mv;
 
@@ -339,7 +366,8 @@ class MeshLoader : public BaseProject {
 		// the fourth parameter is the location inside the descriptor set of this uniform block
 		
 		// Cat object
-		World = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0)) *
+		World = glm::translate(glm::mat4(1), catPosition) *
+			glm::rotate(glm::mat4(1), glm::radians(180.0f), glm::vec3(0, 1, 0)) *
 			glm::scale(glm::mat4(1), glm::vec3(3.0f));
 		uboCat.mvpMat = ViewPrj * World;
 		DScat.map(currentImage, &uboCat, sizeof(uboCat), 0);
