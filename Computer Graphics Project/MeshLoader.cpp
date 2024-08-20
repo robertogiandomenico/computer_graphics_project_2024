@@ -34,6 +34,12 @@ class MeshLoader : public BaseProject {
 	// Current aspect ratio (used by the callback that resized the window
 	float Ar;
 
+	// Other application parameters
+	glm::vec3 CamPos = glm::vec3(0.0, 1.5, 7.0);
+	float CamAlpha = 0.0f;
+	float CamBeta = 0.0f;
+	float CamGamma = 0.0f;
+
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSL;
 
@@ -64,7 +70,7 @@ class MeshLoader : public BaseProject {
 		windowHeight = 600;
 		windowTitle = "Mesh Loader";
     	windowResizable = GLFW_TRUE;
-		initialBackgroundColor = {1.0f, 1.0f, 1.0f, 1.0f};
+		initialBackgroundColor = {0.5f, 0.5f, 0.5f, 1.0f};
 		
 		// Descriptor pool sizes
 		uniformBlocksInPool = 10;
@@ -76,6 +82,7 @@ class MeshLoader : public BaseProject {
 	
 	// What to do when the window changes size
 	void onWindowResize(int w, int h) {
+		std::cout << "Window resized to: " << w << " x " << h << "\n";
 		Ar = (float)w / (float)h;
 	}
 	
@@ -265,6 +272,7 @@ class MeshLoader : public BaseProject {
 		if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
+
 		
 		// Integration with the timers and the controllers
 		float deltaT;
@@ -281,38 +289,65 @@ class MeshLoader : public BaseProject {
 		// If fills the last boolean variable with true if fire has been pressed:
 		//          SPACE on the keyboard, A or B button on the Gamepad, Right mouse button
 
-		
+
+		// Parameters for camera movement and rotation
+		const float ROT_SPEED = glm::radians(120.0f);
+		const float MOVE_SPEED = 2.0f;
+
+		CamAlpha = CamAlpha - ROT_SPEED * deltaT * r.y;		// Yaw
+		CamBeta  = CamBeta  - ROT_SPEED * deltaT * r.x;		// Pitch
+		CamGamma = CamGamma - ROT_SPEED * deltaT * r.z;		// Roll
+
+		CamBeta = CamBeta < glm::radians(-90.0f) ? glm::radians(-90.0f) :
+			(CamBeta > glm::radians(90.0f) ? glm::radians(90.0f) : CamBeta);
+
+
+		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), CamAlpha, glm::vec3(0, 1, 0)) * glm::vec4(1, 0, 0, 1);
+		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), CamAlpha, glm::vec3(0, 1, 0)) * glm::vec4(0, 0, -1, 1);
+
+		CamPos = CamPos + MOVE_SPEED * m.x * ux * deltaT;
+		CamPos = CamPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;
+		CamPos = CamPos + MOVE_SPEED * m.z * uz * deltaT;
+
 		// Parameters
 		// Camera FOV-y, Near Plane and Far Plane
-		const float FOVy = glm::radians(90.0f);
+		// Set up the view and projection matrices
+		const float FOVy = glm::radians(45.0f);
 		const float nearPlane = 0.1f;
-		const float farPlane = 100.0f;
+		const float farPlane = 160.0f;
 		
-		glm::mat4 Prj = glm::perspective(FOVy, Ar, nearPlane, farPlane);
-		Prj[1][1] *= -1;
-		glm::vec3 camTarget = glm::vec3(0,0,0);
-		glm::vec3 camPos    = camTarget + glm::vec3(6,3,10) / 2.0f;
-		glm::mat4 View = glm::lookAt(camPos, camTarget, glm::vec3(0,1,0));
+		glm::mat4 M = glm::perspective(FOVy, Ar, nearPlane, farPlane);
+		M[1][1] *= -1;
 
+		glm::mat4 Mv = glm::rotate(glm::mat4(1.0f), -CamBeta, glm::vec3(1, 0, 0)) *
+				glm::rotate(glm::mat4(1.0f), -CamAlpha, glm::vec3(0, 1, 0)) *
+				glm::rotate(glm::mat4(1.0f), -CamGamma, glm::vec3(0, 0, 1)) *
+				glm::translate(glm::mat4(1.0f), -CamPos);
 
+		glm::mat4 ViewPrj = M * Mv;
+
+		// Update the uniforms for each object
 		glm::mat4 World;
 
+		// Cube object
 		World = glm::translate(glm::mat4(1), glm::vec3(-4, 0, 0));
-		ubo1.mvpMat = Prj * View * World;
+		ubo1.mvpMat = ViewPrj * World;
 		DS1.map(currentImage, &ubo1, sizeof(ubo1), 0);
 		// the .map() method of a DataSet object, requires the current image of the swap chain as first parameter
 		// the second parameter is the pointer to the C++ data structure to transfer to the GPU
 		// the third parameter is its size
 		// the fourth parameter is the location inside the descriptor set of this uniform block
-
+		
+		// Cat object
 		World = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0)) *
 			glm::scale(glm::mat4(1), glm::vec3(3.0f));
-		uboCat.mvpMat = Prj * View * World;
+		uboCat.mvpMat = ViewPrj * World;
 		DScat.map(currentImage, &uboCat, sizeof(uboCat), 0);
 
+		// Crystals object
 		World = glm::translate(glm::mat4(1), glm::vec3(3, 0, 2)) *
 			glm::scale(glm::mat4(1), glm::vec3(3.0f));		//how comes that it scales also the offset from the origin?
-		uboCrystals.mvpMat = Prj * View * World;
+		uboCrystals.mvpMat = ViewPrj * World;
 		DScrystals.map(currentImage, &uboCrystals, sizeof(uboCrystals), 0);
 	}	
 };
