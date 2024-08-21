@@ -37,13 +37,15 @@ class MeshLoader : public BaseProject {
 	float camYaw = 0.0f;
 	float camPitch = glm::radians(-30.0f);
 	float camRoll = 0.0f;
-	float camDist = 0.0f;
+	float camDist = 9.0f;
 	const glm::vec3 CamTargetDelta = glm::vec3(0, 12, 0);
 	//const glm::vec3 Cam1stPos = glm::vec3(0.49061f, 2.07f, 2.7445f);
 	float Yaw = 0.0f;
 
 	// Cat initial position
 	glm::vec3 catPosition = glm::vec3(0, 0, 0);
+	// Cat initial orientation
+	float catYaw = glm::radians(180.0f);
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSL;
@@ -297,12 +299,12 @@ class MeshLoader : public BaseProject {
 
 		// Parameters for camera movement and rotation
 		const float ROT_SPEED = glm::radians(90.0f);
-		const float MOVE_SPEED = 2.0f;
+		const float MOVE_SPEED = 10.0f;
 
 		// Update camera yaw, pitch, and roll
-		camYaw = camYaw + ROT_SPEED * deltaT * r.y;
-		camPitch  = camPitch  - ROT_SPEED * deltaT * r.x;
-		camRoll = camRoll - ROT_SPEED * deltaT * r.z;
+		camYaw += ROT_SPEED * deltaT * r.y;
+		camPitch -= ROT_SPEED * deltaT * r.x;
+		camRoll -= ROT_SPEED * deltaT * r.z;
 		camDist -= MOVE_SPEED * deltaT * m.y;
 
 		// Limit the pitch to avoid gimbal lock
@@ -315,10 +317,18 @@ class MeshLoader : public BaseProject {
 		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(1, 0, 0, 1);
 		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(0, 0, -1, 1);
 
-		// Cat movement
-		catPosition.x += m.x * MOVE_SPEED * deltaT;		// Move left/right
-		//catPosition.y += m.y * MOVE_SPEED * deltaT;	// Move up/down - do not enable otherwise cat flies
-		catPosition.z -= m.z * MOVE_SPEED * deltaT;		// Move forward/backward
+		if ((m.x != 0) || (m.z != 0)) {
+			// Cat movement
+			catPosition.x += m.x * MOVE_SPEED * deltaT;		// Move left/right
+			//catPosition.y += m.y * MOVE_SPEED * deltaT;	// Move up/down - do not enable otherwise cat flies
+			catPosition.z -= m.z * MOVE_SPEED * deltaT;		// Move forward/backward
+
+			// Cat rotation based on the movement vector
+			float targetYaw = atan2(m.z, m.x);
+			targetYaw += glm::radians(90.0f); // same as + 3.1416 / 2.0
+			catYaw += (targetYaw - catYaw) * deltaT * 6.0f;	  // 6.0f is the damping factor
+			// catYaw = glm::mix(catYaw, targetYaw, 0.1f);    // alternative way to make the cat rotate smoothly
+		}
 
 		glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
 			glm::vec4(CamTargetDelta, 1));
@@ -367,7 +377,7 @@ class MeshLoader : public BaseProject {
 		
 		// Cat object
 		World = glm::translate(glm::mat4(1), catPosition) *
-			glm::rotate(glm::mat4(1), glm::radians(180.0f), glm::vec3(0, 1, 0)) *
+			glm::rotate(glm::mat4(1), catYaw, glm::vec3(0, 1, 0)) * // Rotate the cat to face its movement direction
 			glm::scale(glm::mat4(1), glm::vec3(3.0f));
 		uboCat.mvpMat = ViewPrj * World;
 		DScat.map(currentImage, &uboCat, sizeof(uboCat), 0);
