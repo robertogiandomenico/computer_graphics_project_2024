@@ -2,6 +2,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "Starter.hpp"
+#include "BoundingBox.hpp"
 
 // The uniform buffer objects data structures
 // Remember to use the correct alignas(...) value
@@ -69,6 +70,13 @@ class MeshLoader : public BaseProject {
 	UniformBlock ubo1, uboCat, uboCrystals;
 
 	// Other application parameters
+	
+	// Bounding boxes for the cat and the collectibles
+	BoundingBox catBox = BoundingBox(catPosition, glm::vec3(0.2f, 1.0f, 1.0f));
+	BoundingBox collectiblesBBs[2] = {
+		BoundingBox(glm::vec3(5, 0, 5), glm::vec3(0.2f, 0.2f, 0.2f)),
+		BoundingBox(glm::vec3(-4, 0, 0), glm::vec3(0.7f, 1.0f, 1.0f)),
+	};
 
 	// Here you set the main application parameters
 	void setWindowParameters() {
@@ -156,15 +164,15 @@ class MeshLoader : public BaseProject {
 		// The second parameter is the pointer to the vertex definition for this model
 		// The third parameter is the file name
 		// The last is a constant specifying the file type: currently only OBJ or GLTF
-		M1.init(this,   &VD, "Models/Cube.obj", OBJ);
+		M1.init(this, &VD, "Models/Cube.obj", OBJ);
 
 		Mcat.init(this, &VD, "Models/Cat3D.gltf", GLTF);
 		Mcrystals.init(this, &VD, "Models/crystals.obj", OBJ);
 		
 		// Create the textures
 		// The second parameter is the file name
-		T1.init(this,   "textures/Checker.png");
-		T2.init(this,   "textures/Textures.png");
+		T1.init(this, "textures/Checker.png");
+		T2.init(this, "textures/Textures.png");
 		
 		// Init local variables
 	}
@@ -313,32 +321,47 @@ class MeshLoader : public BaseProject {
 
 		camDist = (camDist < 7.0f ? 7.0f : (camDist > 15.0f ? 15.0f : camDist));
 
-		// Camera movement
+		// Camera movement + redefine forward and right vectors
 		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(1, 0, 0, 1);
 		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(0, 0, -1, 1);
+		glm::vec3 cameraForward = glm::normalize(glm::vec3(sin(camYaw), 0.0f, cos(camYaw)));
+		glm::vec3 cameraRight = glm::normalize(glm::vec3(cos(camYaw), 0.0f, -sin(camYaw)));
 
 		if ((m.x != 0) || (m.z != 0)) {
 			// Cat movement
-			catPosition.x += m.x * MOVE_SPEED * deltaT;		// Move left/right
+			// catPosition.x += m.x * MOVE_SPEED * deltaT;	// Move left/right
 			//catPosition.y += m.y * MOVE_SPEED * deltaT;	// Move up/down - do not enable otherwise cat flies
-			catPosition.z -= m.z * MOVE_SPEED * deltaT;		// Move forward/backward
+			// catPosition.z -= m.z * MOVE_SPEED * deltaT;	// Move forward/backward
+			catPosition -= cameraForward * m.z * MOVE_SPEED * deltaT;
+			catPosition += cameraRight * m.x * MOVE_SPEED * deltaT;
 
 			// Cat rotation based on the movement vector
 			float targetYaw = atan2(m.z, m.x);
 			targetYaw += glm::radians(90.0f); // same as + 3.1416 / 2.0
-			catYaw += (targetYaw - catYaw) * deltaT * 6.0f;	  // 6.0f is the damping factor
-			// catYaw = glm::mix(catYaw, targetYaw, 0.1f);    // alternative way to make the cat rotate smoothly
+			// catYaw += (targetYaw - catYaw) * deltaT * 6.0f;	  // 6.0f is the damping factor
+			// catYaw = glm::mix(catYaw, targetYaw, 0.1f);		  // alternative way to make the cat rotate smoothly
+			catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);
+
+			// Check for collisions with the collectibles
+			BoundingBox newCatBox = BoundingBox(catPosition, glm::vec3(3.0f, 3.0f, 3.0f));
+			for (int i = 0; i < 2; i++) {	// 2 = collectiblesBBs.size()
+				if (newCatBox.intersects(collectiblesBBs[i])) {
+					catPosition += cameraForward * m.z * MOVE_SPEED * deltaT;
+					//catPosition.y -= m.y * MOVE_SPEED * deltaT;
+					catPosition -= cameraRight * m.x * MOVE_SPEED * deltaT;
+				}
+			}
 		}
 
 		glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
 			glm::vec4(CamTargetDelta, 1));
 
 		// Update the camera position relative to the cat's position
-//		camPos = catPosition + MOVE_SPEED * m.x * ux * deltaT;
+		//camPos = catPosition + MOVE_SPEED * m.x * ux * deltaT;
 		//camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;
 		//camPos = camPos + MOVE_SPEED * m.z * uz * deltaT;
 
-//		camPos.y += 4.0f;
+		//camPos.y += 4.0f;
 		//camPos.z += 3.0f;
 
 		camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
@@ -383,8 +406,8 @@ class MeshLoader : public BaseProject {
 		DScat.map(currentImage, &uboCat, sizeof(uboCat), 0);
 
 		// Crystals object
-		World = glm::translate(glm::mat4(1), glm::vec3(3, 0, 2)) *
-			glm::scale(glm::mat4(1), glm::vec3(3.0f));		//how comes that it scales also the offset from the origin?
+		World = glm::translate(glm::mat4(1), glm::vec3(3, 0, 2));
+			// * glm::scale(glm::mat4(1), glm::vec3(3.0f));		//how comes that it scales also the offset from the origin?
 		uboCrystals.mvpMat = ViewPrj * World;
 		DScrystals.map(currentImage, &uboCrystals, sizeof(uboCrystals), 0);
 	}	

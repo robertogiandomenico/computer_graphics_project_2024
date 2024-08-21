@@ -23,5 +23,8 @@
     <ClInclude Include="Starter.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="BoundingBox.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

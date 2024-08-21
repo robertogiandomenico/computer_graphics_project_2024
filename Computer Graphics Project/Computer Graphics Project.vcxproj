@@ -22,6 +22,7 @@
     <ClCompile Include="MeshLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BoundingBox.hpp" />
     <ClInclude Include="Starter.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
