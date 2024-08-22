@@ -14,15 +14,25 @@
 //        mat3  : alignas(16)
 //        mat4  : alignas(16)
 // Example:
-struct UniformBlock {
+struct UniformBufferObject {
 	alignas(16) glm::mat4 mvpMat;
+	alignas(16) glm::mat4 mMat;
+	alignas(16) glm::mat4 nMat;
 };
+
+struct GlobalUniformBufferObject {
+	alignas(16) glm::vec3 lightDir;
+	alignas(16) glm::vec4 lightColor;
+	alignas(16) glm::vec3 eyePos;
+};
+
 
 // The vertices data structures
 // Example
 struct Vertex {
 	glm::vec3 pos;
 	glm::vec2 UV;
+	glm::vec3 norm;
 };
 
 
@@ -51,7 +61,7 @@ class MeshLoader : public BaseProject {
 	// Cat initial position
 	glm::vec3 catPosition = glm::vec3(6.0f, 0.0f, 0.0f);
 	// Cat initial orientation
-	float catYaw = glm::radians(-90.0f);
+	float catYaw = glm::radians(270.0f);
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSL;
@@ -97,23 +107,23 @@ class MeshLoader : public BaseProject {
 	DescriptorSet DS_cat, DS_floor, DS_walls;
 
 	// Textures
-	Texture T_textures, T_doodle, T_eye, T_sheet, T_feather;
+	Texture T_textures, T_eye, T_closet, T_feather;
 	
 	// C++ storage for uniform variables
 	// Bathroom
-	UniformBlock UBO_bathtub, UBO_bidet, UBO_sink, UBO_toilet;
+	UniformBufferObject UBO_bathtub, UBO_bidet, UBO_sink, UBO_toilet;
 	// Bedroom
-	UniformBlock UBO_bed, UBO_closet, UBO_nighttable;
+	UniformBufferObject UBO_bed, UBO_closet, UBO_nighttable;
 	// Collectibles
-	UniformBlock UBO_bone, UBO_crystal, UBO_eye, UBO_feather, UBO_leaf, UBO_potion1, UBO_potion2;
+	UniformBufferObject UBO_bone, UBO_crystal, UBO_eye, UBO_feather, UBO_leaf, UBO_potion1, UBO_potion2;
 	// Kitchen
-	UniformBlock UBO_chair, UBO_fridge, UBO_kitchen, UBO_kitchentable;
+	UniformBufferObject UBO_chair, UBO_fridge, UBO_kitchen, UBO_kitchentable;
 	// Lair
-	UniformBlock UBO_cauldron, UBO_stonechair, UBO_chest, UBO_shelf1, UBO_shelf2, UBO_stonetable;
+	UniformBufferObject UBO_cauldron, UBO_stonechair, UBO_chest, UBO_shelf1, UBO_shelf2, UBO_stonetable;
 	// Living room
-	UniformBlock UBO_sofa, UBO_table, UBO_tv;
+	UniformBufferObject UBO_sofa, UBO_table, UBO_tv;
 	// Other
-	UniformBlock UBO_cat, UBO_floor, UBO_walls;
+	UniformBufferObject UBO_cat, UBO_floor, UBO_walls;
 
 
 	// Here you set the main application parameters
@@ -126,9 +136,9 @@ class MeshLoader : public BaseProject {
 		initialBackgroundColor = {0.5f, 0.5f, 0.5f, 1.0f};
 		
 		// Descriptor pool sizes
-		uniformBlocksInPool = 50; //30
-		texturesInPool = 20;	//5
-		setsInPool = 50;	//30
+		uniformBlocksInPool = 100; //30
+		texturesInPool = 50;	//5
+		setsInPool = 100;	//30
 		
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
@@ -151,7 +161,8 @@ class MeshLoader : public BaseProject {
 					// third  element : the pipeline stage where it will be used
 					//                  using the corresponding Vulkan constant
 					{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-					{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+					{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+					{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
 				});
 
 		// Vertex descriptors
@@ -184,9 +195,11 @@ class MeshLoader : public BaseProject {
 				  //	if you have more than one vertex format!
 				  // ***************************************************
 				  {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
-				         sizeof(glm::vec3), POSITION},
+						 sizeof(glm::vec3), POSITION},
 				  {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, UV),
-				         sizeof(glm::vec2), UV}
+						 sizeof(glm::vec2), UV},
+				  {0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm),
+						 sizeof(glm::vec3), NORMAL}
 				});
 
 		// Pipelines [Shader couples]
@@ -195,6 +208,7 @@ class MeshLoader : public BaseProject {
 		// The last array, is a vector of pointer to the layouts of the sets that will
 		// be used in this pipeline. The first element will be set 0, and so on..
 		P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", {&DSL});
+		P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
 
@@ -242,10 +256,9 @@ class MeshLoader : public BaseProject {
 
 		// Create the textures
 		// The second parameter is the file name
-		T_textures.init(this, "textures/Textures.png");
-		T_doodle.init(this, "textures/doodle.jpg");
+		T_textures.init(this, "textures/textures.png");
+		T_closet.init(this, "textures/closet.png");
 		T_eye.init(this, "textures/eye_texture.jpg");
-		T_sheet.init(this, "textures/sheet.jpg");
 		T_feather.init(this, "textures/fabrics_0038_color_1k.jpg");
 	}
 	
@@ -255,138 +268,168 @@ class MeshLoader : public BaseProject {
 		P.create();
 
 		// Here you define the data set
-		DS_bathtub.init(this, &DSL, {
-		// the second parameter, is a pointer to the Uniform Set Layout of this set
-		// the last parameter is an array, with one element per binding of the set.
-		// first  elmenet : the binding number
-		// second element : UNIFORM or TEXTURE (an enum) depending on the type
-		// third  element : only for UNIFORMs, the size of the corresponding C++ object. For texture, just put 0
-		// fourth element : only for TEXTUREs, the pointer to the corresponding texture object. For uniforms, use nullptr
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
-				});
-		
-		DS_bidet.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
-			});
-		DS_sink.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
-			});
-		DS_toilet.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
-			});
-
 		DS_bed.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+			// the second parameter, is a pointer to the Uniform Set Layout of this set
+			// the last parameter is an array, with one element per binding of the set.
+			// first  elmenet : the binding number
+			// second element : UNIFORM or TEXTURE (an enum) depending on the type
+			// third  element : only for UNIFORMs, the size of the corresponding C++ object. For texture, just put 0
+			// fourth element : only for TEXTUREs, the pointer to the corresponding texture object. For uniforms, use nullptr
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &T_textures},
+						{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_closet.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_closet},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_nighttable.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+			});
+
+		DS_bathtub.init(this, &DSL, {
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+			});
+
+		DS_bidet.init(this, &DSL, {
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+			});
+		DS_sink.init(this, &DSL, {
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+			});
+		DS_toilet.init(this, &DSL, {
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 
 		DS_bone.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_crystal.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_eye.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_eye}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_eye},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_feather.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_feather}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_feather},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_leaf.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_potion1.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_potion2.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 
 		DS_chair.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_fridge.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_kitchen.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_kitchentable.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 
 		DS_cauldron.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_stonechair.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_chest.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_shelf1.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_shelf2.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_stonetable.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 
 		DS_sofa.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_table.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_tv.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 
 		DS_cat.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_floor.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 		DS_walls.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_textures}
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_textures},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 	}
 
@@ -442,11 +485,10 @@ class MeshLoader : public BaseProject {
 	void localCleanup() {
 		// Cleanup textures
 		T_textures.cleanup();
-		T_doodle.cleanup();
 		T_eye.cleanup();
-		T_sheet.cleanup();
+		T_closet.cleanup();
 		T_feather.cleanup();
-		
+
 		// Cleanup models
 		M_bathtub.cleanup();
 		M_bidet.cleanup();
@@ -484,12 +526,12 @@ class MeshLoader : public BaseProject {
 		M_cat.cleanup();
 		M_floor.cleanup();
 		M_walls.cleanup();
-		
+
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
-		
+
 		// Destroies the pipelines
-		P.destroy();		
+		P.destroy();
 	}
 	
 	// Here it is the creation of the command buffer:
@@ -502,7 +544,7 @@ class MeshLoader : public BaseProject {
 		// For a pipeline object, this command binds the corresponing pipeline to the command buffer passed in its parameter
 
 		// binds the data set
-		DS_bathtub.bind(commandBuffer, P, 0, currentImage);
+		DS_bed.bind(commandBuffer, P, 0, currentImage);
 		// For a Dataset object, this command binds the corresponing dataset
 		// to the command buffer and pipeline passed in its first and second parameters.
 		// The third parameter is the number of the set being bound
@@ -511,15 +553,27 @@ class MeshLoader : public BaseProject {
 		// of the current image in the swap chain, passed in its last parameter
 					
 		// binds the model
-		M_bathtub.bind(commandBuffer);
+		M_bed.bind(commandBuffer);
 		// For a Model object, this command binds the corresponing index and vertex buffer
 		// to the command buffer passed in its parameter
 		
 		// record the drawing command in the command buffer
 		vkCmdDrawIndexed(commandBuffer,
-				static_cast<uint32_t>(M_bathtub.indices.size()), 1, 0, 0, 0);
+				static_cast<uint32_t>(M_bed.indices.size()), 1, 0, 0, 0);
 		// the second parameter is the number of indexes to be drawn. For a Model object,
-		// this can be retrieved with the .indices.size() method.
+		// this can be retrieved with the .indices.size() method.a
+
+		DS_closet.bind(commandBuffer, P, 0, currentImage);
+		M_closet.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_closet.indices.size()), 1, 0, 0, 0);
+
+		DS_nighttable.bind(commandBuffer, P, 0, currentImage);
+		M_nighttable.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_nighttable.indices.size()), 1, 0, 0, 0);
+
+		DS_bathtub.bind(commandBuffer, P, 0, currentImage);
+		M_bathtub.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_bathtub.indices.size()), 1, 0, 0, 0);
 
 		DS_bidet.bind(commandBuffer, P, 0, currentImage);
 		M_bidet.bind(commandBuffer);
@@ -532,18 +586,6 @@ class MeshLoader : public BaseProject {
 		DS_toilet.bind(commandBuffer, P, 0, currentImage);
 		M_toilet.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_toilet.indices.size()), 1, 0, 0, 0);
-
-		DS_bed.bind(commandBuffer, P, 0, currentImage);
-		M_bed.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_bed.indices.size()), 1, 0, 0, 0);
-
-		DS_closet.bind(commandBuffer, P, 0, currentImage);
-		M_closet.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_closet.indices.size()), 1, 0, 0, 0);
-
-		DS_nighttable.bind(commandBuffer, P, 0, currentImage);
-		M_nighttable.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_nighttable.indices.size()), 1, 0, 0, 0);
 
 		DS_bone.bind(commandBuffer, P, 0, currentImage);
 		M_bone.bind(commandBuffer);
@@ -636,6 +678,7 @@ class MeshLoader : public BaseProject {
 		DS_walls.bind(commandBuffer, P, 0, currentImage);
 		M_walls.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_walls.indices.size()), 1, 0, 0, 0);
+
 	}
 
 	// Here is where you update the uniforms.
@@ -707,10 +750,10 @@ class MeshLoader : public BaseProject {
 			collectiblesBBs.push_back(BoundingBox(glm::vec3(-3.f, 0.5f, 0.0f), glm::vec3(0.5f)));
 			collectiblesBBs.push_back(BoundingBox(glm::vec3(-2.f, 0.5f, 0.0f), glm::vec3(0.5f)));
 			collectiblesBBs.push_back(BoundingBox(glm::vec3(-1.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-			collectiblesBBs.push_back(BoundingBox(glm::vec3( 0.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-			collectiblesBBs.push_back(BoundingBox(glm::vec3( 1.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-			collectiblesBBs.push_back(BoundingBox(glm::vec3( 2.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-			collectiblesBBs.push_back(BoundingBox(glm::vec3( 3.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+			collectiblesBBs.push_back(BoundingBox(glm::vec3(0.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+			collectiblesBBs.push_back(BoundingBox(glm::vec3(1.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+			collectiblesBBs.push_back(BoundingBox(glm::vec3(2.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+			collectiblesBBs.push_back(BoundingBox(glm::vec3(3.f, 0.5f, 0.0f), glm::vec3(0.5f)));
 
 
 			for (int i = 0; i < collectiblesBBs.size(); i++) {
@@ -767,59 +810,72 @@ class MeshLoader : public BaseProject {
 			collectibleRotationAngle -= glm::two_pi<float>();
 		}
 
-		placeObject(UBO_cat, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.0f), ViewPrj, DS_cat, currentImage);
 
-		placeObject(UBO_floor, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_floor, currentImage);
-		//placeObject(UBO_walls, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_walls, currentImage);
+		GlobalUniformBufferObject gubo = {};
+		// Set light properties
+		gubo.lightDir = glm::vec3(-1.0f, 1.0f, -1.0f); // Direction of the light
+		gubo.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); // White light
+		gubo.eyePos = camPos; // Camera position
+
+
+
+
+		placeObject(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.0f), ViewPrj, DS_cat, currentImage);
+
+		placeObject(UBO_floor, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_floor, currentImage);
+		//placeObject(UBO_walls, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_walls, currentImage);
 
 		// Bedroom
-		placeObject(UBO_closet, glm::vec3(4.5f, 0.0f, -7.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_closet, currentImage);
-		placeObject(UBO_bed, glm::vec3(5.f, 0.0f, -4.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_bed, currentImage);
-		placeObject(UBO_nighttable, glm::vec3(6.9f, 0.0f, -2.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_nighttable, currentImage);
+		placeObject(UBO_closet, gubo, glm::vec3(4.5f, 0.0f, -7.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_closet, currentImage);
+		placeObject(UBO_bed, gubo, glm::vec3(5.f, 0.0f, -4.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_bed, currentImage);
+		placeObject(UBO_nighttable, gubo, glm::vec3(6.9f, 0.0f, -2.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_nighttable, currentImage);
 
 		// Kitchen
-		placeObject(UBO_kitchen, glm::vec3(4.5f, 0.0f, 6.6f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_kitchen, currentImage);
-		placeObject(UBO_fridge, glm::vec3(0.4f, 0.0f, 6.8f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_fridge, currentImage);
-		placeObject(UBO_kitchentable, glm::vec3(4.5f, 0.0f, 3.2f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_kitchentable, currentImage);
-		placeObject(UBO_chair, glm::vec3(4.5f, 0.0f, 2.4f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_chair, currentImage);
+		placeObject(UBO_kitchen, gubo, glm::vec3(4.5f, 0.0f, 6.6f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_kitchen, currentImage);
+		placeObject(UBO_fridge, gubo, glm::vec3(0.4f, 0.0f, 6.8f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_fridge, currentImage);
+		placeObject(UBO_kitchentable, gubo, glm::vec3(4.5f, 0.0f, 3.2f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_kitchentable, currentImage);
+		placeObject(UBO_chair, gubo, glm::vec3(4.5f, 0.0f, 2.4f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_chair, currentImage);
 
 		// Living room
-		placeObject(UBO_sofa, glm::vec3(-6.5f, 0.0f, 5.7f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_sofa, currentImage);
-		placeObject(UBO_table, glm::vec3(-6.2f, 0.0f, 2.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_table, currentImage);
-		placeObject(UBO_tv, glm::vec3(-4.f, 0.0f, 5.7f), glm::vec3(0, glm::radians(180.f), 0), glm::vec3(1.0f), ViewPrj, DS_tv, currentImage);
+		placeObject(UBO_sofa, gubo, glm::vec3(-6.5f, 0.0f, 5.7f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_sofa, currentImage);
+		placeObject(UBO_table, gubo, glm::vec3(-6.2f, 0.0f, 2.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_table, currentImage);
+		placeObject(UBO_tv, gubo, glm::vec3(-4.f, 0.0f, 5.7f), glm::vec3(0, glm::radians(180.f), 0), glm::vec3(1.0f), ViewPrj, DS_tv, currentImage);
 
 		// Witch lair
-		placeObject(UBO_chest, glm::vec3(-5.f, 0.0f, -7.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_chest, currentImage);
-		placeObject(UBO_stonetable, glm::vec3(-6.6f, 0.0f, -5.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_stonetable, currentImage);
-		placeObject(UBO_stonechair, glm::vec3(-5.8f, 0.0f, -5.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_stonechair, currentImage);
-		placeObject(UBO_cauldron, glm::vec3(-4.0f, 0.0f, -5.3f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_cauldron, currentImage);
-		placeObject(UBO_shelf1, glm::vec3(-7.2f, 3.f, -5.5f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_shelf1, currentImage);
-		placeObject(UBO_shelf2, glm::vec3(-5.f, 3.4f, -7.2f), glm::vec3(0, glm::radians(90.f), 0), glm::vec3(1.0f), ViewPrj, DS_shelf2, currentImage);
+		placeObject(UBO_chest, gubo, glm::vec3(-5.f, 0.0f, -7.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_chest, currentImage);
+		placeObject(UBO_stonetable, gubo, glm::vec3(-6.6f, 0.0f, -5.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_stonetable, currentImage);
+		placeObject(UBO_stonechair, gubo, glm::vec3(-5.8f, 0.0f, -5.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_stonechair, currentImage);
+		placeObject(UBO_cauldron, gubo, glm::vec3(-4.0f, 0.0f, -5.3f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_cauldron, currentImage);
+		placeObject(UBO_shelf1, gubo, glm::vec3(-7.2f, 3.f, -5.5f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_shelf1, currentImage);
+		placeObject(UBO_shelf2, gubo, glm::vec3(-5.f, 3.4f, -7.2f), glm::vec3(0, glm::radians(90.f), 0), glm::vec3(1.0f), ViewPrj, DS_shelf2, currentImage);
 
 		// Bathroom
-		placeObject(UBO_bathtub, glm::vec3(-0.5f, 0.0f, -6.8f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_bathtub, currentImage);
-		placeObject(UBO_toilet, glm::vec3(0.5f, 0.0f, -5.5f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_toilet, currentImage);
-		placeObject(UBO_bidet, glm::vec3(0.5f, 0.0f, -4.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_bidet, currentImage);
-		placeObject(UBO_sink, glm::vec3(-1.7f, 0.0f, -4.7f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_sink, currentImage);
+		placeObject(UBO_bathtub, gubo, glm::vec3(-0.5f, 0.0f, -6.8f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_bathtub, currentImage);
+		placeObject(UBO_toilet, gubo, glm::vec3(0.5f, 0.0f, -5.5f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_toilet, currentImage);
+		placeObject(UBO_bidet, gubo, glm::vec3(0.5f, 0.0f, -4.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_bidet, currentImage);
+		placeObject(UBO_sink, gubo, glm::vec3(-1.7f, 0.0f, -4.7f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_sink, currentImage);
 
 		// Collectibles
-		placeObject(UBO_crystal, glm::vec3(-3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage);
-		placeObject(UBO_eye, glm::vec3(-2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage);
-		placeObject(UBO_feather, glm::vec3(-1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage);
-		placeObject(UBO_leaf, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage);
-		placeObject(UBO_potion1, glm::vec3(1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage);
-		placeObject(UBO_potion2, glm::vec3(2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage);
-		placeObject(UBO_bone, glm::vec3(3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_bone, currentImage);
+		placeObject(UBO_crystal, gubo, glm::vec3(-3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage);
+		placeObject(UBO_eye, gubo, glm::vec3(-2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage);
+		placeObject(UBO_feather, gubo, glm::vec3(-1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage);
+		placeObject(UBO_leaf, gubo, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage);
+		placeObject(UBO_potion1, gubo, glm::vec3(1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage);
+		placeObject(UBO_potion2, gubo, glm::vec3(2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage);
+		placeObject(UBO_bone, gubo, glm::vec3(3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_bone, currentImage);
 	}
 
-	void placeObject(UniformBlock ubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage) {
+	void placeObject(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage) {
 		glm::mat4 World = glm::translate(glm::mat4(1), position) *
 			glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *
 			glm::rotate(glm::mat4(1), rotation.y, glm::vec3(0, 1, 0)) *
 			glm::rotate(glm::mat4(1), rotation.z, glm::vec3(0, 0, 1)) *
 			glm::scale(glm::mat4(1), scale);
 		ubo.mvpMat = ViewPrj * World;
+		ubo.mMat = World;
+		ubo.nMat = glm::transpose(glm::inverse(World));
 		ds.map(currentImage, &ubo, sizeof(ubo), 0);
+		ds.map(currentImage, &gubo, sizeof(gubo), 2);
 		// the .map() method of a DataSet object, requires the current image of the swap chain as first parameter
 		// the second parameter is the pointer to the C++ data structure to transfer to the GPU
 		// the third parameter is its size
