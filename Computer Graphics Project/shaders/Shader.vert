@@ -18,5 +18,6 @@ void main() {
     fragUV = inUV;
     fragNorm = mat3(ubo.nMat) * inNorm;  // Transforming normal with the normal matrix
     fragPos = vec3(ubo.mMat * vec4(inPos, 1.0)); // Position in world space
+
     gl_Position = ubo.mvpMat * vec4(inPos, 1.0);
 }

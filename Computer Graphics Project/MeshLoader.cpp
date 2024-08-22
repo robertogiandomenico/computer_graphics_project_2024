@@ -5,6 +5,8 @@
 #include "Starter.hpp"
 #include "BoundingBox.hpp"
 
+#define LIGHTS_NUM 2
+
 // The uniform buffer objects data structures
 // Remember to use the correct alignas(...) value
 //        float : alignas(4)
@@ -21,11 +23,13 @@ struct UniformBufferObject {
 };
 
 struct GlobalUniformBufferObject {
-	alignas(16) glm::vec3 lightDir;
-	alignas(16) glm::vec4 lightColor;
-	alignas(16) glm::vec3 eyePos;
+	glm::vec3 lightPos[LIGHTS_NUM];      // Position of the lights
+	glm::vec3 lightColor[LIGHTS_NUM];    // Color of the lights
+	glm::vec3 eyePos;           // Position of the camera/eye
+	float constant[LIGHTS_NUM];          // Constant attenuation factor
+	float linear[LIGHTS_NUM];            // Linear attenuation factor
+	float quadratic[LIGHTS_NUM];         // Quadratic attenuation factor
 };
-
 
 // The vertices data structures
 // Example
@@ -813,8 +817,18 @@ class MeshLoader : public BaseProject {
 
 		GlobalUniformBufferObject gubo = {};
 		// Set light properties
-		gubo.lightDir = glm::vec3(-1.0f, 1.0f, -1.0f); // Direction of the light
-		gubo.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); // White light
+		gubo.lightPos[0] = glm::vec3(2.0f, 2.0f, 5.0f);
+		gubo.lightColor[0] = glm::vec3(1.0f, 1.0f, 1.0f);
+		gubo.constant[0] = 1.0f;    // Typically 1.0 for no attenuation
+		gubo.linear[0] = 0.09f;     // Small factor for linear attenuation
+		gubo.quadratic[0] = 0.032f; // Even smaller factor for quadratic attenuation
+		
+		gubo.lightPos[1] = glm::vec3(-7.0f, 2.0f, -7.0f);	// position: witch lair
+		gubo.lightColor[1] = glm::vec3(0.01f, 0.f, 0.05f);	// color: purple
+		gubo.constant[1] = 0.1f;
+		gubo.linear[1] = 0.01f;
+		gubo.quadratic[1] = 0.00f;
+
 		gubo.eyePos = camPos; // Camera position
 
 
@@ -847,7 +861,7 @@ class MeshLoader : public BaseProject {
 		placeObject(UBO_stonechair, gubo, glm::vec3(-5.8f, 0.0f, -5.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_stonechair, currentImage);
 		placeObject(UBO_cauldron, gubo, glm::vec3(-4.0f, 0.0f, -5.3f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_cauldron, currentImage);
 		placeObject(UBO_shelf1, gubo, glm::vec3(-7.2f, 3.f, -5.5f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_shelf1, currentImage);
-		placeObject(UBO_shelf2, gubo, glm::vec3(-5.f, 3.4f, -7.2f), glm::vec3(0, glm::radians(90.f), 0), glm::vec3(1.0f), ViewPrj, DS_shelf2, currentImage);
+		placeObject(UBO_shelf2, gubo, glm::vec3(-5.f, 3.4f, -7.2f), glm::vec3(0, glm::radians(-90.f), 0), glm::vec3(1.0f), ViewPrj, DS_shelf2, currentImage);
 
 		// Bathroom
 		placeObject(UBO_bathtub, gubo, glm::vec3(-0.5f, 0.0f, -6.8f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_bathtub, currentImage);
