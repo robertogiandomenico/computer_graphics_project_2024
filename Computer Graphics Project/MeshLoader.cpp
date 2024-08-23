@@ -36,11 +36,9 @@ struct GlobalUniformBufferObject {
 	float quadratic[LIGHTS_NUM];        // Quadratic attenuation factor
 };
 
-struct BloomUniformBufferObject {
-	float bloomThreshold;
-	float blurAmount;
+struct skyBoxUniformBufferObject {
+	alignas(16) glm::mat4 mvpMat;
 };
-
 
 // The vertices data structures
 // Example
@@ -50,6 +48,9 @@ struct Vertex {
 	glm::vec3 norm;
 };
 
+struct skyBoxVertex {
+	glm::vec3 pos;
+};
 
 
 // MAIN ! 
@@ -101,13 +102,13 @@ protected:
 		}
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSL;
+	DescriptorSetLayout DSL, DSL_skyBox;
 
 	// Vertex formats
-	VertexDescriptor VD;
+	VertexDescriptor VD, VD_skyBox;
 
 	// Pipelines [Shader couples]
-	Pipeline P;
+	Pipeline P, P_skyBox;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	// Please note that Model objects depends on the corresponding vertex structure
@@ -127,6 +128,8 @@ protected:
 	// Other
 	Model<Vertex> M_cat, M_floor, M_walls;
 
+	Model<skyBoxVertex> M_skyBox;
+
 	// Descriptor sets
 	// Bathroom
 	DescriptorSet DS_bathtub, DS_bidet, DS_sink, DS_toilet;
@@ -143,8 +146,10 @@ protected:
 	// Other
 	DescriptorSet DS_cat, DS_floor, DS_walls;
 
+	DescriptorSet DS_skyBox;
+
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather;
+	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox;
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -200,9 +205,13 @@ protected:
 			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
 			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
 			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-			{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT},  // New binding for emissive color
-			{4, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}   // New binding for bloom effect
-			});
+			{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}  // New binding for emissive color
+		});
+
+		DSL_skyBox.init(this, {
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+		});
 
 		// Vertex descriptors
 		VD.init(this, {
@@ -241,6 +250,13 @@ protected:
 					   sizeof(glm::vec3), NORMAL}
 			});
 
+			VD_skyBox.init(this, {
+				  {0, sizeof(skyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}
+				}, {
+				  {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(skyBoxVertex, pos),
+						sizeof(glm::vec3), POSITION}
+			});
+
 			// Pipelines [Shader couples]
 			// The second parameter is the pointer to the vertex definition
 			// Third and fourth parameters are respectively the vertex and fragment shaders
@@ -248,6 +264,9 @@ protected:
 			// be used in this pipeline. The first element will be set 0, and so on..
 			P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL });
 			P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+
+			P_skyBox.init(this, &VD_skyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSL_skyBox });
+			P_skyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 			// Models, textures and Descriptors (values assigned to the uniforms)
 
@@ -292,6 +311,8 @@ protected:
 			M_floor.init(this, &VD, "models/other/floor.gltf", GLTF);
 			M_walls.init(this, &VD, "models/other/walls.gltf", GLTF);
 
+			M_skyBox.init(this, &VD_skyBox, "models/sky/SkyBoxCube.obj", OBJ);
+
 
 			// Create the textures
 			// The second parameter is the file name
@@ -299,12 +320,20 @@ protected:
 			T_closet.init(this, "textures/closet.png");
 			T_eye.init(this, "textures/eye_texture.jpg");
 			T_feather.init(this, "textures/fabrics_0038_color_1k.jpg");
+
+			T_skyBox.init(this, "textures/starmap_g4k.jpg");
 	}
 
 	// Here you create your pipelines and Descriptor Sets!
 	void pipelinesAndDescriptorSetsInit() {
 		// This creates a new pipeline (with the current surface), using its shaders
 		P.create();
+		P_skyBox.create();
+
+		DS_skyBox.init(this, &DSL_skyBox, {
+						{0, UNIFORM, sizeof(skyBoxUniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &T_skyBox}
+			});
 
 		// Here you define the data set
 		DS_bed.init(this, &DSL, {
@@ -537,6 +566,7 @@ protected:
 	void pipelinesAndDescriptorSetsCleanup() {
 		// Cleanup pipelines
 		P.cleanup();
+		P_skyBox.cleanup();
 
 		// Cleanup datasets
 		DS_bathtub.cleanup();
@@ -575,6 +605,8 @@ protected:
 		DS_cat.cleanup();
 		DS_floor.cleanup();
 		DS_walls.cleanup();
+
+		DS_skyBox.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -587,6 +619,8 @@ protected:
 		T_eye.cleanup();
 		T_closet.cleanup();
 		T_feather.cleanup();
+
+		T_skyBox.cleanup();
 
 		// Cleanup models
 		M_bathtub.cleanup();
@@ -626,11 +660,15 @@ protected:
 		M_floor.cleanup();
 		M_walls.cleanup();
 
+		M_skyBox.cleanup();
+
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
+		DSL_skyBox.cleanup();
 
 		// Destroies the pipelines
 		P.destroy();
+		P_skyBox.destroy();
 	}
 
 	// Here it is the creation of the command buffer:
@@ -778,6 +816,10 @@ protected:
 		M_walls.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_walls.indices.size()), 1, 0, 0, 0);
 
+		P_skyBox.bind(commandBuffer);
+		M_skyBox.bind(commandBuffer);
+		DS_skyBox.bind(commandBuffer, P_skyBox, 0, currentImage);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_skyBox.indices.size()), 1, 0, 0, 0);
 	}
 
 	// Here is where you update the uniforms.
@@ -903,13 +945,9 @@ protected:
 
 		gubo.eyePos = camPos; // Camera position
 
-		BloomUniformBufferObject bloomUBO = {};
-		bloomUBO.bloomThreshold = 1.0f;  // Example value, set as needed
-		bloomUBO.blurAmount = 0.01f;     // Example value, set as needed
-
-
-
-		// Check for collisions with the collectibles
+		skyBoxUniformBufferObject sbubo{};
+		sbubo.mvpMat = M * glm::mat4(glm::mat3(Mv));
+		DS_skyBox.map(currentImage, &sbubo, sizeof(sbubo), 0);
 
 		// Bounding boxes for the cat and the collectibles
 		std::vector<BoundingBox> collectiblesBBs;
@@ -995,6 +1033,7 @@ protected:
 			removeCollectible(UBO_bone, gubo, ViewPrj, DS_bone, currentImage);
 		}
 
+		// Check for collisions with the collectibles
 		for (int i = 0; i < collectiblesBBs.size(); i++) {
 			if (catBox.intersects(collectiblesBBs[i])) {
 				catPosition += cameraForward * m.z * MOVE_SPEED * deltaT;

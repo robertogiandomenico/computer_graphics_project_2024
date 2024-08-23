@@ -28,6 +28,8 @@
   <ItemGroup>
     <None Include="shaders\Shader.frag" />
     <None Include="shaders\Shader.vert" />
+    <None Include="shaders\SkyBoxShader.frag" />
+    <None Include="shaders\SkyBoxShader.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
