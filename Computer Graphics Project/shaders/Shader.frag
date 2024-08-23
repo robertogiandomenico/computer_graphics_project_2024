@@ -19,6 +19,11 @@ layout(binding = 2) uniform GlobalUniformBufferObject {
     float quadratic[LIGHTS_NUM];        // Quadratic attenuation factor
 } gubo;
 
+// New uniform for emissive color
+layout(binding = 3) uniform EmissiveUniformBufferObject {
+    vec3 emissiveColor;  // Emissive color of the object
+} eubo;
+
 void main() {
     vec3 norm = normalize(fragNorm);
     vec3 viewDir = normalize(gubo.eyePos - fragPos);
@@ -49,5 +54,10 @@ void main() {
     }
 
     vec4 texColor = texture(texSampler, fragUV);
+
+    // Add emissive color to the final output
+    vec3 emissive = eubo.emissiveColor * texColor.rgb;
+    result += emissive;
+
     outColor = vec4(result * texColor.rgb, texColor.a);
 }

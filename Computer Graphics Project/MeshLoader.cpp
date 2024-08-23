@@ -23,13 +23,19 @@ struct UniformBufferObject {
 };
 
 struct GlobalUniformBufferObject {
-	glm::vec3 lightPos[LIGHTS_NUM];      // Position of the lights
-	glm::vec3 lightColor[LIGHTS_NUM];    // Color of the lights
-	glm::vec3 eyePos;           // Position of the camera/eye
-	float constant[LIGHTS_NUM];          // Constant attenuation factor
-	float linear[LIGHTS_NUM];            // Linear attenuation factor
-	float quadratic[LIGHTS_NUM];         // Quadratic attenuation factor
+	glm::vec3 lightPos[LIGHTS_NUM];     // Position of the lights
+	glm::vec3 lightColor[LIGHTS_NUM];   // Color of the lights
+	glm::vec3 eyePos;					// Position of the camera/eye
+	float constant[LIGHTS_NUM];         // Constant attenuation factor
+	float linear[LIGHTS_NUM];           // Linear attenuation factor
+	float quadratic[LIGHTS_NUM];        // Quadratic attenuation factor
 };
+
+struct BloomUniformBufferObject {
+	float bloomThreshold;
+	float blurAmount;
+};
+
 
 // The vertices data structures
 // Example
@@ -140,9 +146,9 @@ class MeshLoader : public BaseProject {
 		initialBackgroundColor = {0.5f, 0.5f, 0.5f, 1.0f};
 		
 		// Descriptor pool sizes
-		uniformBlocksInPool = 100; //30
-		texturesInPool = 50;	//5
-		setsInPool = 100;	//30
+		uniformBlocksInPool = 200; //30
+		texturesInPool = 100;	//5
+		setsInPool = 200;	//30
 		
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
@@ -166,7 +172,9 @@ class MeshLoader : public BaseProject {
 					//                  using the corresponding Vulkan constant
 					{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
 					{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
-					{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
+					{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+					{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT},  // New binding for emissive color
+					{4, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}   // New binding for bloom effect
 				});
 
 		// Vertex descriptors
@@ -281,159 +289,219 @@ class MeshLoader : public BaseProject {
 			// fourth element : only for TEXTUREs, the pointer to the corresponding texture object. For uniforms, use nullptr
 						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 						{1, TEXTURE, 0, &T_textures},
-						{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+						{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+						{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_closet.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_closet},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_nighttable.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 
 		DS_bathtub.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 
 		DS_bidet.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_sink.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_toilet.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 
 		DS_bone.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_crystal.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_eye.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_eye},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_feather.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_feather},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_leaf.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_potion1.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_potion2.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 
 		DS_chair.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_fridge.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_kitchen.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_kitchentable.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 
 		DS_cauldron.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_stonechair.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_chest.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_shelf1.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_shelf2.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_stonetable.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 
 		DS_sofa.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_table.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_tv.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 
 		DS_cat.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_floor.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 		DS_walls.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+
 			});
 	}
 
@@ -746,34 +814,33 @@ class MeshLoader : public BaseProject {
 			// catYaw += (targetYaw - catYaw) * deltaT * 6.0f;	  // 6.0f is the damping factor
 			// catYaw = glm::mix(catYaw, targetYaw, 0.1f);		  // alternative way to make the cat rotate smoothly
 			catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);
-
-			// Check for collisions with the collectibles
-			BoundingBox catBox = BoundingBox(catPosition, glm::vec3(0.13f, 0.6f, 1.0f));
-			// Bounding boxes for the cat and the collectibles
-			std::vector<BoundingBox> collectiblesBBs;
-			collectiblesBBs.push_back(BoundingBox(glm::vec3(-3.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-			collectiblesBBs.push_back(BoundingBox(glm::vec3(-2.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-			collectiblesBBs.push_back(BoundingBox(glm::vec3(-1.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-			collectiblesBBs.push_back(BoundingBox(glm::vec3(0.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-			collectiblesBBs.push_back(BoundingBox(glm::vec3(1.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-			collectiblesBBs.push_back(BoundingBox(glm::vec3(2.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-			collectiblesBBs.push_back(BoundingBox(glm::vec3(3.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-
-
-			for (int i = 0; i < collectiblesBBs.size(); i++) {
-				if (catBox.intersects(collectiblesBBs[i])) {
-					catPosition += cameraForward * m.z * MOVE_SPEED * deltaT;
-					//catPosition.y -= m.y * MOVE_SPEED * deltaT;
-					catPosition -= cameraRight * m.x * MOVE_SPEED * deltaT;
-					std::cout << "Collision with collectible " << i << std::endl;
-				}
-			}
-
-			// Limit the cat's movement to the house
-			catPosition.x = glm::clamp(catPosition.x, -7.2f, 7.2f);
-			catPosition.z = glm::clamp(catPosition.z, -7.2f, 7.2f);
-
 		}
+
+		// Check for collisions with the collectibles
+		BoundingBox catBox = BoundingBox(catPosition, glm::vec3(0.13f, 0.6f, 1.0f));
+		// Bounding boxes for the cat and the collectibles
+		std::vector<BoundingBox> collectiblesBBs;
+		collectiblesBBs.push_back(BoundingBox(glm::vec3(-3.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+		collectiblesBBs.push_back(BoundingBox(glm::vec3(-2.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+		collectiblesBBs.push_back(BoundingBox(glm::vec3(-1.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+		collectiblesBBs.push_back(BoundingBox(glm::vec3(0.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+		collectiblesBBs.push_back(BoundingBox(glm::vec3(1.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+		collectiblesBBs.push_back(BoundingBox(glm::vec3(2.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+		collectiblesBBs.push_back(BoundingBox(glm::vec3(3.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+
+
+		for (int i = 0; i < collectiblesBBs.size(); i++) {
+			if (catBox.intersects(collectiblesBBs[i])) {
+				catPosition += cameraForward * m.z * MOVE_SPEED * deltaT;
+				//catPosition.y -= m.y * MOVE_SPEED * deltaT;
+				catPosition -= cameraRight * m.x * MOVE_SPEED * deltaT;
+				std::cout << "Collision with collectible " << i << std::endl;
+			}
+		}
+
+		// Limit the cat's movement to the house
+		catPosition.x = glm::clamp(catPosition.x, -7.2f, 7.2f);
+		catPosition.z = glm::clamp(catPosition.z, -7.2f, 7.2f);
 
 		glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
 			glm::vec4(CamTargetDelta, 1));
@@ -831,7 +898,9 @@ class MeshLoader : public BaseProject {
 
 		gubo.eyePos = camPos; // Camera position
 
-
+		BloomUniformBufferObject bloomUBO = {};
+		bloomUBO.bloomThreshold = 1.0f;  // Example value, set as needed
+		bloomUBO.blurAmount = 0.01f;     // Example value, set as needed
 
 
 		placeObject(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.0f), ViewPrj, DS_cat, currentImage);
@@ -870,13 +939,13 @@ class MeshLoader : public BaseProject {
 		placeObject(UBO_sink, gubo, glm::vec3(-1.7f, 0.0f, -4.7f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_sink, currentImage);
 
 		// Collectibles
-		placeObject(UBO_crystal, gubo, glm::vec3(-3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage);
-		placeObject(UBO_eye, gubo, glm::vec3(-2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage);
-		placeObject(UBO_feather, gubo, glm::vec3(-1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage);
-		placeObject(UBO_leaf, gubo, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage);
-		placeObject(UBO_potion1, gubo, glm::vec3(1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage);
-		placeObject(UBO_potion2, gubo, glm::vec3(2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage);
-		placeObject(UBO_bone, gubo, glm::vec3(3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_bone, currentImage);
+		placeCollectible(UBO_crystal, gubo, glm::vec3(-3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage);
+		placeCollectible(UBO_eye, gubo, glm::vec3(-2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage);
+		placeCollectible(UBO_feather, gubo, glm::vec3(-1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage);
+		placeCollectible(UBO_leaf, gubo, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage);
+		placeCollectible(UBO_potion1, gubo, glm::vec3(1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage);
+		placeCollectible(UBO_potion2, gubo, glm::vec3(2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage);
+		placeCollectible(UBO_bone, gubo, glm::vec3(3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_bone, currentImage);
 	}
 
 	void placeObject(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage) {
@@ -894,6 +963,26 @@ class MeshLoader : public BaseProject {
 		// the second parameter is the pointer to the C++ data structure to transfer to the GPU
 		// the third parameter is its size
 		// the fourth parameter is the location inside the descriptor set of this uniform block
+
+		glm::vec3 emissiveColor = glm::vec3(0.0f, 0.0f, 0.0f); // Set the emissive color
+		ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 3);
+	}
+
+	void placeCollectible(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage) {
+		glm::mat4 World = glm::translate(glm::mat4(1), position) *
+			glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *
+			glm::rotate(glm::mat4(1), rotation.y, glm::vec3(0, 1, 0)) *
+			glm::rotate(glm::mat4(1), rotation.z, glm::vec3(0, 0, 1)) *
+			glm::scale(glm::mat4(1), scale);
+		ubo.mvpMat = ViewPrj * World;
+		ubo.mMat = World;
+		ubo.nMat = glm::transpose(glm::inverse(World));
+		ds.map(currentImage, &ubo, sizeof(ubo), 0);
+
+		ds.map(currentImage, &gubo, sizeof(gubo), 2);
+
+		glm::vec3 emissiveColor = glm::vec3(2.0f, 2.0f, 2.0f); // Set the emissive color
+		ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 3);
 	}
 };
 
