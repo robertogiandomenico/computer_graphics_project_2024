@@ -6,8 +6,11 @@
 #include <string>
 #include "Starter.hpp"
 #include "BoundingBox.hpp"
+#include <cstdlib>  // For rand() and srand()
+#include <ctime>    // For time() - to seed rand()
 
 #define LIGHTS_NUM 2
+#define COLLECTIBLES_NUM 7
 
 // The uniform buffer objects data structures
 // Remember to use the correct alignas(...) value
@@ -74,22 +77,28 @@ protected:
 	glm::vec3 catPosition = glm::vec3(6.0f, 0.0f, 0.0f);
 	// Cat initial orientation
 	float catYaw = glm::radians(270.0f);
-#include <map>
-#include <string>
 
-public:
-	std::map<std::string, bool> collectiblesMap;
+	glm::vec3 collectiblesRandomPosition[COLLECTIBLES_NUM];
 
-	MeshLoader() {
-		// Initialize items with names and set all isCollected to false
-		collectiblesMap["crystal"] = false;
-		collectiblesMap["eye"] = false;
-		collectiblesMap["feather"] = false;
-		collectiblesMap["leaf"] = false;
-		collectiblesMap["potion1"] = false;
-		collectiblesMap["potion2"] = false;
-		collectiblesMap["bone"] = false;
-	}
+	public:
+		std::map<std::string, bool> collectiblesMap;
+
+		MeshLoader() {
+			// Initialize items with names and set all isCollected to false
+			collectiblesMap["crystal"] = false;
+			collectiblesMap["eye"] = false;
+			collectiblesMap["feather"] = false;
+			collectiblesMap["leaf"] = false;
+			collectiblesMap["potion1"] = false;
+			collectiblesMap["potion2"] = false;
+			collectiblesMap["bone"] = false;
+
+
+			srand(static_cast<unsigned int>(time(0)));
+			for (int i = 0; i < COLLECTIBLES_NUM; ++i) {
+				collectiblesRandomPosition[i] = generateRandomPosition(-5.9f, 5.9f);	// Square area where collectibles can spawn
+			}
+		}
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSL;
@@ -909,7 +918,7 @@ public:
 		BoundingBox catBox = BoundingBox("cat", catPosition, glm::vec3(0.13f, 0.6f, 1.0f));
 
 		placeObject(UBO_floor, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_floor, currentImage);
-		//placeObject(UBO_walls, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_walls, currentImage);
+		placeObject(UBO_walls, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_walls, currentImage);
 
 		// Bedroom
 		placeObject(UBO_closet, gubo, glm::vec3(4.5f, 0.0f, -7.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_closet, currentImage);
@@ -930,7 +939,7 @@ public:
 		// Witch lair
 		placeObject(UBO_chest, gubo, glm::vec3(-5.f, 0.0f, -7.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_chest, currentImage);
 		placeObject(UBO_stonetable, gubo, glm::vec3(-6.6f, 0.0f, -5.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_stonetable, currentImage);
-		placeObject(UBO_stonechair, gubo, glm::vec3(-5.8f, 0.0f, -5.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_stonechair, currentImage);
+		placeObject(UBO_stonechair, gubo, glm::vec3(-5.8f, 0.0f, -5.f), glm::vec3(0.f, glm::radians(25.f), 0.f), glm::vec3(1.0f), ViewPrj, DS_stonechair, currentImage);
 		placeObject(UBO_cauldron, gubo, glm::vec3(-4.0f, 0.0f, -5.3f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_cauldron, currentImage);
 		placeObject(UBO_shelf1, gubo, glm::vec3(-7.2f, 3.f, -5.5f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_shelf1, currentImage);
 		placeObject(UBO_shelf2, gubo, glm::vec3(-5.f, 3.4f, -7.2f), glm::vec3(0, glm::radians(-90.f), 0), glm::vec3(1.0f), ViewPrj, DS_shelf2, currentImage);
@@ -943,45 +952,45 @@ public:
 
 		// Collectibles
 		if (!collectiblesMap["crystal"]) {
-			placeCollectible(UBO_crystal, gubo, glm::vec3(-3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage);
-			collectiblesBBs.push_back(BoundingBox("crystal", glm::vec3(-3.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+			placeCollectible(UBO_crystal, gubo, collectiblesRandomPosition[0], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage);
+			collectiblesBBs.push_back(BoundingBox("crystal", collectiblesRandomPosition[0], glm::vec3(0.5f, 3.f, 0.5f)));
 		} else {
 			removeCollectible(UBO_crystal, gubo, ViewPrj, DS_crystal, currentImage);	// it actually scales to zero -> not efficient
 		}
 
 		if (!collectiblesMap["eye"]) {
-			placeCollectible(UBO_eye, gubo, glm::vec3(-2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage);
-			collectiblesBBs.push_back(BoundingBox("eye", glm::vec3(-2.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+			placeCollectible(UBO_eye, gubo, collectiblesRandomPosition[1], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage);
+			collectiblesBBs.push_back(BoundingBox("eye", collectiblesRandomPosition[1], glm::vec3(0.5f, 3.f, 0.5f)));
 		} else {
 			removeCollectible(UBO_eye, gubo, ViewPrj, DS_eye, currentImage);
 		}
 		if (!collectiblesMap["feather"]) {
-			placeCollectible(UBO_feather, gubo, glm::vec3(-1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage);
-			collectiblesBBs.push_back(BoundingBox("feather", glm::vec3(-1.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+			placeCollectible(UBO_feather, gubo, collectiblesRandomPosition[2], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage);
+			collectiblesBBs.push_back(BoundingBox("feather", collectiblesRandomPosition[2], glm::vec3(0.5f)));
 		} else {
 			removeCollectible(UBO_feather, gubo, ViewPrj, DS_feather, currentImage);
 		}
 		if (!collectiblesMap["leaf"]) {
-			placeCollectible(UBO_leaf, gubo, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage);
-			collectiblesBBs.push_back(BoundingBox("leaf", glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0.5f)));
+			placeCollectible(UBO_leaf, gubo, collectiblesRandomPosition[3], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage);
+			collectiblesBBs.push_back(BoundingBox("leaf", collectiblesRandomPosition[3], glm::vec3(0.5f)));
 		} else {
 			removeCollectible(UBO_leaf, gubo, ViewPrj, DS_leaf, currentImage);
 		}
 		if (!collectiblesMap["potion1"]) {
-			placeCollectible(UBO_potion1, gubo, glm::vec3(1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage);
-			collectiblesBBs.push_back(BoundingBox("potion1", glm::vec3(1.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+			placeCollectible(UBO_potion1, gubo, collectiblesRandomPosition[4], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage);
+			collectiblesBBs.push_back(BoundingBox("potion1", collectiblesRandomPosition[4], glm::vec3(0.5f)));
 		} else {
 			removeCollectible(UBO_potion1, gubo, ViewPrj, DS_potion1, currentImage);
 		}
 		if (!collectiblesMap["potion2"]) {
-			placeCollectible(UBO_potion2, gubo, glm::vec3(2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage);
-			collectiblesBBs.push_back(BoundingBox("potion2", glm::vec3(2.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+			placeCollectible(UBO_potion2, gubo, collectiblesRandomPosition[5], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage);
+			collectiblesBBs.push_back(BoundingBox("potion2", collectiblesRandomPosition[5], glm::vec3(0.5f)));
 		} else {
 			removeCollectible(UBO_potion2, gubo, ViewPrj, DS_potion2, currentImage);
 		}
 		if (!collectiblesMap["bone"]) {
-			placeCollectible(UBO_bone, gubo, glm::vec3(3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_bone, currentImage);
-			collectiblesBBs.push_back(BoundingBox("bone", glm::vec3(3.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+			placeCollectible(UBO_bone, gubo, collectiblesRandomPosition[6], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_bone, currentImage);
+			collectiblesBBs.push_back(BoundingBox("bone", collectiblesRandomPosition[6], glm::vec3(0.5f)));
 		} else {
 			removeCollectible(UBO_bone, gubo, ViewPrj, DS_bone, currentImage);
 		}
@@ -991,7 +1000,6 @@ public:
 				catPosition += cameraForward * m.z * MOVE_SPEED * deltaT;
 				//catPosition.y -= m.y * MOVE_SPEED * deltaT;
 				catPosition -= cameraRight * m.x * MOVE_SPEED * deltaT;
-				//std::cout << "Collision with collectible " << collectiblesBBs[i].getName() << std::endl;
 
 				collectiblesMap[collectiblesBBs[i].getName()] = true;
 				std::cout << "Collected " << collectiblesBBs[i].getName() << "!" << std::endl;
@@ -1049,6 +1057,18 @@ public:
 		ds.map(currentImage, &ubo, sizeof(ubo), 0);
 
 		ds.map(currentImage, &gubo, sizeof(gubo), 2);
+	}
+
+	glm::vec3 generateRandomPosition(int lowerBound, int upperBound) {
+		glm::vec3 randomPosition;
+
+		randomPosition = glm::vec3(
+			lowerBound + rand() % (upperBound - lowerBound + 1),
+			0.3f,
+			lowerBound + rand() % (upperBound - lowerBound + 1)
+		);
+
+		return randomPosition;
 	}
 };
 

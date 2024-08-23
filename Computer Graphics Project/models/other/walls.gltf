@@ -37,10 +37,10 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":788,
+			"count":300,
 			"max":[
 				7.570000171661377,
-				3.8722829818725586,
+				0.2874549329280853,
 				7.570000171661377
 			],
 			"min":[
@@ -53,51 +53,51 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":788,
+			"count":300,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":788,
+			"count":300,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":1848,
+			"count":564,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":9456,
+			"byteLength":3600,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":9456,
-			"byteOffset":9456,
+			"byteLength":3600,
+			"byteOffset":3600,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":6304,
-			"byteOffset":18912,
+			"byteLength":2400,
+			"byteOffset":7200,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3696,
-			"byteOffset":25216,
+			"byteLength":1128,
+			"byteOffset":9600,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":28912,
+			"byteLength":10728,
 			"uri":"walls.bin"
 		}
 	]
