@@ -2,6 +2,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <vector>
+#include <map>
+#include <string>
 #include "Starter.hpp"
 #include "BoundingBox.hpp"
 
@@ -49,7 +51,7 @@ struct Vertex {
 
 // MAIN ! 
 class MeshLoader : public BaseProject {
-	protected:
+protected:
 
 	// Current aspect ratio (used by the callback that resized the window
 	float Ar;
@@ -72,6 +74,22 @@ class MeshLoader : public BaseProject {
 	glm::vec3 catPosition = glm::vec3(6.0f, 0.0f, 0.0f);
 	// Cat initial orientation
 	float catYaw = glm::radians(270.0f);
+#include <map>
+#include <string>
+
+public:
+	std::map<std::string, bool> collectiblesMap;
+
+	MeshLoader() {
+		// Initialize items with names and set all isCollected to false
+		collectiblesMap["crystal"] = false;
+		collectiblesMap["eye"] = false;
+		collectiblesMap["feather"] = false;
+		collectiblesMap["leaf"] = false;
+		collectiblesMap["potion1"] = false;
+		collectiblesMap["potion2"] = false;
+		collectiblesMap["bone"] = false;
+	}
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSL;
@@ -118,7 +136,7 @@ class MeshLoader : public BaseProject {
 
 	// Textures
 	Texture T_textures, T_eye, T_closet, T_feather;
-	
+
 	// C++ storage for uniform variables
 	// Bathroom
 	UniformBufferObject UBO_bathtub, UBO_bidet, UBO_sink, UBO_toilet;
@@ -142,138 +160,138 @@ class MeshLoader : public BaseProject {
 		windowWidth = 800;
 		windowHeight = 600;
 		windowTitle = "Mesh Loader";
-    	windowResizable = GLFW_TRUE;
-		initialBackgroundColor = {0.5f, 0.5f, 0.5f, 1.0f};
-		
+		windowResizable = GLFW_TRUE;
+		initialBackgroundColor = { 0.5f, 0.5f, 0.5f, 1.0f };
+
 		// Descriptor pool sizes
 		uniformBlocksInPool = 200; //30
 		texturesInPool = 100;	//5
 		setsInPool = 200;	//30
-		
+
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
-	
+
 	// What to do when the window changes size
 	void onWindowResize(int w, int h) {
 		std::cout << "Window resized to: " << w << " x " << h << "\n";
 		Ar = (float)w / (float)h;
 	}
-	
+
 	// Here you load and setup all your Vulkan Models and Texutures.
 	// Here you also create your Descriptor set layouts and load the shaders for the pipelines
 	void localInit() {
 		// Descriptor Layouts [what will be passed to the shaders]
 		DSL.init(this, {
-					// this array contains the bindings:
-					// first  element : the binding number
-					// second element : the type of element (buffer or texture)
-					//                  using the corresponding Vulkan constant
-					// third  element : the pipeline stage where it will be used
-					//                  using the corresponding Vulkan constant
-					{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-					{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
-					{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-					{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT},  // New binding for emissive color
-					{4, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}   // New binding for bloom effect
-				});
+			// this array contains the bindings:
+			// first  element : the binding number
+			// second element : the type of element (buffer or texture)
+			//                  using the corresponding Vulkan constant
+			// third  element : the pipeline stage where it will be used
+			//                  using the corresponding Vulkan constant
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+			{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT},  // New binding for emissive color
+			{4, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}   // New binding for bloom effect
+			});
 
 		// Vertex descriptors
 		VD.init(this, {
-				  // this array contains the bindings
-				  // first  element : the binding number
-				  // second element : the stride of this binging
-				  // third  element : whether this parameter change per vertex or per instance
-				  //                  using the corresponding Vulkan constant
-				  {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}
-				}, {
-				  // this array contains the location
-				  // first  element : the binding number
-				  // second element : the location number
-				  // third  element : the offset of this element in the memory record
-				  // fourth element : the data type of the element
-				  //                  using the corresponding Vulkan constant
-				  // fifth  elmenet : the size in byte of the element
-				  // sixth  element : a constant defining the element usage
-				  //                   POSITION - a vec3 with the position
-				  //                   NORMAL   - a vec3 with the normal vector
-				  //                   UV       - a vec2 with a UV coordinate
-				  //                   COLOR    - a vec4 with a RGBA color
-				  //                   TANGENT  - a vec4 with the tangent vector
-				  //                   OTHER    - anything else
-				  //
-				  // ***************** DOUBLE CHECK ********************
-				  //    That the Vertex data structure you use in the "offsetoff" and
-				  //	in the "sizeof" in the previous array, refers to the correct one,
-				  //	if you have more than one vertex format!
-				  // ***************************************************
-				  {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
-						 sizeof(glm::vec3), POSITION},
-				  {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, UV),
-						 sizeof(glm::vec2), UV},
-				  {0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm),
-						 sizeof(glm::vec3), NORMAL}
-				});
+			// this array contains the bindings
+			// first  element : the binding number
+			// second element : the stride of this binging
+			// third  element : whether this parameter change per vertex or per instance
+			//                  using the corresponding Vulkan constant
+			{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}
+			}, {
+				// this array contains the location
+				// first  element : the binding number
+				// second element : the location number
+				// third  element : the offset of this element in the memory record
+				// fourth element : the data type of the element
+				//                  using the corresponding Vulkan constant
+				// fifth  elmenet : the size in byte of the element
+				// sixth  element : a constant defining the element usage
+				//                   POSITION - a vec3 with the position
+				//                   NORMAL   - a vec3 with the normal vector
+				//                   UV       - a vec2 with a UV coordinate
+				//                   COLOR    - a vec4 with a RGBA color
+				//                   TANGENT  - a vec4 with the tangent vector
+				//                   OTHER    - anything else
+				//
+				// ***************** DOUBLE CHECK ********************
+				//    That the Vertex data structure you use in the "offsetoff" and
+				//	in the "sizeof" in the previous array, refers to the correct one,
+				//	if you have more than one vertex format!
+				// ***************************************************
+				{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
+					   sizeof(glm::vec3), POSITION},
+				{0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, UV),
+					   sizeof(glm::vec2), UV},
+				{0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm),
+					   sizeof(glm::vec3), NORMAL}
+			});
 
-		// Pipelines [Shader couples]
-		// The second parameter is the pointer to the vertex definition
-		// Third and fourth parameters are respectively the vertex and fragment shaders
-		// The last array, is a vector of pointer to the layouts of the sets that will
-		// be used in this pipeline. The first element will be set 0, and so on..
-		P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", {&DSL});
-		P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+			// Pipelines [Shader couples]
+			// The second parameter is the pointer to the vertex definition
+			// Third and fourth parameters are respectively the vertex and fragment shaders
+			// The last array, is a vector of pointer to the layouts of the sets that will
+			// be used in this pipeline. The first element will be set 0, and so on..
+			P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL });
+			P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
-		// Models, textures and Descriptors (values assigned to the uniforms)
+			// Models, textures and Descriptors (values assigned to the uniforms)
 
-		// Create models
-		// The second parameter is the pointer to the vertex definition for this model
-		// The third parameter is the file name
-		// The last is a constant specifying the file type: currently only OBJ or GLTF
-		M_bathtub.init(this, &VD, "models/bathroom/bathroom_bathtub.gltf", GLTF);
-		M_bidet.init(this, &VD, "models/bathroom/bathroom_bidet.gltf", GLTF);
-		M_sink.init(this, &VD, "models/bathroom/bathroom_sink.gltf", GLTF);
-		M_toilet.init(this, &VD, "models/bathroom/bathroom_toilet.gltf", GLTF);
+			// Create models
+			// The second parameter is the pointer to the vertex definition for this model
+			// The third parameter is the file name
+			// The last is a constant specifying the file type: currently only OBJ or GLTF
+			M_bathtub.init(this, &VD, "models/bathroom/bathroom_bathtub.gltf", GLTF);
+			M_bidet.init(this, &VD, "models/bathroom/bathroom_bidet.gltf", GLTF);
+			M_sink.init(this, &VD, "models/bathroom/bathroom_sink.gltf", GLTF);
+			M_toilet.init(this, &VD, "models/bathroom/bathroom_toilet.gltf", GLTF);
 
-		M_bed.init(this, &VD, "models/bedroom/bedroom_bed.gltf", GLTF);
-		M_closet.init(this, &VD, "models/bedroom/bedroom_closet.gltf", GLTF);
-		M_nighttable.init(this, &VD, "models/bedroom/bedroom_night_table.gltf", GLTF);
+			M_bed.init(this, &VD, "models/bedroom/bedroom_bed.gltf", GLTF);
+			M_closet.init(this, &VD, "models/bedroom/bedroom_closet.gltf", GLTF);
+			M_nighttable.init(this, &VD, "models/bedroom/bedroom_night_table.gltf", GLTF);
 
-		M_bone.init(this, &VD, "models/collectibles/coll_bone.gltf", GLTF);
-		M_crystal.init(this, &VD, "models/collectibles/coll_crystal.gltf", GLTF);
-		M_eye.init(this, &VD, "models/collectibles/coll_eye.gltf", GLTF);
-		M_feather.init(this, &VD, "models/collectibles/coll_feather.gltf", GLTF);
-		M_leaf.init(this, &VD, "models/collectibles/coll_leaf.gltf", GLTF);
-		M_potion1.init(this, &VD, "models/collectibles/coll_potion1.gltf", GLTF);
-		M_potion2.init(this, &VD, "models/collectibles/coll_potion2.gltf", GLTF);
+			M_bone.init(this, &VD, "models/collectibles/coll_bone.gltf", GLTF);
+			M_crystal.init(this, &VD, "models/collectibles/coll_crystal.gltf", GLTF);
+			M_eye.init(this, &VD, "models/collectibles/coll_eye.gltf", GLTF);
+			M_feather.init(this, &VD, "models/collectibles/coll_feather.gltf", GLTF);
+			M_leaf.init(this, &VD, "models/collectibles/coll_leaf.gltf", GLTF);
+			M_potion1.init(this, &VD, "models/collectibles/coll_potion1.gltf", GLTF);
+			M_potion2.init(this, &VD, "models/collectibles/coll_potion2.gltf", GLTF);
 
-		M_chair.init(this, &VD, "models/kitchen/kitchen_chair.gltf", GLTF);
-		M_fridge.init(this, &VD, "models/kitchen/kitchen_fridge.gltf", GLTF);
-		M_kitchen.init(this, &VD, "models/kitchen/kitchen_kitchen.gltf", GLTF);
-		M_kitchentable.init(this, &VD, "models/kitchen/kitchen_table.gltf", GLTF);
+			M_chair.init(this, &VD, "models/kitchen/kitchen_chair.gltf", GLTF);
+			M_fridge.init(this, &VD, "models/kitchen/kitchen_fridge.gltf", GLTF);
+			M_kitchen.init(this, &VD, "models/kitchen/kitchen_kitchen.gltf", GLTF);
+			M_kitchentable.init(this, &VD, "models/kitchen/kitchen_table.gltf", GLTF);
 
-		M_cauldron.init(this, &VD, "models/lair/lair_cauldron.gltf", GLTF);
-		M_stonechair.init(this, &VD, "models/lair/lair_chair.gltf", GLTF);
-		M_chest.init(this, &VD, "models/lair/lair_chest.gltf", GLTF);
-		M_shelf1.init(this, &VD, "models/lair/lair_shelf1.gltf", GLTF);
-		M_shelf2.init(this, &VD, "models/lair/lair_shelf2.gltf", GLTF);
-		M_stonetable.init(this, &VD, "models/lair/lair_table.gltf", GLTF);
+			M_cauldron.init(this, &VD, "models/lair/lair_cauldron.gltf", GLTF);
+			M_stonechair.init(this, &VD, "models/lair/lair_chair.gltf", GLTF);
+			M_chest.init(this, &VD, "models/lair/lair_chest.gltf", GLTF);
+			M_shelf1.init(this, &VD, "models/lair/lair_shelf1.gltf", GLTF);
+			M_shelf2.init(this, &VD, "models/lair/lair_shelf2.gltf", GLTF);
+			M_stonetable.init(this, &VD, "models/lair/lair_table.gltf", GLTF);
 
-		M_sofa.init(this, &VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
-		M_table.init(this, &VD, "models/livingroom/livingroom_table.gltf", GLTF);
-		M_tv.init(this, &VD, "models/livingroom/livingroom_tv.gltf", GLTF);
+			M_sofa.init(this, &VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
+			M_table.init(this, &VD, "models/livingroom/livingroom_table.gltf", GLTF);
+			M_tv.init(this, &VD, "models/livingroom/livingroom_tv.gltf", GLTF);
 
-		M_cat.init(this, &VD, "models/other/cat.gltf", GLTF);
-		M_floor.init(this, &VD, "models/other/floor.gltf", GLTF);
-		M_walls.init(this, &VD, "models/other/walls.gltf", GLTF);
-		
+			M_cat.init(this, &VD, "models/other/cat.gltf", GLTF);
+			M_floor.init(this, &VD, "models/other/floor.gltf", GLTF);
+			M_walls.init(this, &VD, "models/other/walls.gltf", GLTF);
 
-		// Create the textures
-		// The second parameter is the file name
-		T_textures.init(this, "textures/textures.png");
-		T_closet.init(this, "textures/closet.png");
-		T_eye.init(this, "textures/eye_texture.jpg");
-		T_feather.init(this, "textures/fabrics_0038_color_1k.jpg");
+
+			// Create the textures
+			// The second parameter is the file name
+			T_textures.init(this, "textures/textures.png");
+			T_closet.init(this, "textures/closet.png");
+			T_eye.init(this, "textures/eye_texture.jpg");
+			T_feather.init(this, "textures/fabrics_0038_color_1k.jpg");
 	}
-	
+
 	// Here you create your pipelines and Descriptor Sets!
 	void pipelinesAndDescriptorSetsInit() {
 		// This creates a new pipeline (with the current surface), using its shaders
@@ -605,11 +623,11 @@ class MeshLoader : public BaseProject {
 		// Destroies the pipelines
 		P.destroy();
 	}
-	
+
 	// Here it is the creation of the command buffer:
 	// You send to the GPU all the objects you want to draw,
 	// with their buffers and textures
-	
+
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
 		// binds the pipeline
 		P.bind(commandBuffer);
@@ -623,15 +641,15 @@ class MeshLoader : public BaseProject {
 		// As described in the Vulkan tutorial, a different dataset is required for each image in the swap chain.
 		// This is done automatically in file Starter.hpp, however the command here needs also the index
 		// of the current image in the swap chain, passed in its last parameter
-					
+
 		// binds the model
 		M_bed.bind(commandBuffer);
 		// For a Model object, this command binds the corresponing index and vertex buffer
 		// to the command buffer passed in its parameter
-		
+
 		// record the drawing command in the command buffer
 		vkCmdDrawIndexed(commandBuffer,
-				static_cast<uint32_t>(M_bed.indices.size()), 1, 0, 0, 0);
+			static_cast<uint32_t>(M_bed.indices.size()), 1, 0, 0, 0);
 		// the second parameter is the number of indexes to be drawn. For a Model object,
 		// this can be retrieved with the .indices.size() method.a
 
@@ -757,11 +775,11 @@ class MeshLoader : public BaseProject {
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
 		// Standard procedure to quit when the ESC key is pressed
-		if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 
-		
+
 		// Integration with the timers and the controllers
 		float deltaT;
 		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
@@ -816,28 +834,6 @@ class MeshLoader : public BaseProject {
 			catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);
 		}
 
-		// Check for collisions with the collectibles
-		BoundingBox catBox = BoundingBox(catPosition, glm::vec3(0.13f, 0.6f, 1.0f));
-		// Bounding boxes for the cat and the collectibles
-		std::vector<BoundingBox> collectiblesBBs;
-		collectiblesBBs.push_back(BoundingBox(glm::vec3(-3.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-		collectiblesBBs.push_back(BoundingBox(glm::vec3(-2.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-		collectiblesBBs.push_back(BoundingBox(glm::vec3(-1.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-		collectiblesBBs.push_back(BoundingBox(glm::vec3(0.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-		collectiblesBBs.push_back(BoundingBox(glm::vec3(1.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-		collectiblesBBs.push_back(BoundingBox(glm::vec3(2.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-		collectiblesBBs.push_back(BoundingBox(glm::vec3(3.f, 0.5f, 0.0f), glm::vec3(0.5f)));
-
-
-		for (int i = 0; i < collectiblesBBs.size(); i++) {
-			if (catBox.intersects(collectiblesBBs[i])) {
-				catPosition += cameraForward * m.z * MOVE_SPEED * deltaT;
-				//catPosition.y -= m.y * MOVE_SPEED * deltaT;
-				catPosition -= cameraRight * m.x * MOVE_SPEED * deltaT;
-				std::cout << "Collision with collectible " << i << std::endl;
-			}
-		}
-
 		// Limit the cat's movement to the house
 		catPosition.x = glm::clamp(catPosition.x, -7.2f, 7.2f);
 		catPosition.z = glm::clamp(catPosition.z, -7.2f, 7.2f);
@@ -863,15 +859,15 @@ class MeshLoader : public BaseProject {
 		const float FOVy = glm::radians(45.0f);
 		const float nearPlane = 0.1f;
 		const float farPlane = 300.0f;
-		
+
 		glm::mat4 M = glm::perspective(FOVy, Ar, nearPlane, farPlane);
 		M[1][1] *= -1;
 
 		// View matrix for camera following the cat
 		glm::mat4 Mv = glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
-				glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
-				glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
-				glm::translate(glm::mat4(1.0f), -camPos);
+			glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
+			glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
+			glm::translate(glm::mat4(1.0f), -camPos);
 
 		glm::mat4 ViewPrj = M * Mv;
 
@@ -889,7 +885,7 @@ class MeshLoader : public BaseProject {
 		gubo.constant[0] = 1.0f;    // Typically 1.0 for no attenuation
 		gubo.linear[0] = 0.09f;     // Small factor for linear attenuation
 		gubo.quadratic[0] = 0.032f; // Even smaller factor for quadratic attenuation
-		
+
 		gubo.lightPos[1] = glm::vec3(-7.0f, 2.0f, -7.0f);	// position: witch lair
 		gubo.lightColor[1] = glm::vec3(0.01f, 0.f, 0.05f);	// color: purple
 		gubo.constant[1] = 0.1f;
@@ -903,7 +899,14 @@ class MeshLoader : public BaseProject {
 		bloomUBO.blurAmount = 0.01f;     // Example value, set as needed
 
 
+
+		// Check for collisions with the collectibles
+
+		// Bounding boxes for the cat and the collectibles
+		std::vector<BoundingBox> collectiblesBBs;
+
 		placeObject(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.0f), ViewPrj, DS_cat, currentImage);
+		BoundingBox catBox = BoundingBox("cat", catPosition, glm::vec3(0.13f, 0.6f, 1.0f));
 
 		placeObject(UBO_floor, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_floor, currentImage);
 		//placeObject(UBO_walls, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_walls, currentImage);
@@ -939,13 +942,66 @@ class MeshLoader : public BaseProject {
 		placeObject(UBO_sink, gubo, glm::vec3(-1.7f, 0.0f, -4.7f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_sink, currentImage);
 
 		// Collectibles
-		placeCollectible(UBO_crystal, gubo, glm::vec3(-3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage);
-		placeCollectible(UBO_eye, gubo, glm::vec3(-2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage);
-		placeCollectible(UBO_feather, gubo, glm::vec3(-1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage);
-		placeCollectible(UBO_leaf, gubo, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage);
-		placeCollectible(UBO_potion1, gubo, glm::vec3(1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage);
-		placeCollectible(UBO_potion2, gubo, glm::vec3(2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage);
-		placeCollectible(UBO_bone, gubo, glm::vec3(3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_bone, currentImage);
+		if (!collectiblesMap["crystal"]) {
+			placeCollectible(UBO_crystal, gubo, glm::vec3(-3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage);
+			collectiblesBBs.push_back(BoundingBox("crystal", glm::vec3(-3.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+		} else {
+			removeCollectible(UBO_crystal, gubo, ViewPrj, DS_crystal, currentImage);	// it actually scales to zero -> not efficient
+		}
+
+		if (!collectiblesMap["eye"]) {
+			placeCollectible(UBO_eye, gubo, glm::vec3(-2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage);
+			collectiblesBBs.push_back(BoundingBox("eye", glm::vec3(-2.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+		} else {
+			removeCollectible(UBO_eye, gubo, ViewPrj, DS_eye, currentImage);
+		}
+		if (!collectiblesMap["feather"]) {
+			placeCollectible(UBO_feather, gubo, glm::vec3(-1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage);
+			collectiblesBBs.push_back(BoundingBox("feather", glm::vec3(-1.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+		} else {
+			removeCollectible(UBO_feather, gubo, ViewPrj, DS_feather, currentImage);
+		}
+		if (!collectiblesMap["leaf"]) {
+			placeCollectible(UBO_leaf, gubo, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage);
+			collectiblesBBs.push_back(BoundingBox("leaf", glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0.5f)));
+		} else {
+			removeCollectible(UBO_leaf, gubo, ViewPrj, DS_leaf, currentImage);
+		}
+		if (!collectiblesMap["potion1"]) {
+			placeCollectible(UBO_potion1, gubo, glm::vec3(1.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage);
+			collectiblesBBs.push_back(BoundingBox("potion1", glm::vec3(1.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+		} else {
+			removeCollectible(UBO_potion1, gubo, ViewPrj, DS_potion1, currentImage);
+		}
+		if (!collectiblesMap["potion2"]) {
+			placeCollectible(UBO_potion2, gubo, glm::vec3(2.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage);
+			collectiblesBBs.push_back(BoundingBox("potion2", glm::vec3(2.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+		} else {
+			removeCollectible(UBO_potion2, gubo, ViewPrj, DS_potion2, currentImage);
+		}
+		if (!collectiblesMap["bone"]) {
+			placeCollectible(UBO_bone, gubo, glm::vec3(3.f, 0.5f, 0.0f), glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_bone, currentImage);
+			collectiblesBBs.push_back(BoundingBox("bone", glm::vec3(3.f, 0.5f, 0.0f), glm::vec3(0.5f)));
+		} else {
+			removeCollectible(UBO_bone, gubo, ViewPrj, DS_bone, currentImage);
+		}
+
+		for (int i = 0; i < collectiblesBBs.size(); i++) {
+			if (catBox.intersects(collectiblesBBs[i])) {
+				catPosition += cameraForward * m.z * MOVE_SPEED * deltaT;
+				//catPosition.y -= m.y * MOVE_SPEED * deltaT;
+				catPosition -= cameraRight * m.x * MOVE_SPEED * deltaT;
+				//std::cout << "Collision with collectible " << collectiblesBBs[i].getName() << std::endl;
+
+				collectiblesMap[collectiblesBBs[i].getName()] = true;
+				std::cout << "Collected " << collectiblesBBs[i].getName() << "!" << std::endl;
+
+				if (collectiblesMap["crystal"] && collectiblesMap["eye"] && collectiblesMap["feather"] && collectiblesMap["leaf"] && collectiblesMap["potion1"] && collectiblesMap["potion2"] && collectiblesMap["bone"]) {
+					std::cout << "\nALL COLLECTIBLES COLLECTED!" << std::endl;
+				}
+			}
+		}
+
 	}
 
 	void placeObject(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage) {
@@ -964,7 +1020,7 @@ class MeshLoader : public BaseProject {
 		// the third parameter is its size
 		// the fourth parameter is the location inside the descriptor set of this uniform block
 
-		glm::vec3 emissiveColor = glm::vec3(0.0f, 0.0f, 0.0f); // Set the emissive color
+		glm::vec3 emissiveColor = glm::vec3(0.f); // Set the emissive color
 		ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 3);
 	}
 
@@ -981,8 +1037,18 @@ class MeshLoader : public BaseProject {
 
 		ds.map(currentImage, &gubo, sizeof(gubo), 2);
 
-		glm::vec3 emissiveColor = glm::vec3(2.0f, 2.0f, 2.0f); // Set the emissive color
+		glm::vec3 emissiveColor = glm::vec3(2.f); // Set the emissive color
 		ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 3);
+	}
+
+	void removeCollectible(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage) {
+		glm::mat4 World = glm::scale(glm::mat4(1), glm::vec3(0.f));
+		ubo.mvpMat = ViewPrj * World;
+		ubo.mMat = World;
+		ubo.nMat = glm::transpose(glm::inverse(World));
+		ds.map(currentImage, &ubo, sizeof(ubo), 0);
+
+		ds.map(currentImage, &gubo, sizeof(gubo), 2);
 	}
 };
 
