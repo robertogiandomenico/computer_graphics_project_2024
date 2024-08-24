@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <cmath>	// for mod()
 #include "Starter.hpp"
 #include "BoundingBox.hpp"
 #include <cstdlib>  // For rand() and srand()
@@ -63,10 +64,10 @@ protected:
 	// Other application parameters
 	glm::vec3 camPos = glm::vec3(0.0, 1.5, 7.0);
 	float camYaw = glm::radians(90.0f);
-	float camPitch = glm::radians(-30.0f);
+	float camPitch = glm::radians(-10.0f);
 	float camRoll = 0.0f;
 	float camDist = 1.0f;
-	const glm::vec3 CamTargetDelta = glm::vec3(0, 10, 0);
+	const glm::vec3 CamTargetDelta = glm::vec3(0, 2, 0);
 	//const glm::vec3 Cam1stPos = glm::vec3(0.49061f, 2.07f, 2.7445f);
 	float Yaw = 0.0f;
 	// Rotation angle for the cube
@@ -80,6 +81,12 @@ protected:
 	float catYaw = glm::radians(270.0f);
 
 	glm::vec3 collectiblesRandomPosition[COLLECTIBLES_NUM];
+
+	// Timer setup
+	const float GAME_DURATION = 120.0f;		// 2 minutes = 120 seconds
+	float totalElapsedTime = 0.0f;			// in seconds
+	float remainingTime = GAME_DURATION;	
+	int lastDisplayedTime = static_cast<int>(GAME_DURATION);
 
 	public:
 		std::map<std::string, bool> collectiblesMap;
@@ -846,6 +853,21 @@ protected:
 		// If fills the last boolean variable with true if fire has been pressed:
 		//          SPACE on the keyboard, A or B button on the Gamepad, Right mouse button
 
+		// Check if game is over because time has run out
+		totalElapsedTime += deltaT;
+		remainingTime = GAME_DURATION - totalElapsedTime;
+		
+		if (totalElapsedTime >= GAME_DURATION) {
+			// game over logic goes here
+			// for now it just closes the window
+			std::cout << "Game Over" << std::endl;
+			glfwSetWindowShouldClose(window, GL_TRUE);
+		}
+		else if (static_cast<int>(remainingTime) != lastDisplayedTime) {
+			std::cout << "Time remaining: " << static_cast<int>(remainingTime) << std::endl;
+			lastDisplayedTime = static_cast<int>(remainingTime);
+		}
+
 
 		// Parameters for camera movement and rotation
 		const float ROT_SPEED = glm::radians(90.0f);
@@ -857,11 +879,9 @@ protected:
 		camRoll -= ROT_SPEED * deltaT * r.z;
 		camDist -= MOVE_SPEED * deltaT * m.y;
 
-		// Limit the pitch to avoid gimbal lock
-		camPitch = camPitch < glm::radians(-90.0f) ? glm::radians(-90.0f) :
-			(camPitch > glm::radians(90.0f) ? glm::radians(90.0f) : camPitch);
-
-		camDist = (camDist < 7.0f ? 7.0f : (camDist > 15.0f ? 15.0f : camDist));
+		// Limit the distance from the cat and the pitch to avoid gimbal lock
+		camDist = glm::clamp(camDist, 3.0f, 15.0f);
+		camPitch = glm::clamp(camPitch, glm::radians(-10.0f), glm::radians(89.0f));
 
 		// Camera movement + redefine forward and right vectors
 		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(1, 0, 0, 1);
@@ -869,8 +889,8 @@ protected:
 		glm::vec3 cameraForward = glm::normalize(glm::vec3(sin(camYaw), 0.0f, cos(camYaw)));
 		glm::vec3 cameraRight = glm::normalize(glm::vec3(cos(camYaw), 0.0f, -sin(camYaw)));
 
+		// Cat movement
 		if ((m.x != 0) || (m.z != 0)) {
-			// Cat movement
 			// catPosition.x += m.x * MOVE_SPEED * deltaT;	// Move left/right
 			//catPosition.y += m.y * MOVE_SPEED * deltaT;	// Move up/down - do not enable otherwise cat flies
 			// catPosition.z -= m.z * MOVE_SPEED * deltaT;	// Move forward/backward
@@ -880,9 +900,7 @@ protected:
 			// Cat rotation based on the movement vector
 			float targetYaw = atan2(m.z, m.x);
 			targetYaw += glm::radians(90.0f); // same as + 3.1416 / 2.0
-			// catYaw += (targetYaw - catYaw) * deltaT * 6.0f;	  // 6.0f is the damping factor
-			// catYaw = glm::mix(catYaw, targetYaw, 0.1f);		  // alternative way to make the cat rotate smoothly
-			catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);
+			catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);	// 6.0 is the damping factor
 		}
 
 		// Limit the cat's movement to the house
@@ -902,7 +920,6 @@ protected:
 
 		camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
 			glm::vec4(0, 0, camDist, 1));
-
 
 		// Parameters
 		// Camera FOV-y, Near Plane and Far Plane
@@ -952,8 +969,8 @@ protected:
 		// Bounding boxes for the cat and the collectibles
 		std::vector<BoundingBox> collectiblesBBs;
 
-		placeObject(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.0f), ViewPrj, DS_cat, currentImage);
-		BoundingBox catBox = BoundingBox("cat", catPosition, glm::vec3(0.13f, 0.6f, 1.0f));
+		placeObject(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(0.7f), ViewPrj, DS_cat, currentImage);
+		BoundingBox catBox = BoundingBox("cat", catPosition, glm::vec3(0.09f, 0.42f, 0.7f));
 
 		placeObject(UBO_floor, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_floor, currentImage);
 		placeObject(UBO_walls, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_walls, currentImage);
@@ -1045,6 +1062,9 @@ protected:
 
 				if (collectiblesMap["crystal"] && collectiblesMap["eye"] && collectiblesMap["feather"] && collectiblesMap["leaf"] && collectiblesMap["potion1"] && collectiblesMap["potion2"] && collectiblesMap["bone"]) {
 					std::cout << "\nALL COLLECTIBLES COLLECTED!" << std::endl;
+					// win logic goes here
+					std::cout << "You won!" << std::endl;
+					glfwSetWindowShouldClose(window, GL_TRUE);
 				}
 			}
 		}
