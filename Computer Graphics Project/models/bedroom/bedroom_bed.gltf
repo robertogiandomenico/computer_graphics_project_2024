@@ -17,9 +17,9 @@
 			"mesh":0,
 			"name":"bed",
 			"translation":[
-				5.066366195678711,
+				11.42087459564209,
 				-1.9073369912803173e-05,
-				-4.297018051147461
+				-9.770669937133789
 			]
 		}
 	],
@@ -42,67 +42,67 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":374,
+			"count":497,
 			"max":[
-				2.2757248878479004,
-				0.6361186504364014,
-				1
+				1.0000001192092896,
+				1.1389801502227783,
+				2.236968994140625
 			],
 			"min":[
-				-2.236968994140625,
-				0.00951695442199707,
-				-1
+				-1.0000001192092896,
+				0.0013058185577392578,
+				-2.2757248878479004
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":374,
+			"count":497,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":374,
+			"count":497,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":828,
+			"count":1296,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":4488,
+			"byteLength":5964,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4488,
-			"byteOffset":4488,
+			"byteLength":5964,
+			"byteOffset":5964,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2992,
-			"byteOffset":8976,
+			"byteLength":3976,
+			"byteOffset":11928,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1656,
-			"byteOffset":11968,
+			"byteLength":2592,
+			"byteOffset":15904,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":13624,
+			"byteLength":18496,
 			"uri":"bedroom_bed.bin"
 		}
 	]

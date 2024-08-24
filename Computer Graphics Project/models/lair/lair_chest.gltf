@@ -17,9 +17,9 @@
 			"mesh":0,
 			"name":"chest",
 			"translation":[
-				-4.872583389282227,
+				-6.2937445640563965,
 				-1.1682510375976562e-05,
-				-6.923013210296631
+				-12.042871475219727
 			]
 		}
 	],
@@ -42,7 +42,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":1523,
+			"count":1003,
 			"max":[
 				1.2026572227478027,
 				2.07869291305542,
@@ -58,13 +58,13 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":1523,
+			"count":1003,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":1523,
+			"count":1003,
 			"type":"VEC2"
 		},
 		{
@@ -77,32 +77,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":18276,
+			"byteLength":12036,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":18276,
-			"byteOffset":18276,
+			"byteLength":12036,
+			"byteOffset":12036,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":12184,
-			"byteOffset":36552,
+			"byteLength":8024,
+			"byteOffset":24072,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":4668,
-			"byteOffset":48736,
+			"byteOffset":32096,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":53404,
+			"byteLength":36764,
 			"uri":"lair_chest.bin"
 		}
 	]

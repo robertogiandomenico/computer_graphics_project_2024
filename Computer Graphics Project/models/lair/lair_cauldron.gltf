@@ -17,9 +17,9 @@
 			"mesh":0,
 			"name":"trunk1",
 			"translation":[
-				-3.5153708457946777,
+				-7.024930000305176,
 				0.07273067533969879,
-				-6.07025671005249
+				-8.81013011932373
 			]
 		}
 	],
@@ -42,7 +42,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":3305,
+			"count":3195,
 			"max":[
 				0.6007959842681885,
 				0.6822444200515747,
@@ -58,13 +58,13 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":3305,
+			"count":3195,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":3305,
+			"count":3195,
 			"type":"VEC2"
 		},
 		{
@@ -77,32 +77,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":39660,
+			"byteLength":38340,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":39660,
-			"byteOffset":39660,
+			"byteLength":38340,
+			"byteOffset":38340,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":26440,
-			"byteOffset":79320,
+			"byteLength":25560,
+			"byteOffset":76680,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":10128,
-			"byteOffset":105760,
+			"byteOffset":102240,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":115888,
+			"byteLength":112368,
 			"uri":"lair_cauldron.bin"
 		}
 	]

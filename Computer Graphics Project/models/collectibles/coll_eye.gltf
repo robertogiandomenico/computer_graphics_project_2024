@@ -17,9 +17,9 @@
 			"mesh":0,
 			"name":"Eye Bulb",
 			"translation":[
-				-1.6853337287902832,
+				-3.4585018157958984,
 				0.4550222158432007,
-				-0.020601099357008934
+				0.27492690086364746
 			]
 		}
 	],
@@ -42,29 +42,29 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":220,
+			"count":75,
 			"max":[
-				0.09672966599464417,
-				0.09672965854406357,
-				0.09199538081884384
+				0.1630607545375824,
+				0.1630607396364212,
+				0.15507999062538147
 			],
 			"min":[
-				-0.09672966599464417,
-				-0.09672965854406357,
-				-0.09199538826942444
+				-0.1630607545375824,
+				-0.1630607396364212,
+				-0.15508000552654266
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":220,
+			"count":75,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":220,
+			"count":75,
 			"type":"VEC2"
 		},
 		{
@@ -77,32 +77,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":2640,
+			"byteLength":900,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2640,
-			"byteOffset":2640,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":1760,
-			"byteOffset":5280,
+			"byteLength":900,
+			"byteOffset":900,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":600,
-			"byteOffset":7040,
+			"byteOffset":1800,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":600,
+			"byteOffset":2400,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":7640,
+			"byteLength":3000,
 			"uri":"coll_eye.bin"
 		}
 	]

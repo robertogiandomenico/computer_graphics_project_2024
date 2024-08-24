@@ -23,9 +23,9 @@
 				0.7071068286895752
 			],
 			"translation":[
-				-5.123680114746094,
+				-9.471224784851074,
 				2.9446611404418945,
-				-7.14919376373291
+				-12.22176742553711
 			]
 		}
 	],
@@ -48,7 +48,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":1292,
+			"count":875,
 			"max":[
 				0.2972354292869568,
 				0.4665146470069885,
@@ -64,13 +64,13 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":1292,
+			"count":875,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":1292,
+			"count":875,
 			"type":"VEC2"
 		},
 		{
@@ -83,32 +83,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":15504,
+			"byteLength":10500,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":15504,
-			"byteOffset":15504,
+			"byteLength":10500,
+			"byteOffset":10500,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":10336,
-			"byteOffset":31008,
+			"byteLength":7000,
+			"byteOffset":21000,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":4284,
-			"byteOffset":41344,
+			"byteOffset":28000,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":45628,
+			"byteLength":32284,
 			"uri":"lair_shelf2.bin"
 		}
 	]

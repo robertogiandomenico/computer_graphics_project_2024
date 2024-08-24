@@ -15,7 +15,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"floor+walls"
+			"name":"walls"
 		}
 	],
 	"meshes":[
@@ -37,67 +37,67 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":300,
+			"count":748,
 			"max":[
-				7.570000171661377,
-				0.2874549329280853,
-				7.570000171661377
+				12.614141464233398,
+				3.5039894580841064,
+				12.614141464233398
 			],
 			"min":[
-				-7.570000171661377,
+				-12.614141464233398,
 				0,
-				-7.570000171661377
+				-12.614141464233398
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":300,
+			"count":748,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":300,
+			"count":748,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":564,
+			"count":1860,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":3600,
+			"byteLength":8976,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3600,
-			"byteOffset":3600,
+			"byteLength":8976,
+			"byteOffset":8976,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2400,
-			"byteOffset":7200,
+			"byteLength":5984,
+			"byteOffset":17952,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1128,
-			"byteOffset":9600,
+			"byteLength":3720,
+			"byteOffset":23936,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":10728,
+			"byteLength":27656,
 			"uri":"walls.bin"
 		}
 	]

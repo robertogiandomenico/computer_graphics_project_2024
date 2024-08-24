@@ -15,7 +15,12 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cat-body"
+			"name":"Cat-body",
+			"translation":[
+				2.046804904937744,
+				0,
+				0.08756384998559952
+			]
 		}
 	],
 	"meshes":[
@@ -37,29 +42,29 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":982,
+			"count":751,
 			"max":[
-				0.13697658479213715,
-				0.6785635948181152,
-				0.6500375866889954
+				0.12845292687416077,
+				0.636338472366333,
+				0.6095876097679138
 			],
 			"min":[
-				-0.13697658479213715,
-				0.0012937940191477537,
-				-1.0259487628936768
+				-0.12845292687416077,
+				0.001213284907862544,
+				-0.9621068835258484
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":982,
+			"count":751,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":982,
+			"count":751,
 			"type":"VEC2"
 		},
 		{
@@ -72,32 +77,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":11784,
+			"byteLength":9012,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":11784,
-			"byteOffset":11784,
+			"byteLength":9012,
+			"byteOffset":9012,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":7856,
-			"byteOffset":23568,
+			"byteLength":6008,
+			"byteOffset":18024,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":2964,
-			"byteOffset":31424,
+			"byteOffset":24032,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":34388,
+			"byteLength":26996,
 			"uri":"cat.bin"
 		}
 	]

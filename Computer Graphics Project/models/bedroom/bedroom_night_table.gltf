@@ -17,9 +17,9 @@
 			"mesh":0,
 			"name":"night table",
 			"translation":[
-				6.71643590927124,
+				11.900202751159668,
 				0.0008287429809570312,
-				-2.289060115814209
+				-4.351041793823242
 			]
 		}
 	],
@@ -42,7 +42,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":876,
+			"count":860,
 			"max":[
 				0.5494540929794312,
 				1.2279947996139526,
@@ -58,13 +58,13 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":876,
+			"count":860,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":876,
+			"count":860,
 			"type":"VEC2"
 		},
 		{
@@ -77,32 +77,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":10512,
+			"byteLength":10320,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":10512,
-			"byteOffset":10512,
+			"byteLength":10320,
+			"byteOffset":10320,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":7008,
-			"byteOffset":21024,
+			"byteLength":6880,
+			"byteOffset":20640,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":3744,
-			"byteOffset":28032,
+			"byteOffset":27520,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":31776,
+			"byteLength":31264,
 			"uri":"bedroom_night_table.bin"
 		}
 	]

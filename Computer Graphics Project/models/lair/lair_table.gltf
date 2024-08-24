@@ -17,9 +17,9 @@
 			"mesh":0,
 			"name":"witch table",
 			"translation":[
-				-6.467260837554932,
+				-11.742107391357422,
 				-0.00023126602172851562,
-				-5.346695899963379
+				-10.169713020324707
 			]
 		}
 	],
@@ -42,7 +42,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":2131,
+			"count":1508,
 			"max":[
 				0.7482316493988037,
 				2.1681885719299316,
@@ -58,13 +58,13 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":2131,
+			"count":1508,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":2131,
+			"count":1508,
 			"type":"VEC2"
 		},
 		{
@@ -77,32 +77,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":25572,
+			"byteLength":18096,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":25572,
-			"byteOffset":25572,
+			"byteLength":18096,
+			"byteOffset":18096,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":17048,
-			"byteOffset":51144,
+			"byteLength":12064,
+			"byteOffset":36192,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":6972,
-			"byteOffset":68192,
+			"byteOffset":48256,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":75164,
+			"byteLength":55228,
 			"uri":"lair_table.bin"
 		}
 	]

@@ -17,9 +17,9 @@
 			"mesh":0,
 			"name":"Couch",
 			"translation":[
-				-6.70811128616333,
-				0.058311495929956436,
-				5.673581600189209
+				-12.019734382629395,
+				-3.2879412174224854e-05,
+				9.717106819152832
 			]
 		}
 	],
@@ -42,15 +42,15 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":443,
+			"count":343,
 			"max":[
 				0.5044041275978088,
-				1.002675175666809,
+				1.0629022121429443,
 				1.5
 			],
 			"min":[
 				-0.5041781067848206,
-				-0.057704925537109375,
+				0.0025221705436706543,
 				-1.5
 			],
 			"type":"VEC3"
@@ -58,13 +58,13 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":443,
+			"count":343,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":443,
+			"count":343,
 			"type":"VEC2"
 		},
 		{
@@ -77,32 +77,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":5316,
+			"byteLength":4116,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":5316,
-			"byteOffset":5316,
+			"byteLength":4116,
+			"byteOffset":4116,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3544,
-			"byteOffset":10632,
+			"byteLength":2744,
+			"byteOffset":8232,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":1728,
-			"byteOffset":14176,
+			"byteOffset":10976,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":15904,
+			"byteLength":12704,
 			"uri":"livingroom_sofa.bin"
 		}
 	]

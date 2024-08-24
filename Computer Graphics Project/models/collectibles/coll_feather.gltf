@@ -17,9 +17,9 @@
 			"mesh":0,
 			"name":"Feather",
 			"translation":[
-				-2.9257965087890625,
+				-7.173917770385742,
 				0.47816503047943115,
-				0.02485131099820137
+				0.07329525053501129
 			]
 		}
 	],
@@ -42,29 +42,29 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":216,
+			"count":104,
 			"max":[
-				0.033721547573804855,
-				0.17791609466075897,
-				0.3804340660572052
+				0.03888924792408943,
+				0.2051810771226883,
+				0.43873417377471924
 			],
 			"min":[
-				-0.15975099802017212,
-				-0.3026999235153198,
-				-0.2670328617095947
+				-0.18423224985599518,
+				-0.3476448059082031,
+				-0.30680152773857117
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":216,
+			"count":104,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":216,
+			"count":104,
 			"type":"VEC2"
 		},
 		{
@@ -77,32 +77,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":2592,
+			"byteLength":1248,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2592,
-			"byteOffset":2592,
+			"byteLength":1248,
+			"byteOffset":1248,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1728,
-			"byteOffset":5184,
+			"byteLength":832,
+			"byteOffset":2496,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":648,
-			"byteOffset":6912,
+			"byteOffset":3328,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":7560,
+			"byteLength":3976,
 			"uri":"coll_feather.bin"
 		}
 	]

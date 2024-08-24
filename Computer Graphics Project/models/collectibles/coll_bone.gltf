@@ -17,9 +17,9 @@
 			"mesh":0,
 			"name":"Bone",
 			"translation":[
-				-0.9585479497909546,
+				-1.046111822128296,
 				0.4911949634552002,
-				-0.02060111239552498
+				0.25303590297698975
 			]
 		}
 	],
@@ -42,29 +42,29 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":366,
+			"count":134,
 			"max":[
-				0.09588000923395157,
-				0.2857503592967987,
-				0.07772337645292282
+				0.11301816999912262,
+				0.3368270993232727,
+				0.09151092916727066
 			],
 			"min":[
-				-0.09588000923395157,
-				-0.2857503592967987,
-				-0.07866276800632477
+				-0.11301816999912262,
+				-0.3368270993232727,
+				-0.09272342920303345
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":366,
+			"count":134,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":366,
+			"count":134,
 			"type":"VEC2"
 		},
 		{
@@ -77,32 +77,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":4392,
+			"byteLength":1608,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4392,
-			"byteOffset":4392,
+			"byteLength":1608,
+			"byteOffset":1608,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2928,
-			"byteOffset":8784,
+			"byteLength":1072,
+			"byteOffset":3216,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":864,
-			"byteOffset":11712,
+			"byteOffset":4288,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":12576,
+			"byteLength":5152,
 			"uri":"coll_bone.bin"
 		}
 	]

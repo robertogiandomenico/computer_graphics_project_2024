@@ -17,9 +17,9 @@
 			"mesh":0,
 			"name":"table",
 			"translation":[
-				-6.141841411590576,
+				-10.744197845458984,
 				0.0010266304016113281,
-				2.7180912494659424
+				1.7408785820007324
 			]
 		}
 	],
@@ -42,7 +42,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":2059,
+			"count":1500,
 			"max":[
 				0.9510565400123596,
 				1.4733736515045166,
@@ -58,13 +58,13 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":2059,
+			"count":1500,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":2059,
+			"count":1500,
 			"type":"VEC2"
 		},
 		{
@@ -77,32 +77,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":24708,
+			"byteLength":18000,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":24708,
-			"byteOffset":24708,
+			"byteLength":18000,
+			"byteOffset":18000,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":16472,
-			"byteOffset":49416,
+			"byteLength":12000,
+			"byteOffset":36000,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":7320,
-			"byteOffset":65888,
+			"byteOffset":48000,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":73208,
+			"byteLength":55320,
 			"uri":"livingroom_table.bin"
 		}
 	]
