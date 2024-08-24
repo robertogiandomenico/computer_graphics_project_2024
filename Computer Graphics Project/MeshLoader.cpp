@@ -68,7 +68,7 @@ protected:
 	float camPitch = glm::radians(-10.0f);
 	float camRoll = 0.0f;
 	float camDist = 1.0f;
-	const glm::vec3 CamTargetDelta = glm::vec3(0, 2, 0);
+	const glm::vec3 CamTargetDelta = glm::vec3(0, 1.5f, 0);
 	//const glm::vec3 Cam1stPos = glm::vec3(0.49061f, 2.07f, 2.7445f);
 	float Yaw = 0.0f;
 	// Rotation angle for the cube
@@ -187,10 +187,10 @@ protected:
 	// Here you set the main application parameters
 	void setWindowParameters() {
 		// window size, titile and initial background
-		windowWidth = 800;
-		windowHeight = 600;
+		windowWidth = 1000;
+		windowHeight = 800;
 		windowTitle = "Mesh Loader";
-		windowResizable = GLFW_TRUE;
+		windowResizable = GLFW_FALSE;
 		initialBackgroundColor = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 		// Descriptor pool sizes
@@ -202,6 +202,7 @@ protected:
 	}
 
 	// What to do when the window changes size
+	// for now not used because windowResizable is set to GLFW_FALSE
 	void onWindowResize(int w, int h) {
 		std::cout << "Window resized to: " << w << " x " << h << "\n";
 		Ar = (float)w / (float)h;
@@ -337,7 +338,7 @@ protected:
 			T_eye.init(this, "textures/eye_texture.jpg");
 			T_feather.init(this, "textures/fabrics_0038_color_1k.jpg");
 
-			T_skyBox.init(this, "textures/starmap_g4k.jpg");
+			T_skyBox.init(this, "textures/Wall_01.png");
 	}
 
 	// Here you create your pipelines and Descriptor Sets!
@@ -888,6 +889,7 @@ protected:
 		// Limit the distance from the cat and the pitch to avoid gimbal lock
 		camDist = glm::clamp(camDist, 3.0f, 15.0f);
 		camPitch = glm::clamp(camPitch, glm::radians(-10.0f), glm::radians(89.0f));
+		// camRoll = glm::clamp(camRoll, glm::radians(-10.0f), glm::radians(10.0f));
 
 		// Camera movement + redefine forward and right vectors
 		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(1, 0, 0, 1);
