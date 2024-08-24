@@ -29,6 +29,9 @@
     <ClInclude Include="BoundingBox.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Utils.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\Shader.frag">

@@ -7,6 +7,7 @@
 #include <cmath>	// for mod()
 #include "Starter.hpp"
 #include "BoundingBox.hpp"
+#include "Utils.hpp"
 #include <cstdlib>  // For rand() and srand()
 #include <ctime>    // For time() - to seed rand()
 
@@ -29,12 +30,12 @@ struct UniformBufferObject {
 };
 
 struct GlobalUniformBufferObject {
-	glm::vec3 lightPos[LIGHTS_NUM];     // Position of the lights
-	glm::vec3 lightColor[LIGHTS_NUM];   // Color of the lights
-	glm::vec3 eyePos;					// Position of the camera/eye
-	float constant[LIGHTS_NUM];         // Constant attenuation factor
-	float linear[LIGHTS_NUM];           // Linear attenuation factor
-	float quadratic[LIGHTS_NUM];        // Quadratic attenuation factor
+	alignas(16) glm::vec3 lightPos[LIGHTS_NUM];     // Position of the lights
+	alignas(16) glm::vec3 lightColor[LIGHTS_NUM];   // Color of the lights
+	alignas(16) glm::vec3 eyePos;					// Position of the camera/eye
+	alignas(4) float constant[LIGHTS_NUM];         // Constant attenuation factor
+	alignas(4) float linear[LIGHTS_NUM];           // Linear attenuation factor
+	alignas(4) float quadratic[LIGHTS_NUM];        // Quadratic attenuation factor
 };
 
 struct skyBoxUniformBufferObject {
@@ -101,10 +102,18 @@ protected:
 			collectiblesMap["potion2"] = false;
 			collectiblesMap["bone"] = false;
 
-
 			srand(static_cast<unsigned int>(time(0)));
 			for (int i = 0; i < COLLECTIBLES_NUM; ++i) {
-				collectiblesRandomPosition[i] = generateRandomPosition(-5.9f, 5.9f);	// Square area where collectibles can spawn
+				glm::vec3 randomPosition = generateRandomPosition(-5.9f, 5.9f);
+
+				// make sure collectibles are not spawned in the same position or too close to each other
+				for (int j = 0; j < i; ++j) {
+					if (glm::distance(randomPosition, collectiblesRandomPosition[j]) < 2.0f) {
+						randomPosition = generateRandomPosition(-5.9f, 5.9f);
+						j = -1;
+					}
+				}
+				collectiblesRandomPosition[i] = randomPosition;
 			}
 		}
 
@@ -185,9 +194,9 @@ protected:
 		initialBackgroundColor = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 		// Descriptor pool sizes
-		uniformBlocksInPool = 200; //30
-		texturesInPool = 100;	//5
-		setsInPool = 200;	//30
+		uniformBlocksInPool = 93; //30 but works with >= 93
+		texturesInPool = 29;	  //5 but works with >= 29
+		setsInPool = 31;		  //31
 
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
@@ -686,7 +695,6 @@ protected:
 		// binds the pipeline
 		P.bind(commandBuffer);
 		// For a pipeline object, this command binds the corresponing pipeline to the command buffer passed in its parameter
-
 		// binds the data set
 		DS_bed.bind(commandBuffer, P, 0, currentImage);
 		// For a Dataset object, this command binds the corresponing dataset
@@ -695,12 +703,10 @@ protected:
 		// As described in the Vulkan tutorial, a different dataset is required for each image in the swap chain.
 		// This is done automatically in file Starter.hpp, however the command here needs also the index
 		// of the current image in the swap chain, passed in its last parameter
-
 		// binds the model
 		M_bed.bind(commandBuffer);
 		// For a Model object, this command binds the corresponing index and vertex buffer
 		// to the command buffer passed in its parameter
-
 		// record the drawing command in the command buffer
 		vkCmdDrawIndexed(commandBuffer,
 			static_cast<uint32_t>(M_bed.indices.size()), 1, 0, 0, 0);
@@ -959,7 +965,7 @@ protected:
 		gubo.constant[1] = 0.1f;
 		gubo.linear[1] = 0.01f;
 		gubo.quadratic[1] = 0.00f;
-
+		
 		gubo.eyePos = camPos; // Camera position
 
 		skyBoxUniformBufferObject sbubo{};
@@ -969,82 +975,82 @@ protected:
 		// Bounding boxes for the cat and the collectibles
 		std::vector<BoundingBox> collectiblesBBs;
 
-		placeObject(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(0.7f), ViewPrj, DS_cat, currentImage);
-		BoundingBox catBox = BoundingBox("cat", catPosition, glm::vec3(0.09f, 0.42f, 0.7f));
+		placeEntity(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(0.5f), glm::vec3(0.0f), ViewPrj, DS_cat, currentImage);
+		BoundingBox catBox = BoundingBox("cat", catPosition, glm::vec3(0.07f, 0.3f, 0.5f));
 
-		placeObject(UBO_floor, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_floor, currentImage);
-		placeObject(UBO_walls, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_walls, currentImage);
+		placeEntity(UBO_floor, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_floor, currentImage);
+		placeEntity(UBO_walls, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_walls, currentImage);
 
 		// Bedroom
-		placeObject(UBO_closet, gubo, glm::vec3(4.5f, 0.0f, -7.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_closet, currentImage);
-		placeObject(UBO_bed, gubo, glm::vec3(5.f, 0.0f, -4.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_bed, currentImage);
-		placeObject(UBO_nighttable, gubo, glm::vec3(6.9f, 0.0f, -2.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_nighttable, currentImage);
+		placeEntity(UBO_closet, gubo, glm::vec3(4.5f, 0.0f, -7.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_closet, currentImage);
+		placeEntity(UBO_bed, gubo, glm::vec3(5.f, 0.0f, -4.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_bed, currentImage);
+		placeEntity(UBO_nighttable, gubo, glm::vec3(6.9f, 0.0f, -2.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_nighttable, currentImage);
 
 		// Kitchen
-		placeObject(UBO_kitchen, gubo, glm::vec3(4.5f, 0.0f, 6.6f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_kitchen, currentImage);
-		placeObject(UBO_fridge, gubo, glm::vec3(0.4f, 0.0f, 6.8f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_fridge, currentImage);
-		placeObject(UBO_kitchentable, gubo, glm::vec3(4.5f, 0.0f, 3.2f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_kitchentable, currentImage);
-		placeObject(UBO_chair, gubo, glm::vec3(4.5f, 0.0f, 2.4f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_chair, currentImage);
+		placeEntity(UBO_kitchen, gubo, glm::vec3(4.5f, 0.0f, 6.6f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_kitchen, currentImage);
+		placeEntity(UBO_fridge, gubo, glm::vec3(0.4f, 0.0f, 6.8f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_fridge, currentImage);
+		placeEntity(UBO_kitchentable, gubo, glm::vec3(4.5f, 0.0f, 3.2f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_kitchentable, currentImage);
+		placeEntity(UBO_chair, gubo, glm::vec3(4.5f, 0.0f, 2.4f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_chair, currentImage);
 
 		// Living room
-		placeObject(UBO_sofa, gubo, glm::vec3(-6.5f, 0.0f, 5.7f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_sofa, currentImage);
-		placeObject(UBO_table, gubo, glm::vec3(-6.2f, 0.0f, 2.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_table, currentImage);
-		placeObject(UBO_tv, gubo, glm::vec3(-4.f, 0.0f, 5.7f), glm::vec3(0, glm::radians(180.f), 0), glm::vec3(1.0f), ViewPrj, DS_tv, currentImage);
+		placeEntity(UBO_sofa, gubo, glm::vec3(-6.5f, 0.0f, 5.7f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_sofa, currentImage);
+		placeEntity(UBO_table, gubo, glm::vec3(-6.2f, 0.0f, 2.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_table, currentImage);
+		placeEntity(UBO_tv, gubo, glm::vec3(-4.f, 0.0f, 5.7f), glm::vec3(0, glm::radians(180.f), 0), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_tv, currentImage);
 
 		// Witch lair
-		placeObject(UBO_chest, gubo, glm::vec3(-5.f, 0.0f, -7.0f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_chest, currentImage);
-		placeObject(UBO_stonetable, gubo, glm::vec3(-6.6f, 0.0f, -5.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_stonetable, currentImage);
-		placeObject(UBO_stonechair, gubo, glm::vec3(-5.8f, 0.0f, -5.f), glm::vec3(0.f, glm::radians(25.f), 0.f), glm::vec3(1.0f), ViewPrj, DS_stonechair, currentImage);
-		placeObject(UBO_cauldron, gubo, glm::vec3(-4.0f, 0.0f, -5.3f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_cauldron, currentImage);
-		placeObject(UBO_shelf1, gubo, glm::vec3(-7.2f, 3.f, -5.5f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_shelf1, currentImage);
-		placeObject(UBO_shelf2, gubo, glm::vec3(-5.f, 3.4f, -7.2f), glm::vec3(0, glm::radians(-90.f), 0), glm::vec3(1.0f), ViewPrj, DS_shelf2, currentImage);
+		placeEntity(UBO_chest, gubo, glm::vec3(-5.f, 0.0f, -7.0f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_chest, currentImage);
+		placeEntity(UBO_stonetable, gubo, glm::vec3(-6.6f, 0.0f, -5.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_stonetable, currentImage);
+		placeEntity(UBO_stonechair, gubo, glm::vec3(-5.8f, 0.0f, -5.f), glm::vec3(0.f, glm::radians(25.f), 0.f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_stonechair, currentImage);
+		placeEntity(UBO_cauldron, gubo, glm::vec3(-4.0f, 0.0f, -5.3f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_cauldron, currentImage);
+		placeEntity(UBO_shelf1, gubo, glm::vec3(-7.2f, 3.f, -5.5f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_shelf1, currentImage);
+		placeEntity(UBO_shelf2, gubo, glm::vec3(-5.f, 3.4f, -7.2f), glm::vec3(0, glm::radians(-90.f), 0), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_shelf2, currentImage);
 
 		// Bathroom
-		placeObject(UBO_bathtub, gubo, glm::vec3(-0.5f, 0.0f, -6.8f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_bathtub, currentImage);
-		placeObject(UBO_toilet, gubo, glm::vec3(0.5f, 0.0f, -5.5f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_toilet, currentImage);
-		placeObject(UBO_bidet, gubo, glm::vec3(0.5f, 0.0f, -4.f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_bidet, currentImage);
-		placeObject(UBO_sink, gubo, glm::vec3(-1.7f, 0.0f, -4.7f), glm::vec3(0.0f), glm::vec3(1.0f), ViewPrj, DS_sink, currentImage);
+		placeEntity(UBO_bathtub, gubo, glm::vec3(-0.5f, 0.0f, -6.8f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_bathtub, currentImage);
+		placeEntity(UBO_toilet, gubo, glm::vec3(0.5f, 0.0f, -5.5f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_toilet, currentImage);
+		placeEntity(UBO_bidet, gubo, glm::vec3(0.5f, 0.0f, -4.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_bidet, currentImage);
+		placeEntity(UBO_sink, gubo, glm::vec3(-1.7f, 0.0f, -4.7f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_sink, currentImage);
+
 
 		// Collectibles
 		if (!collectiblesMap["crystal"]) {
-			placeCollectible(UBO_crystal, gubo, collectiblesRandomPosition[0], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage);
+			placeEntity(UBO_crystal, gubo, collectiblesRandomPosition[0], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), glm::vec3(2.0f), ViewPrj, DS_crystal, currentImage);
 			collectiblesBBs.push_back(BoundingBox("crystal", collectiblesRandomPosition[0], glm::vec3(0.5f, 3.f, 0.5f)));
 		} else {
 			removeCollectible(UBO_crystal, gubo, ViewPrj, DS_crystal, currentImage);	// it actually scales to zero -> not efficient
 		}
-
 		if (!collectiblesMap["eye"]) {
-			placeCollectible(UBO_eye, gubo, collectiblesRandomPosition[1], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage);
+			placeEntity(UBO_eye, gubo, collectiblesRandomPosition[1], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), glm::vec3(2.0f), ViewPrj, DS_eye, currentImage);
 			collectiblesBBs.push_back(BoundingBox("eye", collectiblesRandomPosition[1], glm::vec3(0.5f, 3.f, 0.5f)));
 		} else {
 			removeCollectible(UBO_eye, gubo, ViewPrj, DS_eye, currentImage);
 		}
 		if (!collectiblesMap["feather"]) {
-			placeCollectible(UBO_feather, gubo, collectiblesRandomPosition[2], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage);
+			placeEntity(UBO_feather, gubo, collectiblesRandomPosition[2], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(5.0f), ViewPrj, DS_feather, currentImage);
 			collectiblesBBs.push_back(BoundingBox("feather", collectiblesRandomPosition[2], glm::vec3(0.5f)));
 		} else {
 			removeCollectible(UBO_feather, gubo, ViewPrj, DS_feather, currentImage);
 		}
 		if (!collectiblesMap["leaf"]) {
-			placeCollectible(UBO_leaf, gubo, collectiblesRandomPosition[3], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage);
+			placeEntity(UBO_leaf, gubo, collectiblesRandomPosition[3], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(5.0f), ViewPrj, DS_leaf, currentImage);
 			collectiblesBBs.push_back(BoundingBox("leaf", collectiblesRandomPosition[3], glm::vec3(0.5f)));
 		} else {
 			removeCollectible(UBO_leaf, gubo, ViewPrj, DS_leaf, currentImage);
 		}
 		if (!collectiblesMap["potion1"]) {
-			placeCollectible(UBO_potion1, gubo, collectiblesRandomPosition[4], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage);
+			placeEntity(UBO_potion1, gubo, collectiblesRandomPosition[4], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(5.0f), ViewPrj, DS_potion1, currentImage);
 			collectiblesBBs.push_back(BoundingBox("potion1", collectiblesRandomPosition[4], glm::vec3(0.5f)));
 		} else {
 			removeCollectible(UBO_potion1, gubo, ViewPrj, DS_potion1, currentImage);
 		}
 		if (!collectiblesMap["potion2"]) {
-			placeCollectible(UBO_potion2, gubo, collectiblesRandomPosition[5], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage);
+			placeEntity(UBO_potion2, gubo, collectiblesRandomPosition[5], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(5.0f), ViewPrj, DS_potion2, currentImage);
 			collectiblesBBs.push_back(BoundingBox("potion2", collectiblesRandomPosition[5], glm::vec3(0.5f)));
 		} else {
 			removeCollectible(UBO_potion2, gubo, ViewPrj, DS_potion2, currentImage);
 		}
 		if (!collectiblesMap["bone"]) {
-			placeCollectible(UBO_bone, gubo, collectiblesRandomPosition[6], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), ViewPrj, DS_bone, currentImage);
+			placeEntity(UBO_bone, gubo, collectiblesRandomPosition[6], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), glm::vec3(5.0f), ViewPrj, DS_bone, currentImage);
 			collectiblesBBs.push_back(BoundingBox("bone", collectiblesRandomPosition[6], glm::vec3(0.5f)));
 		} else {
 			removeCollectible(UBO_bone, gubo, ViewPrj, DS_bone, currentImage);
@@ -1068,10 +1074,9 @@ protected:
 				}
 			}
 		}
-
 	}
 
-	void placeObject(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage) {
+	void placeEntity(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 emissiveColor, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage) {
 		glm::mat4 World = glm::translate(glm::mat4(1), position) *
 			glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *
 			glm::rotate(glm::mat4(1), rotation.y, glm::vec3(0, 1, 0)) *
@@ -1087,24 +1092,6 @@ protected:
 		// the third parameter is its size
 		// the fourth parameter is the location inside the descriptor set of this uniform block
 
-		glm::vec3 emissiveColor = glm::vec3(0.f); // Set the emissive color
-		ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 3);
-	}
-
-	void placeCollectible(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage) {
-		glm::mat4 World = glm::translate(glm::mat4(1), position) *
-			glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *
-			glm::rotate(glm::mat4(1), rotation.y, glm::vec3(0, 1, 0)) *
-			glm::rotate(glm::mat4(1), rotation.z, glm::vec3(0, 0, 1)) *
-			glm::scale(glm::mat4(1), scale);
-		ubo.mvpMat = ViewPrj * World;
-		ubo.mMat = World;
-		ubo.nMat = glm::transpose(glm::inverse(World));
-		ds.map(currentImage, &ubo, sizeof(ubo), 0);
-
-		ds.map(currentImage, &gubo, sizeof(gubo), 2);
-
-		glm::vec3 emissiveColor = glm::vec3(2.f); // Set the emissive color
 		ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 3);
 	}
 
@@ -1118,17 +1105,6 @@ protected:
 		ds.map(currentImage, &gubo, sizeof(gubo), 2);
 	}
 
-	glm::vec3 generateRandomPosition(int lowerBound, int upperBound) {
-		glm::vec3 randomPosition;
-
-		randomPosition = glm::vec3(
-			lowerBound + rand() % (upperBound - lowerBound + 1),
-			0.3f,
-			lowerBound + rand() % (upperBound - lowerBound + 1)
-		);
-
-		return randomPosition;
-	}
 };
 
 

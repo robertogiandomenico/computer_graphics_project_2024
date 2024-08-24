@@ -24,6 +24,7 @@
   <ItemGroup>
     <ClInclude Include="BoundingBox.hpp" />
     <ClInclude Include="Starter.hpp" />
+    <ClInclude Include="Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\Shader.frag" />
