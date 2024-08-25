@@ -10,7 +10,7 @@
 #include <cstdlib>  // For rand() and srand()
 #include <ctime>    // For time() - to seed rand()
 
-#define LIGHTS_NUM 6
+#define LIGHTS_NUM 7
 #define COLLECTIBLES_NUM 7
 
 // The uniform buffer objects data structures
@@ -37,10 +37,17 @@ struct GlobalUniformBufferObject {
 	alignas(4) float quadratic[LIGHTS_NUM];			// Quadratic attenuation factor
 };
 
-struct skyBoxUniformBufferObject {
+struct SkyBoxUniformBufferObject {
 	alignas(16) glm::mat4 mvpMat;				// Field for MVP matrix
 	alignas(4) float time;						// Field for time
 
+};
+
+struct SteamUniformBufferObject {
+	alignas(16) glm::mat4 mvpMat;
+	alignas(16) glm::mat4 mMat;
+	alignas(16) glm::mat4 nMat;
+	alignas(4) float time;						// Time variable for animation
 };
 
 // The vertices data structures
@@ -80,7 +87,7 @@ protected:
 	// Cat initial position
 	glm::vec3 catPosition = glm::vec3(6.0f, 0.0f, 0.0f);
 	// Cat initial orientation
-	float catYaw = glm::radians(270.0f);
+	float catYaw = 0.f;
 
 	glm::vec3 collectiblesRandomPosition[COLLECTIBLES_NUM];
 
@@ -119,13 +126,13 @@ protected:
 		}
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSL, DSL_skyBox;
+	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam;
 
 	// Vertex formats
 	VertexDescriptor VD, VD_skyBox;
 
 	// Pipelines [Shader couples]
-	Pipeline P, P_skyBox;
+	Pipeline P, P_skyBox, P_steam;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	// Please note that Model objects depends on the corresponding vertex structure
@@ -143,7 +150,7 @@ protected:
 	// Living room
 	Model<Vertex> M_sofa, M_table, M_tv;
 	// Other
-	Model<Vertex> M_cat, M_floor, M_walls;
+	Model<Vertex> M_cat, M_floor, M_walls, M_steam;
 
 	Model<skyBoxVertex> M_skyBox;
 
@@ -161,12 +168,12 @@ protected:
 	// Living room
 	DescriptorSet DS_sofa, DS_table, DS_tv;
 	// Other
-	DescriptorSet DS_cat, DS_floor, DS_walls;
+	DescriptorSet DS_cat, DS_floor, DS_walls, DS_steam;
 
 	DescriptorSet DS_skyBox;
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox;
+	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam;
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -248,13 +255,18 @@ protected:
 			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
 			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
 			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-			{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}  // New binding for emissive color
+			{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}			// New binding for emissive color
 		});
 
 		DSL_skyBox.init(this, {
-			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},   // Uniform buffer for MVP matrix
-			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}, // Combined image sampler for skybox texture
-			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}    // Uniform buffer for time
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},			// Uniform buffer for MVP matrix
+			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},	// Combined image sampler for skybox texture
+			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}			// Uniform buffer for time
+		});
+
+		DSL_steam.init(this, {
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},				// Steam UBO binding
+			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}	// Steam texture binding
 		});
 
 		DSL_boundingBox.init(this, {
@@ -323,6 +335,10 @@ protected:
 			P_skyBox.init(this, &VD_skyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSL_skyBox });
 			P_skyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
+
+			P_steam.init(this, &VD, "shaders/SteamVert.spv", "shaders/SteamFrag.spv", { &DSL_steam });
+			P_steam.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
+
 			P_boundingBox.init(this, &VD_boundingBox, "shaders/BoundingBoxVert.spv", "shaders/BoundingBoxFrag.spv", { &DSL_boundingBox });
 			P_boundingBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_LINE, VK_CULL_MODE_BACK_BIT, false);
 
@@ -360,6 +376,7 @@ protected:
 			M_shelf1.init(this, &VD, "models/lair/lair_shelf1.gltf", GLTF);
 			M_shelf2.init(this, &VD, "models/lair/lair_shelf2.gltf", GLTF);
 			M_stonetable.init(this, &VD, "models/lair/lair_table.gltf", GLTF);
+			M_steam.init(this, &VD, "models/lair/lair_plane.gltf", GLTF);
 
 			M_sofa.init(this, &VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
 			M_table.init(this, &VD, "models/livingroom/livingroom_table.gltf", GLTF);
@@ -384,6 +401,7 @@ protected:
 			T_closet.init(this, "textures/closet.png");
 			T_eye.init(this, "textures/eye_texture.jpg");
 			T_feather.init(this, "textures/fabrics_0038_color_1k.jpg");
+			T_steam.init(this, "textures/steam.png");
 
 			T_skyBox.init(this, "textures/texture.jpg");
 	}
@@ -393,10 +411,11 @@ protected:
 		// This creates a new pipeline (with the current surface), using its shaders
 		P.create();
 		P_skyBox.create();
+		P_steam.create();
 		P_boundingBox.create();
 
 		DS_skyBox.init(this, &DSL_skyBox, {
-						{0, UNIFORM, sizeof(skyBoxUniformBufferObject), nullptr},
+						{0, UNIFORM, sizeof(SkyBoxUniformBufferObject), nullptr},
 						{1, TEXTURE, 0, &T_skyBox},
 						{2, UNIFORM, sizeof(float), nullptr}
 			});
@@ -557,6 +576,10 @@ protected:
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
+		DS_steam.init(this, &DSL_steam, {
+					{0, UNIFORM, sizeof(SteamUniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_steam}
+			});
 
 		DS_sofa.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
@@ -611,6 +634,7 @@ protected:
 		// Cleanup pipelines
 		P.cleanup();
 		P_skyBox.cleanup();
+		P_steam.cleanup();
 		P_boundingBox.cleanup();
 
 		// Cleanup datasets
@@ -642,6 +666,7 @@ protected:
 		DS_shelf1.cleanup();
 		DS_shelf2.cleanup();
 		DS_stonetable.cleanup();
+		DS_steam.cleanup();
 
 		DS_sofa.cleanup();
 		DS_table.cleanup();
@@ -669,6 +694,7 @@ protected:
 		T_eye.cleanup();
 		T_closet.cleanup();
 		T_feather.cleanup();
+		T_steam.cleanup();
 
 		T_skyBox.cleanup();
 
@@ -701,6 +727,7 @@ protected:
 		M_shelf1.cleanup();
 		M_shelf2.cleanup();
 		M_stonetable.cleanup();
+		M_steam.cleanup();
 
 		M_sofa.cleanup();
 		M_table.cleanup();
@@ -719,11 +746,13 @@ protected:
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
 		DSL_skyBox.cleanup();
+		DSL_steam.cleanup();
 		DSL_boundingBox.cleanup();
 
 		// Destroies the pipelines
 		P.destroy();
 		P_skyBox.destroy();
+		P_steam.destroy();
 		P_boundingBox.destroy();
 	}
 
@@ -874,13 +903,18 @@ protected:
 		DS_skyBox.bind(commandBuffer, P_skyBox, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_skyBox.indices.size()), 1, 0, 0, 0);
 
+		P_steam.bind(commandBuffer);
+		M_steam.bind(commandBuffer);
+		DS_steam.bind(commandBuffer, P_steam, 0, currentImage);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_steam.indices.size()), 1, 0, 0, 0);
+
 		P_boundingBox.bind(commandBuffer);
 		for (int i = 0; i < collectiblesBBs.size(); i++) {
 			M_boundingBox[i].bind(commandBuffer);
 			DS_boundingBox[i].bind(commandBuffer, P_boundingBox, 0, currentImage);
-			vkCmdDrawIndexed(commandBuffer,
-				static_cast<uint32_t>(M_boundingBox[i].indices.size()), 1, 0, 0, 0);
+			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_boundingBox[i].indices.size()), 1, 0, 0, 0);
 		}
+
 	}
 
 	// Here is where you update the uniforms.
@@ -954,7 +988,7 @@ protected:
 
 			// Cat rotation based on the movement vector
 			float targetYaw = atan2(m.z, m.x);
-			targetYaw += glm::radians(90.0f); // same as + 3.1416 / 2.0
+			targetYaw += glm::radians(-180.0f); // same as + 3.1416 / 2.0
 			catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);	// 6.0 is the damping factor
 		}
 
@@ -1007,19 +1041,22 @@ protected:
 		gubo.lightColor[0] = glm::vec3(1.4f);				// color: white
 
 		gubo.lightPos[1] = glm::vec3(-8.f, 2.0f, -8.f);		// position: witch lair
-		gubo.lightColor[1] = glm::vec3(0.6f, 0.f, 0.8f);	// color: purple
+		gubo.lightColor[1] = glm::vec3(0.4f, 0.f, 0.8f);	// color: purple
 
-		gubo.lightPos[2] = glm::vec3(-6.0f, 1.0f, -8.3f);	// position: witch lair - cauldron
-		gubo.lightColor[2] = glm::vec3(0.02f, 0.06f, 0.02f);// color: green
+		gubo.lightPos[2] = glm::vec3(-6.0f, 1.3f, -8.3f);	// position: witch lair - cauldron
+		gubo.lightColor[2] = glm::vec3(0.02f, 0.07f, 0.02f);// color: green
 
-		gubo.lightPos[3] = glm::vec3(11.9f, 1.0f, -4.f);	// position: bedroom
-		gubo.lightColor[3] = glm::vec3(0.6f, 0.5f, 0.f);	// color: yellow
+		gubo.lightPos[3] = glm::vec3(-6.0f, 0.2f, -8.3f);	// position: witch lair - cauldron fire
+		gubo.lightColor[3] = glm::vec3(0.14f, 0.08f, 0.f);	// color: orange
 
-		gubo.lightPos[4] = glm::vec3(-7.0f, 2.0f, 7.f);		// position: living room
-		gubo.lightColor[4] = glm::vec3(0.04f, 0.06f, 0.02f);// color: green
+		gubo.lightPos[4] = glm::vec3(11.9f, 1.0f, -4.f);	// position: bedroom
+		gubo.lightColor[4] = glm::vec3(0.6f, 0.5f, 0.f);	// color: yellow
 
-		gubo.lightPos[5] = glm::vec3(0.f, 2.0f, -8.f);		// position: bathroom
-		gubo.lightColor[5] = glm::vec3(0.06f, 0.03f, 0.f);	// color: orange
+		gubo.lightPos[5] = glm::vec3(-7.0f, 2.0f, 7.f);		// position: living room
+		gubo.lightColor[5] = glm::vec3(0.04f, 0.06f, 0.02f);// color: green
+
+		gubo.lightPos[6] = glm::vec3(0.f, 2.0f, -8.f);		// position: bathroom
+		gubo.lightColor[6] = glm::vec3(0.06f, 0.03f, 0.f);	// color: orange
 
 
 		for (int i = 0; i < LIGHTS_NUM; i++) {
@@ -1031,12 +1068,26 @@ protected:
 		
 		gubo.eyePos = camPos; // Camera position
 
-		skyBoxUniformBufferObject sbubo{};
+		// Sky Box UBO update
+		SkyBoxUniformBufferObject sbubo{};
 		sbubo.mvpMat = M * glm::mat4(glm::mat3(Mv));
 		sbubo.time = totalElapsedTime;
 		DS_skyBox.map(currentImage, &sbubo, sizeof(sbubo), 0);
 
-		// Placing cat and the collectibles
+		// Steam UBO update
+		SteamUniformBufferObject subo = {};
+		glm::mat4 World = glm::translate(glm::mat4(1.0f), glm::vec3(-6.0f, 1.7f, -8.3f)) *		// Steam plane position - over the cauldron
+			glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));							// Steam plane rotation - always face the camera
+		subo.mvpMat = ViewPrj * World;
+		subo.mMat = World;
+		subo.nMat = glm::transpose(glm::inverse(World));
+		subo.time = totalElapsedTime;
+		DS_steam.map(currentImage, &subo, sizeof(subo), 0);
+
+		// Bounding boxes for the cat and the collectibles
+		std::vector<BoundingBox> collectiblesBBs;
+
+		// Placing cat
 		placeEntity(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.f), glm::vec3(0.0f), ViewPrj, DS_cat, currentImage, false);
 		BoundingBox catBox = BoundingBox("cat", catPosition, glm::vec3(0.07f, 0.3f, 0.5f));
 

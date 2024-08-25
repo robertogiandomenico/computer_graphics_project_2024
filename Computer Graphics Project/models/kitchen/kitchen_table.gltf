@@ -42,7 +42,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":387,
+			"count":377,
 			"max":[
 				1.390808343887329,
 				1.617556095123291,
@@ -58,51 +58,51 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":387,
+			"count":377,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":387,
+			"count":377,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":918,
+			"count":882,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":4644,
+			"byteLength":4524,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4644,
-			"byteOffset":4644,
+			"byteLength":4524,
+			"byteOffset":4524,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3096,
-			"byteOffset":9288,
+			"byteLength":3016,
+			"byteOffset":9048,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1836,
-			"byteOffset":12384,
+			"byteLength":1764,
+			"byteOffset":12064,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":14220,
+			"byteLength":13828,
 			"uri":"kitchen_table.bin"
 		}
 	]

@@ -1,7 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-#define LIGHTS_NUM 6
+#define LIGHTS_NUM 7
 
 layout(location = 0) in vec2 fragUV;
 layout(location = 1) in vec3 fragNorm;

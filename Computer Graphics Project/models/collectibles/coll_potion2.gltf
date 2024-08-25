@@ -42,7 +42,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":466,
+			"count":422,
 			"max":[
 				0.1322995275259018,
 				0.5114776492118835,
@@ -58,51 +58,51 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":466,
+			"count":422,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":466,
+			"count":422,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":1320,
+			"count":1200,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":5592,
+			"byteLength":5064,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":5592,
-			"byteOffset":5592,
+			"byteLength":5064,
+			"byteOffset":5064,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3728,
-			"byteOffset":11184,
+			"byteLength":3376,
+			"byteOffset":10128,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2640,
-			"byteOffset":14912,
+			"byteLength":2400,
+			"byteOffset":13504,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":17552,
+			"byteLength":15904,
 			"uri":"coll_potion2.bin"
 		}
 	]
