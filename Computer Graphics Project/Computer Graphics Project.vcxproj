@@ -19,7 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MeshLoader.cpp" />
+    <ClCompile Include="PurrfectPotion.cpp" />
+    <ClCompile Include="World.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BoundingBox.hpp" />

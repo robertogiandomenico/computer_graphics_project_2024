@@ -9,8 +9,11 @@ struct BoundingBox {
 	BoundingBox(const std::string& name, const glm::vec3 center, const glm::vec3 size) {
 		this->name = name;
 		glm::vec3 halfSize = size / 2.0f;
-		min = center - halfSize;
-		max = center + halfSize;
+
+		glm::vec3 shiftedCenter = center; // + glm::vec3(0, halfSize.y, 0);
+
+		min = shiftedCenter - halfSize;
+		max = shiftedCenter + halfSize;
 	}
 
 	// Check if this bounding box intersects with another
@@ -85,4 +88,25 @@ void createBBModel(std::vector<VertexBoundingBox>& vDef, std::vector<uint32_t>& 
     // RIGHT
     vIdx.push_back(0); vIdx.push_back(4); vIdx.push_back(1);
     vIdx.push_back(1); vIdx.push_back(4); vIdx.push_back(5);
+}
+
+void drawBoundingBox(bool hasBoundingBox, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::mat4 ViewPrj,
+					BoundingBoxUniformBlock UBO_boundingBox, DescriptorSet DS_boundingBox, int currentImage) {
+	glm::mat4 World;
+	
+	if (hasBoundingBox) {	// set hasBoundingBox to false to not display the bounding box
+		World = glm::translate(glm::mat4(1), position) *
+			glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *
+			glm::rotate(glm::mat4(1), rotation.y, glm::vec3(0, 1, 0)) *
+			glm::rotate(glm::mat4(1), rotation.z, glm::vec3(0, 0, 1)) *
+			glm::scale(glm::mat4(1), scale);
+	}
+	else {
+		World = glm::scale(glm::mat4(1), glm::vec3(0.0f));	// scale to zero to not display the bounding box
+	}
+	UBO_boundingBox.mvpMat = ViewPrj * World;
+	UBO_boundingBox.mvpMat = ViewPrj * World;
+	UBO_boundingBox.mMat = World;
+	UBO_boundingBox.nMat = glm::inverse(glm::transpose(World));
+	DS_boundingBox.map(currentImage, &UBO_boundingBox, sizeof(UBO_boundingBox), 0);
 }
