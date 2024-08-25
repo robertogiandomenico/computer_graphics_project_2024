@@ -1,7 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-#define LIGHTS_NUM 2
+#define LIGHTS_NUM 6
 
 layout(location = 0) in vec2 fragUV;
 layout(location = 1) in vec3 fragNorm;
@@ -48,7 +48,14 @@ void main() {
 
         // Attenuation
         float distance = length(fragToLight);
-        float attenuation = 1.0 / (gubo.constant[i] + gubo.linear[i] * distance + gubo.quadratic[i] * (distance * distance));
+
+        float constantFactor = max(gubo.constant[i], 0.01); // Ensure it's not zero or too small
+        float linearFactor = max(gubo.linear[i], 0.01);
+        float quadraticFactor = max(gubo.quadratic[i], 0.01);
+
+        float epsilon = 0.001;
+        float attenuation = 1.0 / (constantFactor + linearFactor * distance + quadraticFactor * (distance * distance));
+
 
         // Accumulate the result from this light
         result += (ambient + diffuse + specular) * attenuation;

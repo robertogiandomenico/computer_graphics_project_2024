@@ -5,7 +5,7 @@ glm::vec3 generateRandomPosition(int squareSide) {
 
 	randomPosition = glm::vec3(
 		-squareSide + rand() % (squareSide * 2 + 1),
-		0.3f,
+		0.4f,
 		-squareSide + rand() % (squareSide * 2 + 1)
 	);
 
