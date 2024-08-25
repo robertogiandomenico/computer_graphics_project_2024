@@ -224,13 +224,13 @@ protected:
 	void localInit() {
 
 		// create the collectibles bounding boxes
-		collectiblesBBs.push_back(BoundingBox("crystal", collectiblesRandomPosition[0], glm::vec3(0.5f, 3.f, 0.5f)));
-		collectiblesBBs.push_back(BoundingBox("eye", collectiblesRandomPosition[1], glm::vec3(0.5f, 3.f, 0.5f)));
-		collectiblesBBs.push_back(BoundingBox("feather", collectiblesRandomPosition[2], glm::vec3(0.5f)));
-		collectiblesBBs.push_back(BoundingBox("leaf", collectiblesRandomPosition[3], glm::vec3(0.5f)));
-		collectiblesBBs.push_back(BoundingBox("potion1", collectiblesRandomPosition[4], glm::vec3(0.5f)));
-		collectiblesBBs.push_back(BoundingBox("potion2", collectiblesRandomPosition[5], glm::vec3(0.5f)));
-		collectiblesBBs.push_back(BoundingBox("bone", collectiblesRandomPosition[6], glm::vec3(0.5f)));
+		collectiblesBBs.push_back(BoundingBox("crystal", collectiblesRandomPosition[0], glm::vec3(0.7f)));
+		collectiblesBBs.push_back(BoundingBox("eye", collectiblesRandomPosition[1], glm::vec3(0.5f)));
+		collectiblesBBs.push_back(BoundingBox("feather", collectiblesRandomPosition[2], glm::vec3(0.5f, 0.6f, 0.9f)));
+		collectiblesBBs.push_back(BoundingBox("leaf", collectiblesRandomPosition[3], glm::vec3(0.6f, 0.5f, 0.5f)));
+		collectiblesBBs.push_back(BoundingBox("potion1", collectiblesRandomPosition[4], glm::vec3(0.5f, 1.0f, 0.5f)));
+		collectiblesBBs.push_back(BoundingBox("potion2", collectiblesRandomPosition[5], glm::vec3(0.5f, 1.0f, 0.5f)));
+		collectiblesBBs.push_back(BoundingBox("bone", collectiblesRandomPosition[6], glm::vec3(0.5f, 0.7f, 0.5f)));
 
 		// create ubo needed for the bounding boxes (debug)
 		for (int i = 0; i < collectiblesBBs.size(); i++) {
@@ -1037,41 +1037,41 @@ protected:
 		DS_skyBox.map(currentImage, &sbubo, sizeof(sbubo), 0);
 
 		// Placing cat and the collectibles
-		placeEntity(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.f), glm::vec3(0.0f), ViewPrj, DS_cat, currentImage, false, 0);
+		placeEntity(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.f), glm::vec3(0.0f), ViewPrj, DS_cat, currentImage, false);
 		BoundingBox catBox = BoundingBox("cat", catPosition, glm::vec3(0.07f, 0.3f, 0.5f));
 
-		placeEntity(UBO_floor, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_floor, currentImage, false, 0);
-		placeEntity(UBO_walls, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_walls, currentImage, false, 0);
+		placeEntity(UBO_floor, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_floor, currentImage, false);
+		placeEntity(UBO_walls, gubo, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_walls, currentImage, false);
 
 		// Bedroom
-		placeEntity(UBO_closet, gubo, glm::vec3(6.f, 0.0f, -12.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_closet, currentImage, false, 0);
-		placeEntity(UBO_bed, gubo, glm::vec3(11.f, 0.0f, -10.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_bed, currentImage, false, 0);
-		placeEntity(UBO_nighttable, gubo, glm::vec3(11.9f, 0.0f, -4.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_nighttable, currentImage, false, 0);
+		placeEntity(UBO_closet, gubo, glm::vec3(6.f, 0.0f, -12.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_closet, currentImage, false);
+		placeEntity(UBO_bed, gubo, glm::vec3(11.f, 0.0f, -10.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_bed, currentImage, false);
+		placeEntity(UBO_nighttable, gubo, glm::vec3(11.9f, 0.0f, -4.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_nighttable, currentImage, false);
 
 		// Kitchen
-		placeEntity(UBO_kitchen, gubo, glm::vec3(9.5f, 0.0f, 11.6f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_kitchen, currentImage, false, 0);
-		placeEntity(UBO_fridge, gubo, glm::vec3(0.f, 0.0f, 11.8f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_fridge, currentImage, false, 0);
-		placeEntity(UBO_kitchentable, gubo, glm::vec3(7.f, 0.0f, 7.7f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_kitchentable, currentImage, false, 0);
-		placeEntity(UBO_chair, gubo, glm::vec3(7.f, 0.0f, 6.8f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_chair, currentImage, false, 0);
+		placeEntity(UBO_kitchen, gubo, glm::vec3(9.5f, 0.0f, 11.6f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_kitchen, currentImage, false);
+		placeEntity(UBO_fridge, gubo, glm::vec3(0.f, 0.0f, 11.8f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_fridge, currentImage, false);
+		placeEntity(UBO_kitchentable, gubo, glm::vec3(7.f, 0.0f, 7.7f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_kitchentable, currentImage, false);
+		placeEntity(UBO_chair, gubo, glm::vec3(7.f, 0.0f, 6.8f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_chair, currentImage, false);
 
 		// Living room
-		placeEntity(UBO_sofa, gubo, glm::vec3(-11.5f, 0.0f, 9.5f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_sofa, currentImage, false, 0);
-		placeEntity(UBO_table, gubo, glm::vec3(-7.f, 0.0f, 5.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_table, currentImage, false, 0);
-		placeEntity(UBO_tv, gubo, glm::vec3(-7.5f, 0.0f, 9.5f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_tv, currentImage, false, 0);
+		placeEntity(UBO_sofa, gubo, glm::vec3(-11.5f, 0.0f, 9.5f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_sofa, currentImage, false);
+		placeEntity(UBO_table, gubo, glm::vec3(-7.f, 0.0f, 5.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_table, currentImage, false);
+		placeEntity(UBO_tv, gubo, glm::vec3(-7.5f, 0.0f, 9.5f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_tv, currentImage, false);
 
 		// Witch lair
-		placeEntity(UBO_chest, gubo, glm::vec3(-7.f, 0.0f, -12.0f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_chest, currentImage, false, 0);
-		placeEntity(UBO_stonetable, gubo, glm::vec3(-11.6f, 0.0f, -10.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_stonetable, currentImage, false, 0);
-		placeEntity(UBO_stonechair, gubo, glm::vec3(-10.8f, 0.0f, -10.f), glm::vec3(0.f, glm::radians(25.f), 0.f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_stonechair, currentImage, false, 0);
-		placeEntity(UBO_cauldron, gubo, glm::vec3(-6.0f, 0.0f, -8.3f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_cauldron, currentImage, false, 0);
-		placeEntity(UBO_shelf1, gubo, glm::vec3(-12.2f, 2.f, -5.5f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_shelf1, currentImage, false, 0);
-		placeEntity(UBO_shelf2, gubo, glm::vec3(-9.f, 2.4f, -12.2f), glm::vec3(0, glm::radians(-90.f), 0), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_shelf2, currentImage, false, 0);
+		placeEntity(UBO_chest, gubo, glm::vec3(-7.f, 0.0f, -12.0f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_chest, currentImage, false);
+		placeEntity(UBO_stonetable, gubo, glm::vec3(-11.6f, 0.0f, -10.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_stonetable, currentImage, false);
+		placeEntity(UBO_stonechair, gubo, glm::vec3(-10.8f, 0.0f, -10.f), glm::vec3(0.f, glm::radians(25.f), 0.f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_stonechair, currentImage, false);
+		placeEntity(UBO_cauldron, gubo, glm::vec3(-6.0f, 0.0f, -8.3f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_cauldron, currentImage, false);
+		placeEntity(UBO_shelf1, gubo, glm::vec3(-12.2f, 2.f, -5.5f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_shelf1, currentImage, false);
+		placeEntity(UBO_shelf2, gubo, glm::vec3(-9.f, 2.4f, -12.2f), glm::vec3(0, glm::radians(-90.f), 0), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_shelf2, currentImage, false);
 
 		// Bathroom
-		placeEntity(UBO_bathtub, gubo, glm::vec3(-1.4f, 0.0f, -11.8f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_bathtub, currentImage, false, 00);
-		placeEntity(UBO_toilet, gubo, glm::vec3(1.3f, 0.0f, -8.5f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_toilet, currentImage, false, 00);
-		placeEntity(UBO_bidet, gubo, glm::vec3(1.3f, 0.0f, -6.5f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_bidet, currentImage, false, 0);
-		placeEntity(UBO_sink, gubo, glm::vec3(-3.4f, 0.0f, -7.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_sink, currentImage, false, 0);
+		placeEntity(UBO_bathtub, gubo, glm::vec3(-1.4f, 0.0f, -11.8f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_bathtub, currentImage, false);
+		placeEntity(UBO_toilet, gubo, glm::vec3(1.3f, 0.0f, -8.5f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_toilet, currentImage, false);
+		placeEntity(UBO_bidet, gubo, glm::vec3(1.3f, 0.0f, -6.5f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_bidet, currentImage, false);
+		placeEntity(UBO_sink, gubo, glm::vec3(-3.4f, 0.0f, -7.f), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), ViewPrj, DS_sink, currentImage, false);
 
 
 		// Collectibles
@@ -1132,7 +1132,7 @@ protected:
 		}
 	}
 
-	void placeEntity(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 emissiveColor, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id) {
+	void placeEntity(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 emissiveColor, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id = 0) {
 		glm::mat4 World = glm::translate(glm::mat4(1), position) *
 			glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *
 			glm::rotate(glm::mat4(1), rotation.y, glm::vec3(0, 1, 0)) *
@@ -1142,7 +1142,7 @@ protected:
 		ubo.mMat = World;
 		ubo.nMat = glm::transpose(glm::inverse(World));
 
-		if (hasBoundingBox) {
+		if (hasBoundingBox) {	// set hasBoundingBox to false to not display the bounding box
 			UBO_boundingBox[id].mvpMat = ViewPrj * World;
 			UBO_boundingBox[id].mMat = World;
 			UBO_boundingBox[id].nMat = glm::inverse(glm::transpose(World));
@@ -1175,7 +1175,6 @@ protected:
 		DS_boundingBox[id].map(currentImage, &UBO_boundingBox[id], sizeof(UBO_boundingBox[id]), 0);
 
 		// erase the bounding box from the map
-		collectiblesBBs[id].erase();
 		collectiblesBBs[id].erase();
 	}
 
