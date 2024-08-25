@@ -33,13 +33,15 @@ struct GlobalUniformBufferObject {
 	alignas(16) glm::vec3 lightPos[LIGHTS_NUM];     // Position of the lights
 	alignas(16) glm::vec3 lightColor[LIGHTS_NUM];   // Color of the lights
 	alignas(16) glm::vec3 eyePos;					// Position of the camera/eye
-	alignas(4) float constant[LIGHTS_NUM];         // Constant attenuation factor
-	alignas(4) float linear[LIGHTS_NUM];           // Linear attenuation factor
-	alignas(4) float quadratic[LIGHTS_NUM];        // Quadratic attenuation factor
+	alignas(4) float constant[LIGHTS_NUM];			// Constant attenuation factor
+	alignas(4) float linear[LIGHTS_NUM];			// Linear attenuation factor
+	alignas(4) float quadratic[LIGHTS_NUM];			// Quadratic attenuation factor
 };
 
 struct skyBoxUniformBufferObject {
-	alignas(16) glm::mat4 mvpMat;
+	alignas(16) glm::mat4 mvpMat;				// Field for MVP matrix
+	alignas(4) float time;						// Field for time
+
 };
 
 // The vertices data structures
@@ -194,9 +196,9 @@ protected:
 		initialBackgroundColor = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 		// Descriptor pool sizes
-		uniformBlocksInPool = 93; //30 but works with >= 93
-		texturesInPool = 29;	  //5 but works with >= 29
-		setsInPool = 31;		  //31
+		uniformBlocksInPool = 200; //30 but works with >= 93
+		texturesInPool = 100;	  //5 but works with >= 29
+		setsInPool = 200;		  //31
 
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
@@ -226,9 +228,11 @@ protected:
 		});
 
 		DSL_skyBox.init(this, {
-			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},   // Uniform buffer for MVP matrix
+			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}, // Combined image sampler for skybox texture
+			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}    // Uniform buffer for time
 		});
+
 
 		// Vertex descriptors
 		VD.init(this, {
@@ -349,7 +353,8 @@ protected:
 
 		DS_skyBox.init(this, &DSL_skyBox, {
 						{0, UNIFORM, sizeof(skyBoxUniformBufferObject), nullptr},
-						{1, TEXTURE, 0, &T_skyBox}
+						{1, TEXTURE, 0, &T_skyBox},
+						{2, UNIFORM, sizeof(float), nullptr}
 			});
 
 		// Here you define the data set
@@ -956,6 +961,7 @@ protected:
 
 		skyBoxUniformBufferObject sbubo{};
 		sbubo.mvpMat = M * glm::mat4(glm::mat3(Mv));
+		sbubo.time = totalElapsedTime;
 		DS_skyBox.map(currentImage, &sbubo, sizeof(sbubo), 0);
 
 		// Bounding boxes for the cat and the collectibles
