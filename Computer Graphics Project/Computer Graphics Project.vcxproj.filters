@@ -52,5 +52,11 @@
     <None Include="shaders\SteamShader.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
+    <None Include="shaders\BoundingBox.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\BoundingBox.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
