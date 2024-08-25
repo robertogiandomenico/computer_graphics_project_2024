@@ -15,17 +15,17 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Bone",
+			"name":"Plane",
 			"translation":[
-				-1.046111822128296,
-				0.4911949634552002,
-				0.25303590297698975
+				-7.024930000305176,
+				1.7862730026245117,
+				-8.81013011932373
 			]
 		}
 	],
 	"meshes":[
 		{
-			"name":"Cylinder.006",
+			"name":"Plane",
 			"primitives":[
 				{
 					"attributes":{
@@ -42,68 +42,68 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":126,
+			"count":25,
 			"max":[
-				0.11297693103551865,
-				0.33894914388656616,
-				0.07732801139354706
+				0.3848281502723694,
+				1,
+				4.371138828673793e-08
 			],
 			"min":[
-				-0.11297693103551865,
-				-0.33894914388656616,
-				-0.07819617539644241
+				-0.3848281502723694,
+				-1,
+				-4.371138828673793e-08
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":126,
+			"count":25,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":126,
+			"count":25,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":432,
+			"count":96,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":1512,
+			"byteLength":300,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1512,
-			"byteOffset":1512,
+			"byteLength":300,
+			"byteOffset":300,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1008,
-			"byteOffset":3024,
+			"byteLength":200,
+			"byteOffset":600,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":864,
-			"byteOffset":4032,
+			"byteLength":192,
+			"byteOffset":800,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":4896,
-			"uri":"coll_bone.bin"
+			"byteLength":992,
+			"uri":"lair_plane.bin"
 		}
 	]
 }

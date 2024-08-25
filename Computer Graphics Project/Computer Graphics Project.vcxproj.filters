@@ -46,5 +46,11 @@
     <None Include="shaders\SkyBoxShader.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
+    <None Include="shaders\SteamShader.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\SteamShader.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

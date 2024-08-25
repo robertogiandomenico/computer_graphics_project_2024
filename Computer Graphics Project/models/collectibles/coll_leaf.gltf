@@ -42,29 +42,29 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":277,
+			"count":320,
 			"max":[
 				0.21944469213485718,
-				0.15343903005123138,
-				0.35442671179771423
+				0.2209036499261856,
+				0.33235833048820496
 			],
 			"min":[
 				-0.21549683809280396,
-				-0.18632493913173676,
-				-0.3727601170539856
+				-0.21291469037532806,
+				-0.35205918550491333
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":277,
+			"count":320,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":277,
+			"count":320,
 			"type":"VEC2"
 		},
 		{
@@ -77,32 +77,32 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":3324,
+			"byteLength":3840,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3324,
-			"byteOffset":3324,
+			"byteLength":3840,
+			"byteOffset":3840,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2216,
-			"byteOffset":6648,
+			"byteLength":2560,
+			"byteOffset":7680,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":1992,
-			"byteOffset":8864,
+			"byteOffset":10240,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":10856,
+			"byteLength":12232,
 			"uri":"coll_leaf.bin"
 		}
 	]
