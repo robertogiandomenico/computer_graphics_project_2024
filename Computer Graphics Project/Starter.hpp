@@ -829,6 +829,7 @@ std::cout << "Starting createInstance()\n"  << std::flush;
 		VkPhysicalDeviceFeatures deviceFeatures{};
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
 		deviceFeatures.sampleRateShading = VK_TRUE;
+		deviceFeatures.fillModeNonSolid = VK_TRUE; //TODO: check better if this creates problems
 		
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
