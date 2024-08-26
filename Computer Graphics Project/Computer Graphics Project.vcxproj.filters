@@ -18,8 +18,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MeshLoader.cpp">
+    <ClCompile Include="PurrfectPotion.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="World.hpp">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -56,6 +59,12 @@
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="shaders\BoundingBox.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="Overlay.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="Overlay.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

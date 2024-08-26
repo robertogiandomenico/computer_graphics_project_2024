@@ -51,6 +51,10 @@ struct SteamUniformBufferObject {
 	alignas(4) float time;						// Time variable for animation
 };
 
+struct OverlayUniformBlock {
+	alignas(4) float visible;
+};
+
 // The vertices data structures
 // Example
 struct Vertex {
@@ -61,6 +65,11 @@ struct Vertex {
 
 struct skyBoxVertex {
 	glm::vec3 pos;
+};
+
+struct VertexOverlay {
+	glm::vec2 pos;
+	glm::vec2 UV;
 };
 
 
@@ -99,10 +108,11 @@ protected:
 	float remainingTime = GAME_DURATION;	
 	int lastDisplayedTime = static_cast<int>(GAME_DURATION);
 
-	float minimumPressDelay = 0.2f;
+	float minimumPressDelay = 0.1f;
 	float lastPressTime = 0.0f;
 
-	bool DEBUG = true;						// Used to display bounding boxes for debugging
+	bool DEBUG = false;						// Used to display bounding boxes for debugging
+	bool OVERLAY = true;					// Used to display the overlay
 
 	public:
 		std::map<std::string, bool> collectiblesMap;
@@ -133,13 +143,13 @@ protected:
 		}
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam;
+	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay;
 
 	// Vertex formats
-	VertexDescriptor VD, VD_skyBox;
+	VertexDescriptor VD, VD_skyBox, VD_overlay;
 
 	// Pipelines [Shader couples]
-	Pipeline P, P_skyBox, P_steam;
+	Pipeline P, P_skyBox, P_steam, P_overlay;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	// Please note that Model objects depends on the corresponding vertex structure
@@ -158,8 +168,8 @@ protected:
 	Model<Vertex> M_sofa, M_table, M_tv;
 	// Other
 	Model<Vertex> M_cat, M_floor, M_walls, M_steam;
-
 	Model<skyBoxVertex> M_skyBox;
+	Model<VertexOverlay> M_timer[5];
 
 	// Descriptor sets
 	// Bathroom
@@ -177,10 +187,10 @@ protected:
 	// Other
 	DescriptorSet DS_cat, DS_floor, DS_walls, DS_steam;
 
-	DescriptorSet DS_skyBox;
+	DescriptorSet DS_skyBox, DS_timer[5];
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam;
+	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam, T_timer[5];
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -197,6 +207,8 @@ protected:
 	UniformBufferObject UBO_sofa, UBO_table, UBO_tv;
 	// Other
 	UniformBufferObject UBO_cat, UBO_floor, UBO_walls;
+	SteamUniformBufferObject UBO_steam;
+	OverlayUniformBlock UBO_timer[5];
 
 	// to display the bounding boxes for debugging
 	Pipeline P_boundingBox;
@@ -212,8 +224,8 @@ protected:
 
 	// Here you set the main application parameters
 	void setWindowParameters() {
-		// window size, titile and initial background
-		windowWidth = 1000;
+		// window size, title and initial background
+		windowWidth = 1200;
 		windowHeight = 800;
 		windowTitle = "Purrfect Potion";
 		windowResizable = GLFW_TRUE;
@@ -290,6 +302,11 @@ protected:
 				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
 		});
 
+		DSL_overlay.init(this, {
+				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+				{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+		});
+
 		// Vertex descriptors
 		VD.init(this, {
 			// this array contains the bindings
@@ -340,6 +357,15 @@ protected:
 				{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexBoundingBox, pos),
 					   sizeof(glm::vec3), POSITION}
 		});
+
+		VD_overlay.init(this, {
+			{0, sizeof(VertexOverlay), VK_VERTEX_INPUT_RATE_VERTEX}
+			}, {
+				  {0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, pos),
+						 sizeof(glm::vec2), OTHER},
+				  {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, UV),
+						 sizeof(glm::vec2), UV}
+			});
 			
 			// Pipelines [Shader couples]
 			// The second parameter is the pointer to the vertex definition
@@ -352,12 +378,14 @@ protected:
 			P_skyBox.init(this, &VD_skyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSL_skyBox });
 			P_skyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
-
 			P_steam.init(this, &VD, "shaders/SteamVert.spv", "shaders/SteamFrag.spv", { &DSL_steam });
 			P_steam.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
 
 			P_boundingBox.init(this, &VD_boundingBox, "shaders/BoundingBoxVert.spv", "shaders/BoundingBoxFrag.spv", { &DSL_boundingBox });
 			P_boundingBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_LINE, VK_CULL_MODE_BACK_BIT, false);
+
+			P_overlay.init(this, &VD_overlay, "shaders/OverlayVert.spv", "shaders/OverlayFrag.spv", { &DSL_overlay });
+			P_overlay.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
 
 			// Models, textures and Descriptors (values assigned to the uniforms)
 
@@ -421,6 +449,16 @@ protected:
 			createBBModel(M_boundingBox[COLLECTIBLES_NUM + fornitureBBs.size()].vertices, M_boundingBox[COLLECTIBLES_NUM + fornitureBBs.size()].indices, &catBox);
 			M_boundingBox[COLLECTIBLES_NUM + fornitureBBs.size()].initMesh(this, &VD_boundingBox);
 
+			glm::vec2 anchor = glm::vec2(0.8f, -0.95f);
+			float h = 0.22f;
+			float w = 0.15f;
+			for (int i = 0; i < 5; i++) {
+				M_timer[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
+										{{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
+				M_timer[i].indices = { 0, 1, 2,    1, 2, 3 };
+				M_timer[i].initMesh(this, &VD_overlay);
+			}
+
 			// Create the textures
 			// The second parameter is the file name
 			T_textures.init(this, "textures/textures.png");
@@ -430,6 +468,12 @@ protected:
 			T_steam.init(this, "textures/steam.png");
 
 			T_skyBox.init(this, "textures/texture.jpg");
+
+			T_timer[0].init(this, "textures/HUD/timer_100.png");
+			T_timer[1].init(this, "textures/HUD/timer_75.png");
+			T_timer[2].init(this, "textures/HUD/timer_50.png");
+			T_timer[3].init(this, "textures/HUD/timer_25.png");
+			T_timer[4].init(this, "textures/HUD/timer_0.png");
 	}
 
 	// Here you create your pipelines and Descriptor Sets!
@@ -439,6 +483,7 @@ protected:
 		P_skyBox.create();
 		P_steam.create();
 		P_boundingBox.create();
+		P_overlay.create();
 
 		DS_skyBox.init(this, &DSL_skyBox, {
 						{0, UNIFORM, sizeof(SkyBoxUniformBufferObject), nullptr},
@@ -651,6 +696,13 @@ protected:
 						{0, UNIFORM, sizeof(BoundingBoxUniformBlock), nullptr},
 				});
 		}
+
+		for (int i = 0; i < 5; i++) {
+			DS_timer[i].init(this, &DSL_overlay, {
+					{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
+					{1, TEXTURE, 0, &T_timer[i]}
+				});
+		}
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -661,6 +713,7 @@ protected:
 		P_skyBox.cleanup();
 		P_steam.cleanup();
 		P_boundingBox.cleanup();
+		P_overlay.cleanup();
 
 		// Cleanup datasets
 		DS_bathtub.cleanup();
@@ -706,6 +759,10 @@ protected:
 		for (int i = 0; i < collectiblesBBs.size() + fornitureBBs.size() + 1; i++) {
 			DS_boundingBox[i].cleanup();
 		}
+
+		for (int i = 0; i < 5; i++) {
+			DS_timer[i].cleanup();
+		}
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -721,6 +778,10 @@ protected:
 		T_steam.cleanup();
 
 		T_skyBox.cleanup();
+
+		for (int i = 0; i < 5; i++) {
+			T_timer[i].cleanup();
+		}
 
 		// Cleanup models
 		M_bathtub.cleanup();
@@ -766,18 +827,24 @@ protected:
 		for (int i = 0; i < collectiblesBBs.size() + fornitureBBs.size() + 1; i++) {
 			M_boundingBox[i].cleanup();
 		}
+		
+		for (int i = 0; i < 5; i++) {
+			M_timer[i].cleanup();
+		}
 
 		// Cleanup descriptor set layouts
 		DSL.cleanup();
 		DSL_skyBox.cleanup();
 		DSL_steam.cleanup();
 		DSL_boundingBox.cleanup();
+		DSL_overlay.cleanup();
 
 		// Destroies the pipelines
 		P.destroy();
 		P_skyBox.destroy();
 		P_steam.destroy();
 		P_boundingBox.destroy();
+		P_overlay.destroy();
 	}
 
 	// Here it is the creation of the command buffer:
@@ -939,6 +1006,13 @@ protected:
 			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_boundingBox[i].indices.size()), 1, 0, 0, 0);
 		}
 
+		P_overlay.bind(commandBuffer);
+		for (int i = 0; i < 5; i++) {
+			M_timer[i].bind(commandBuffer);
+			DS_timer[i].bind(commandBuffer, P_overlay, 0, currentImage);
+			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_timer[i].indices.size()), 1, 0, 0, 0);
+		}
+
 	}
 
 	// Here is where you update the uniforms.
@@ -951,6 +1025,11 @@ protected:
 
 		if (glfwGetKey(window, GLFW_KEY_P) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
 			DEBUG = !DEBUG;
+			lastPressTime = totalElapsedTime;
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_O) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+			OVERLAY = !OVERLAY;
 			lastPressTime = totalElapsedTime;
 		}
 
@@ -1093,7 +1172,6 @@ protected:
 			gubo.linear[i] = 0.09f;     // Small factor for linear attenuation
 			gubo.quadratic[i] = 0.032f; // Even smaller factor for quadratic attenuation
 		}
-
 		
 		gubo.eyePos = camPos; // Camera position
 
@@ -1112,6 +1190,38 @@ protected:
 		subo.nMat = glm::transpose(glm::inverse(World));
 		subo.time = totalElapsedTime;
 		DS_steam.map(currentImage, &subo, sizeof(subo), 0);
+
+		// Timer UBO update
+		if (OVERLAY) {
+			if (remainingTime >= GAME_DURATION * 3 / 4) {
+				UBO_timer[0].visible = 1.f;
+				UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
+			}
+			else if (remainingTime >= GAME_DURATION / 2 && remainingTime) {
+				UBO_timer[1].visible = 1.f;
+				UBO_timer[0].visible = UBO_timer[2].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
+			}
+			else if (remainingTime >= GAME_DURATION / 4) {
+				UBO_timer[2].visible = 1.f;
+				UBO_timer[0].visible = UBO_timer[1].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
+			}
+			else if (remainingTime > 0) {
+				UBO_timer[3].visible = 1.f;
+				UBO_timer[0].visible = UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[4].visible = 0.f;
+			}
+			else {
+				UBO_timer[4].visible = 1.f;
+				UBO_timer[0].visible = UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[3].visible = 0.f;
+			}
+		}
+		else {
+			UBO_timer[0].visible = UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
+		
+		}
+
+		for (int i = 0; i < 5; i++) {
+			DS_timer[i].map(currentImage, &UBO_timer[i], sizeof(UBO_timer[i]), 0);
+		}
 
 
 		// Placing cat
