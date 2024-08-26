@@ -210,7 +210,7 @@ protected:
 	std::vector<BoundingBoxUniformBlock> UBO_boundingBox;
 
 	std::vector<BoundingBox> collectiblesBBs;
-	std::vector<BoundingBox> fornitureBBs;
+	std::vector<BoundingBox> furnitureBBs;
 	BoundingBox catBox = BoundingBox("cat", catPosition, catDimensions);
 
 	// Here you set the main application parameters
@@ -250,18 +250,18 @@ protected:
 		collectiblesBBs.push_back(BoundingBox("potion2", collectiblesRandomPosition[5], glm::vec3(0.5f, 1.0f, 0.5f)));
 		collectiblesBBs.push_back(BoundingBox("bone", collectiblesRandomPosition[6], glm::vec3(0.5f, 0.7f, 0.5f)));
 
-		fornitureBBs.push_back(BoundingBox("bathtub", bathtub.pos, glm::vec3(3.3f, 1.4f, 1.4f)));
-		fornitureBBs.push_back(BoundingBox("closet", closet.pos, glm::vec3(5.6f, 3.2f, 1.f)));
-		fornitureBBs.push_back(BoundingBox("bed", bed.pos, glm::vec3(2.f, 1.2f, 4.5f)));
-		fornitureBBs.push_back(BoundingBox("nightTable", nightTable.pos, glm::vec3(0.88, 1.2f, 1.1f)));
-		fornitureBBs.push_back(BoundingBox("chest", chest.pos, glm::vec3(1.4f, 1.5f, 0.7f)));
-		fornitureBBs.push_back(BoundingBox("sofa", sofa.pos, glm::vec3(1.f, 1.1f, 3.f)));
-		fornitureBBs.push_back(BoundingBox("fridge", fridge.pos, glm::vec3(1.5f, 2.7f, 1.5f)));
-		fornitureBBs.push_back(BoundingBox("kitchen", kitchen.pos, glm::vec3(5.f, 3.3f, 1.72f)));
-		fornitureBBs.push_back(BoundingBox("cauldron", cauldron.pos, glm::vec3(1.f, 1.5f, 1.f)));
+		furnitureBBs.push_back(BoundingBox("bathtub", bathtub.pos, glm::vec3(3.3f, 1.4f, 1.4f)));
+		furnitureBBs.push_back(BoundingBox("closet", closet.pos, glm::vec3(5.6f, 3.2f, 1.f)));
+		furnitureBBs.push_back(BoundingBox("bed", bed.pos, glm::vec3(2.f, 1.2f, 4.5f)));
+		furnitureBBs.push_back(BoundingBox("nightTable", nightTable.pos, glm::vec3(0.88, 1.2f, 1.1f)));
+		furnitureBBs.push_back(BoundingBox("chest", chest.pos, glm::vec3(1.4f, 1.5f, 0.7f)));
+		furnitureBBs.push_back(BoundingBox("sofa", sofa.pos, glm::vec3(1.f, 1.1f, 3.f)));
+		furnitureBBs.push_back(BoundingBox("fridge", fridge.pos, glm::vec3(1.5f, 2.7f, 1.5f)));
+		furnitureBBs.push_back(BoundingBox("kitchen", kitchen.pos, glm::vec3(5.f, 3.3f, 1.72f)));
+		furnitureBBs.push_back(BoundingBox("cauldron", cauldron.pos, glm::vec3(1.f, 1.5f, 1.f)));
 
 		// create ubo needed for the bounding boxes (debug)
-		for (int i = 0; i < collectiblesBBs.size() + fornitureBBs.size() + 1; i++) {
+		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			UBO_boundingBox.push_back(BoundingBoxUniformBlock());
 		}
 
@@ -415,15 +415,15 @@ protected:
 				M_boundingBox[i].initMesh(this, &VD_boundingBox);
 			}
 
-			for (int i = 0; i < fornitureBBs.size(); i++) {
+			for (int i = 0; i < furnitureBBs.size(); i++) {
 				M_boundingBox.push_back(Model<VertexBoundingBox>());
-				createBBModel(M_boundingBox[i + COLLECTIBLES_NUM].vertices, M_boundingBox[i + COLLECTIBLES_NUM].indices, &fornitureBBs[i]);
+				createBBModel(M_boundingBox[i + COLLECTIBLES_NUM].vertices, M_boundingBox[i + COLLECTIBLES_NUM].indices, &furnitureBBs[i]);
 				M_boundingBox[i + COLLECTIBLES_NUM].initMesh(this, &VD_boundingBox);
 			}
 
 			M_boundingBox.push_back(Model<VertexBoundingBox>());
-			createBBModel(M_boundingBox[COLLECTIBLES_NUM + fornitureBBs.size()].vertices, M_boundingBox[COLLECTIBLES_NUM + fornitureBBs.size()].indices, &catBox);
-			M_boundingBox[COLLECTIBLES_NUM + fornitureBBs.size()].initMesh(this, &VD_boundingBox);
+			createBBModel(M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].vertices, M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].indices, &catBox);
+			M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].initMesh(this, &VD_boundingBox);
 
 			// Create the textures
 			// The second parameter is the file name
@@ -649,7 +649,7 @@ protected:
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		
-		for (int i = 0; i < collectiblesBBs.size() + fornitureBBs.size() + 1; i++) {
+		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			DS_boundingBox.push_back(DescriptorSet());
 			DS_boundingBox[i].init(this, &DSL_boundingBox, {
 						{0, UNIFORM, sizeof(BoundingBoxUniformBlock), nullptr},
@@ -707,7 +707,7 @@ protected:
 
 		DS_skyBox.cleanup();
 
-		for (int i = 0; i < collectiblesBBs.size() + fornitureBBs.size() + 1; i++) {
+		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			DS_boundingBox[i].cleanup();
 		}
 	}
@@ -767,7 +767,7 @@ protected:
 
 		M_skyBox.cleanup();
 
-		for (int i = 0; i < collectiblesBBs.size() + fornitureBBs.size() + 1; i++) {
+		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			M_boundingBox[i].cleanup();
 		}
 
@@ -937,7 +937,7 @@ protected:
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_steam.indices.size()), 1, 0, 0, 0);
 
 		P_boundingBox.bind(commandBuffer);
-		for (int i = 0; i < collectiblesBBs.size() + fornitureBBs.size() + 1; i++) {
+		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			M_boundingBox[i].bind(commandBuffer);
 			DS_boundingBox[i].bind(commandBuffer, P_boundingBox, 0, currentImage);
 			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_boundingBox[i].indices.size()), 1, 0, 0, 0);
@@ -1215,9 +1215,9 @@ protected:
 			}
 		}
 
-		for (int j = 0; j < fornitureBBs.size(); j++) {
-			if (catBox.intersects(fornitureBBs[j])) {
-				if (fornitureBBs[j].getName() == "cauldron") {
+		for (int j = 0; j < furnitureBBs.size(); j++) {
+			if (catBox.intersects(furnitureBBs[j])) {
+				if (furnitureBBs[j].getName() == "cauldron") {
 					if (gameOver) {
 						// win logic goes here
 						std::cout << "You won!" << std::endl;
@@ -1230,7 +1230,7 @@ protected:
 				//catPosition.y -= m.y * MOVE_SPEED * deltaT;
 				catPosition -= cameraRight * m.x * MOVE_SPEED * deltaT;
 
-				std::cout << "Collision with " << fornitureBBs[j].getName() << std::endl;
+				std::cout << "Collision with " << furnitureBBs[j].getName() << std::endl;
 			}
 		}
 	}
