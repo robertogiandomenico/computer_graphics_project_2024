@@ -12,7 +12,7 @@
 #include "Utils.hpp"
 #include "World.hpp"
 
-#define LIGHTS_NUM 8
+#define LIGHTS_NUM 9
 #define COLLECTIBLES_NUM 7
 
 // The uniform buffer objects data structures
@@ -36,6 +36,8 @@ struct GlobalUniformBufferObject {
 	alignas(16) glm::vec4 lightColor[LIGHTS_NUM];   // Color of the lights
 	alignas(16) glm::vec3 eyePos;					// Position of the camera/eye
 	alignas(16) glm::vec4 lightOn;					// Lights on/off
+	alignas(4) float cosIn;							// Spot light inner cone angle
+	alignas(4) float cosOut;						// Spot light outer cone angle
 };
 
 struct SkyBoxUniformBufferObject {
@@ -1087,6 +1089,12 @@ protected:
 
 		gubo.lightDir[7] = glm::vec3(0.5, 1.0, 0.5);						// (sun) light from outside
 		gubo.lightColor[7] = glm::vec4(glm::vec3(1.0f, 0.95f, 0.8f), 2.0f); // color: warm white
+
+		gubo.lightPos[8] = glm::vec3(-6.0f, 1.5f, -8.3f);					// position: witch lair - cauldron
+		gubo.lightColor[8] = glm::vec4(glm::vec3(0.1f, 0.1f, 1.0f), 20.0f);	// color: blue
+		gubo.lightDir[8] = glm::vec3(0, 1, 0);								// light from above
+		gubo.cosIn = glm::cos(glm::radians(35.0f));							// cos of the inner angle of the spotlight
+		gubo.cosOut = glm::cos(glm::radians(45.0f));						// cos of the outer angle of the spotlight
 		
 		gubo.eyePos = camPos; // Camera position
 		gubo.lightOn = glm::vec4(1); // Determines which lights are on (point, direct, spot, ambient component)
