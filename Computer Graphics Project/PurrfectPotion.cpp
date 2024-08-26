@@ -35,7 +35,7 @@ struct GlobalUniformBufferObject {
 	alignas(16) glm::vec3 lightPos[LIGHTS_NUM];     // Position of the lights
 	alignas(16) glm::vec4 lightColor[LIGHTS_NUM];   // Color of the lights
 	alignas(16) glm::vec3 eyePos;					// Position of the camera/eye
-	alignas(16) glm::vec4 lightOn;					// Lights on/off
+	alignas(16) glm::vec4 lightOn;					// Lights on/off flag (point, direct, spot, ambient component)
 	alignas(4) float cosIn;							// Spot light inner cone angle
 	alignas(4) float cosOut;						// Spot light outer cone angle
 };
@@ -95,7 +95,7 @@ protected:
 	glm::vec3 collectiblesRandomPosition[COLLECTIBLES_NUM];
 
 	// Timer setup
-	const float GAME_DURATION = 120.0f;		// 2 minutes = 120 seconds
+	const float GAME_DURATION = 180.0f;		// 3 minutes = 180 seconds
 	float totalElapsedTime = 0.0f;			// in seconds
 	float remainingTime = GAME_DURATION;	
 	int lastDisplayedTime = static_cast<int>(GAME_DURATION);
@@ -103,7 +103,9 @@ protected:
 	float minimumPressDelay = 0.2f;
 	float lastPressTime = 0.0f;
 
-	bool DEBUG = false;						// Used to display bounding boxes for debugging
+	bool DEBUG = true;						// Used to display bounding boxes for debugging
+
+	bool gameOver = false;
 
 	public:
 		std::map<std::string, bool> collectiblesMap;
@@ -256,6 +258,7 @@ protected:
 		fornitureBBs.push_back(BoundingBox("sofa", sofa.pos, glm::vec3(1.f, 1.1f, 3.f)));
 		fornitureBBs.push_back(BoundingBox("fridge", fridge.pos, glm::vec3(1.5f, 2.7f, 1.5f)));
 		fornitureBBs.push_back(BoundingBox("kitchen", kitchen.pos, glm::vec3(5.f, 3.3f, 1.72f)));
+		fornitureBBs.push_back(BoundingBox("cauldron", cauldron.pos, glm::vec3(1.f, 1.5f, 1.f)));
 
 		// create ubo needed for the bounding boxes (debug)
 		for (int i = 0; i < collectiblesBBs.size() + fornitureBBs.size() + 1; i++) {
@@ -1093,11 +1096,15 @@ protected:
 		gubo.lightPos[8] = glm::vec3(-6.0f, 1.5f, -8.3f);					// position: witch lair - cauldron
 		gubo.lightColor[8] = glm::vec4(glm::vec3(0.1f, 0.1f, 1.0f), 20.0f);	// color: blue
 		gubo.lightDir[8] = glm::vec3(0, 1, 0);								// light from above
-		gubo.cosIn = glm::cos(glm::radians(35.0f));							// cos of the inner angle of the spotlight
-		gubo.cosOut = glm::cos(glm::radians(45.0f));						// cos of the outer angle of the spotlight
+		gubo.cosIn = glm::cos(glm::radians(35.0f));							// cos of the inner angle of the spot light
+		gubo.cosOut = glm::cos(glm::radians(45.0f));						// cos of the outer angle of the spot light
 		
 		gubo.eyePos = camPos; // Camera position
-		gubo.lightOn = glm::vec4(1); // Determines which lights are on (point, direct, spot, ambient component)
+		if (gameOver) {
+			gubo.lightOn = glm::vec4(1, 1, 1, 1);
+		} else {
+			gubo.lightOn = glm::vec4(1, 1, 0, 1);
+		}
 
 		// Sky Box UBO update
 		SkyBoxUniformBufferObject sbubo{};
@@ -1144,7 +1151,7 @@ protected:
 		placeEntity(UBO_chest, gubo, chest.pos, chest.rot, chest.scale, glm::vec3(0.0f), ViewPrj, DS_chest, currentImage, DEBUG, 11);
 		placeEntity(UBO_stoneTable, gubo, stoneTable.pos, stoneTable.rot, stoneTable.scale, glm::vec3(0.0f), ViewPrj, DS_stonetable, currentImage, false);
 		placeEntity(UBO_stoneChair, gubo, stoneChair.pos, stoneChair.rot, stoneChair.scale, glm::vec3(0.0f), ViewPrj, DS_stonechair, currentImage, false);
-		placeEntity(UBO_cauldron, gubo, cauldron.pos, cauldron.rot, cauldron.scale, glm::vec3(0.0f), ViewPrj, DS_cauldron, currentImage, false);
+		placeEntity(UBO_cauldron, gubo, cauldron.pos, cauldron.rot, cauldron.scale, glm::vec3(0.0f), ViewPrj, DS_cauldron, currentImage, DEBUG, 15);
 		placeEntity(UBO_shelf1, gubo, shelf1.pos, shelf1.rot, shelf1.scale, glm::vec3(0.0f), ViewPrj, DS_shelf1, currentImage, false);
 		placeEntity(UBO_shelf2, gubo, shelf2.pos, shelf2.rot, shelf2.scale, glm::vec3(0.0f), ViewPrj, DS_shelf2, currentImage, false);
 
@@ -1202,14 +1209,23 @@ protected:
 					collectiblesMap["leaf"] && collectiblesMap["potion1"] && collectiblesMap["potion2"] && collectiblesMap["bone"]) {
 					std::cout << "\nALL COLLECTIBLES COLLECTED!" << std::endl;
 					// win logic goes here
-					std::cout << "You won!" << std::endl;
-					glfwSetWindowShouldClose(window, GL_TRUE);
+					std::cout << "Now go to the cauldron" << std::endl;
+					gameOver = true;
 				}
 			}
 		}
 
 		for (int j = 0; j < fornitureBBs.size(); j++) {
 			if (catBox.intersects(fornitureBBs[j])) {
+				if (fornitureBBs[j].getName() == "cauldron") {
+					if (gameOver) {
+						// win logic goes here
+						std::cout << "You won!" << std::endl;
+						glfwSetWindowShouldClose(window, GL_TRUE);
+					} else {
+						break;
+					}
+				}
 				catPosition += cameraForward * m.z * MOVE_SPEED * deltaT;
 				//catPosition.y -= m.y * MOVE_SPEED * deltaT;
 				catPosition -= cameraRight * m.x * MOVE_SPEED * deltaT;

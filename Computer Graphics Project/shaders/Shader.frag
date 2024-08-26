@@ -16,7 +16,7 @@ layout(binding = 2) uniform GlobalUniformBufferObject {
     vec3 lightPos[LIGHTS_NUM];          // Position of the lights
     vec4 lightColor[LIGHTS_NUM];        // Color of the lights
     vec3 eyePos;                        // Position of the camera/eye
-    vec4 lightOn;                       // Lights on/off flags
+    vec4 lightOn;                       // Lights on/off flags (point, direct, spot, ambient component)
     float cosIn;                        // Spot light inner cone angle
 	float cosOut;                       // Spot light outer cone angle
 } gubo;
