@@ -12,7 +12,7 @@
 #include "Utils.hpp"
 #include "World.hpp"
 
-#define LIGHTS_NUM 7
+#define LIGHTS_NUM 8
 #define COLLECTIBLES_NUM 7
 
 // The uniform buffer objects data structures
@@ -31,12 +31,11 @@ struct UniformBufferObject {
 };
 
 struct GlobalUniformBufferObject {
+	alignas(16) glm::vec3 lightDir[LIGHTS_NUM];		// Direction of the lights
 	alignas(16) glm::vec3 lightPos[LIGHTS_NUM];     // Position of the lights
-	alignas(16) glm::vec3 lightColor[LIGHTS_NUM];   // Color of the lights
+	alignas(16) glm::vec4 lightColor[LIGHTS_NUM];   // Color of the lights
 	alignas(16) glm::vec3 eyePos;					// Position of the camera/eye
-	alignas(4) float constant[LIGHTS_NUM];			// Constant attenuation factor
-	alignas(4) float linear[LIGHTS_NUM];			// Linear attenuation factor
-	alignas(4) float quadratic[LIGHTS_NUM];			// Quadratic attenuation factor
+	alignas(16) glm::vec4 lightOn;					// Lights on/off
 };
 
 struct SkyBoxUniformBufferObject {
@@ -102,7 +101,7 @@ protected:
 	float minimumPressDelay = 0.2f;
 	float lastPressTime = 0.0f;
 
-	bool DEBUG = true;						// Used to display bounding boxes for debugging
+	bool DEBUG = false;						// Used to display bounding boxes for debugging
 
 	public:
 		std::map<std::string, bool> collectiblesMap;
@@ -1066,36 +1065,31 @@ protected:
 
 		GlobalUniformBufferObject gubo = {};
 		// Set light properties
-		gubo.lightPos[0] = glm::vec3(6.0f, 2.0f, 8.0f);		// position: kitchen
-		gubo.lightColor[0] = glm::vec3(1.4f);				// color: white
+		gubo.lightPos[0] = glm::vec3(6.0f, 2.0f, 8.0f);			// position: kitchen
+		gubo.lightColor[0] = glm::vec4(glm::vec3(1.4f), 2.0f);	// color: white
 
-		gubo.lightPos[1] = glm::vec3(-8.f, 2.0f, -8.f);		// position: witch lair
-		gubo.lightColor[1] = glm::vec3(0.4f, 0.f, 0.8f);	// color: purple
+		gubo.lightPos[1] = glm::vec3(-8.f, 2.0f, -8.f);						// position: witch lair
+		gubo.lightColor[1] = glm::vec4(glm::vec3(0.4f, 0.f, 0.8f), 2.0f);	// color: purple
 
-		gubo.lightPos[2] = glm::vec3(-6.0f, 1.3f, -8.3f);	// position: witch lair - cauldron
-		gubo.lightColor[2] = glm::vec3(0.02f, 0.07f, 0.02f);// color: green
+		gubo.lightPos[2] = glm::vec3(-6.0f, 1.3f, -8.3f);						// position: witch lair - cauldron
+		gubo.lightColor[2] = glm::vec4(glm::vec3(0.02f, 0.07f, 0.02f), 2.0f);	// color: green
+		gubo.lightPos[3] = glm::vec3(-6.0f, 0.2f, -8.3f);						// position: witch lair - cauldron fire
+		gubo.lightColor[3] = glm::vec4(glm::vec3(0.14f, 0.08f, 0.f), 2.0f);		// color: orange
 
-		gubo.lightPos[3] = glm::vec3(-6.0f, 0.2f, -8.3f);	// position: witch lair - cauldron fire
-		gubo.lightColor[3] = glm::vec3(0.14f, 0.08f, 0.f);	// color: orange
+		gubo.lightPos[4] = glm::vec3(11.9f, 1.0f, -4.f);					// position: bedroom
+		gubo.lightColor[4] = glm::vec4(glm::vec3(0.6f, 0.5f, 0.f), 2.0f);	// color: yellow
 
-		gubo.lightPos[4] = glm::vec3(11.9f, 1.0f, -4.f);	// position: bedroom
-		gubo.lightColor[4] = glm::vec3(0.6f, 0.5f, 0.f);	// color: yellow
+		gubo.lightPos[5] = glm::vec3(-7.0f, 2.0f, 7.f);						// position: living room
+		gubo.lightColor[5] = glm::vec4(glm::vec3(0.2f, 1.0f, 0.2f), 2.0f);	// color: green
 
-		gubo.lightPos[5] = glm::vec3(-7.0f, 2.0f, 7.f);		// position: living room
-		gubo.lightColor[5] = glm::vec3(0.04f, 0.06f, 0.02f);// color: green
+		gubo.lightPos[6] = glm::vec3(0.f, 2.0f, -8.f);						// position: bathroom
+		gubo.lightColor[6] = glm::vec4(glm::vec3(0.06f, 0.03f, 0.f), 2.0f);	// color: orange
 
-		gubo.lightPos[6] = glm::vec3(0.f, 2.0f, -8.f);		// position: bathroom
-		gubo.lightColor[6] = glm::vec3(0.06f, 0.03f, 0.f);	// color: orange
-
-
-		for (int i = 0; i < LIGHTS_NUM; i++) {
-			gubo.constant[i] = 1.0f;    // Typically 1.0 for no attenuation
-			gubo.linear[i] = 0.09f;     // Small factor for linear attenuation
-			gubo.quadratic[i] = 0.032f; // Even smaller factor for quadratic attenuation
-		}
-
+		gubo.lightDir[7] = glm::vec3(0.5, 1.0, 0.5);						// (sun) light from outside
+		gubo.lightColor[7] = glm::vec4(glm::vec3(1.0f, 0.95f, 0.8f), 2.0f); // color: warm white
 		
 		gubo.eyePos = camPos; // Camera position
+		gubo.lightOn = glm::vec4(1); // Determines which lights are on (point, direct, spot, ambient component)
 
 		// Sky Box UBO update
 		SkyBoxUniformBufferObject sbubo{};
