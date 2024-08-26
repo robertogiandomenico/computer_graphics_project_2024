@@ -77,7 +77,7 @@ struct VertexOverlay {
 class PurrfectPotion : public BaseProject {
 protected:
 
-	// Current aspect ratio (used by the callback that resized the window
+	// Current aspect ratio (used by the callback that resized the window)
 	float Ar;
 
 	// Other application parameters
@@ -116,8 +116,10 @@ protected:
 
 	public:
 		std::map<std::string, bool> collectiblesMap;
+		std::map<std::string, int> collectiblesHUD;
 
 		PurrfectPotion() {
+
 			// Initialize items with names and set all isCollected to false
 			collectiblesMap["crystal"] = false;
 			collectiblesMap["eye"] = false;
@@ -126,6 +128,18 @@ protected:
 			collectiblesMap["potion1"] = false;
 			collectiblesMap["potion2"] = false;
 			collectiblesMap["bone"] = false;
+
+			collectiblesHUD["crystal"] = 0;
+			collectiblesHUD["eye"] = 1;
+			collectiblesHUD["feather"] = 2;
+			collectiblesHUD["leaf"] = 3;
+			collectiblesHUD["potion1"] = 4;
+			collectiblesHUD["potion2"] = 5;
+			collectiblesHUD["bone"] = 6;
+
+			/*for (int i = 0; i < COLLECTIBLES_NUM; i++) {
+				UBO_collectibles[i].visible = 1.f;
+			}*/
 
 			srand(static_cast<unsigned int>(time(0)));
 			for (int i = 0; i < COLLECTIBLES_NUM; ++i) {
@@ -169,7 +183,7 @@ protected:
 	// Other
 	Model<Vertex> M_cat, M_floor, M_walls, M_steam;
 	Model<skyBoxVertex> M_skyBox;
-	Model<VertexOverlay> M_timer[5];
+	Model<VertexOverlay> M_timer[5], M_scroll, M_collectibles[COLLECTIBLES_NUM];
 
 	// Descriptor sets
 	// Bathroom
@@ -187,10 +201,10 @@ protected:
 	// Other
 	DescriptorSet DS_cat, DS_floor, DS_walls, DS_steam;
 
-	DescriptorSet DS_skyBox, DS_timer[5];
+	DescriptorSet DS_skyBox, DS_timer[5], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam, T_timer[5];
+	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM];
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -208,7 +222,7 @@ protected:
 	// Other
 	UniformBufferObject UBO_cat, UBO_floor, UBO_walls;
 	SteamUniformBufferObject UBO_steam;
-	OverlayUniformBlock UBO_timer[5];
+	OverlayUniformBlock UBO_timer[5], UBO_scroll, UBO_collectibles[COLLECTIBLES_NUM];
 
 	// to display the bounding boxes for debugging
 	Pipeline P_boundingBox;
@@ -449,6 +463,7 @@ protected:
 			createBBModel(M_boundingBox[COLLECTIBLES_NUM + fornitureBBs.size()].vertices, M_boundingBox[COLLECTIBLES_NUM + fornitureBBs.size()].indices, &catBox);
 			M_boundingBox[COLLECTIBLES_NUM + fornitureBBs.size()].initMesh(this, &VD_boundingBox);
 
+			// Create HUD timer
 			glm::vec2 anchor = glm::vec2(0.8f, -0.95f);
 			float h = 0.22f;
 			float w = 0.15f;
@@ -458,6 +473,29 @@ protected:
 				M_timer[i].indices = { 0, 1, 2,    1, 2, 3 };
 				M_timer[i].initMesh(this, &VD_overlay);
 			}
+
+			// Create HUD scroll
+			anchor = glm::vec2(-1.f, -0.9f);
+			h = 1.8f;
+			w = 0.2f;
+			M_scroll.vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
+								{{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
+			M_scroll.indices = { 0, 1, 2,    1, 2, 3 };
+			M_scroll.initMesh(this, &VD_overlay);
+
+			// Create HUD collectibles
+			anchor = glm::vec2(-1.f, -0.92f);
+			h = 0.22f;
+			w = 0.15f;
+			for (int i = 0; i < COLLECTIBLES_NUM; i++) {
+				anchor = anchor + (glm::vec2(0.f, 0.2f));
+
+				M_collectibles[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
+											{{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
+				M_collectibles[i].indices = { 0, 1, 2,    1, 2, 3 };
+				M_collectibles[i].initMesh(this, &VD_overlay);
+			}
+
 
 			// Create the textures
 			// The second parameter is the file name
@@ -474,6 +512,16 @@ protected:
 			T_timer[2].init(this, "textures/HUD/timer_50.png");
 			T_timer[3].init(this, "textures/HUD/timer_25.png");
 			T_timer[4].init(this, "textures/HUD/timer_0.png");
+
+			T_scroll.init(this, "textures/HUD/scroll.png");
+
+			T_collectibles[collectiblesHUD["crystal"]].init(this, "textures/HUD/coll_crystal.png");
+			T_collectibles[collectiblesHUD["eye"]].init(this, "textures/HUD/coll_eye.png");
+			T_collectibles[collectiblesHUD["feather"]].init(this, "textures/HUD/coll_feather.png");
+			T_collectibles[collectiblesHUD["leaf"]].init(this, "textures/HUD/coll_leaf.png");
+			T_collectibles[collectiblesHUD["potion1"]].init(this, "textures/HUD/coll_potion1.png");
+			T_collectibles[collectiblesHUD["potion2"]].init(this, "textures/HUD/coll_potion2.png");
+			T_collectibles[collectiblesHUD["bone"]].init(this, "textures/HUD/coll_bone.png");
 	}
 
 	// Here you create your pipelines and Descriptor Sets!
@@ -703,6 +751,18 @@ protected:
 					{1, TEXTURE, 0, &T_timer[i]}
 				});
 		}
+
+		DS_scroll.init(this, &DSL_overlay, {
+				{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
+				{1, TEXTURE, 0, &T_scroll}
+			});
+
+		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
+			DS_collectibles[i].init(this, &DSL_overlay, {
+					{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
+					{1, TEXTURE, 0, &T_collectibles[i]}
+				});
+		}
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -763,6 +823,12 @@ protected:
 		for (int i = 0; i < 5; i++) {
 			DS_timer[i].cleanup();
 		}
+
+		DS_scroll.cleanup();
+
+		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
+			DS_collectibles[i].cleanup();
+		}
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -781,6 +847,12 @@ protected:
 
 		for (int i = 0; i < 5; i++) {
 			T_timer[i].cleanup();
+		}
+
+		T_scroll.cleanup();
+
+		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
+			T_collectibles[i].cleanup();
 		}
 
 		// Cleanup models
@@ -830,6 +902,12 @@ protected:
 		
 		for (int i = 0; i < 5; i++) {
 			M_timer[i].cleanup();
+		}
+
+		M_scroll.cleanup();
+
+		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
+			M_collectibles[i].cleanup();
 		}
 
 		// Cleanup descriptor set layouts
@@ -1013,6 +1091,16 @@ protected:
 			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_timer[i].indices.size()), 1, 0, 0, 0);
 		}
 
+		M_scroll.bind(commandBuffer);
+		DS_scroll.bind(commandBuffer, P_overlay, 0, currentImage);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_scroll.indices.size()), 1, 0, 0, 0);
+
+		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
+			M_collectibles[i].bind(commandBuffer);
+			DS_collectibles[i].bind(commandBuffer, P_overlay, 0, currentImage);
+			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_collectibles[i].indices.size()), 1, 0, 0, 0);
+		}
+
 	}
 
 	// Here is where you update the uniforms.
@@ -1191,8 +1279,9 @@ protected:
 		subo.time = totalElapsedTime;
 		DS_steam.map(currentImage, &subo, sizeof(subo), 0);
 
-		// Timer UBO update
+		// Overlays UBO updates
 		if (OVERLAY) {
+			// Timer
 			if (remainingTime >= GAME_DURATION * 3 / 4) {
 				UBO_timer[0].visible = 1.f;
 				UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
@@ -1213,15 +1302,36 @@ protected:
 				UBO_timer[4].visible = 1.f;
 				UBO_timer[0].visible = UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[3].visible = 0.f;
 			}
+
+			// Scroll
+			UBO_scroll.visible = 1.f;
+
+			// Collectibles
+			UBO_collectibles[collectiblesHUD["crystal"]].visible = !collectiblesMap["crystal"] ? 1.f : 0.f;
+			UBO_collectibles[collectiblesHUD["eye"]].visible = !collectiblesMap["eye"] ? 1.f : 0.f;
+			UBO_collectibles[collectiblesHUD["feather"]].visible = !collectiblesMap["feather"] ? 1.f : 0.f;
+			UBO_collectibles[collectiblesHUD["leaf"]].visible = !collectiblesMap["leaf"] ? 1.f : 0.f;
+			UBO_collectibles[collectiblesHUD["potion1"]].visible = !collectiblesMap["potion1"] ? 1.f : 0.f;
+			UBO_collectibles[collectiblesHUD["potion2"]].visible = !collectiblesMap["potion2"] ? 1.f : 0.f;
+			UBO_collectibles[collectiblesHUD["bone"]].visible = !collectiblesMap["bone"] ? 1.f : 0.f;
 		}
 		else {
 			UBO_timer[0].visible = UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
-		
+			UBO_scroll.visible = 0.f;
+			for (int i = 0; i < COLLECTIBLES_NUM; i++) {
+				UBO_collectibles[i].visible = 0.f;
+			}
 		}
 
 		for (int i = 0; i < 5; i++) {
 			DS_timer[i].map(currentImage, &UBO_timer[i], sizeof(UBO_timer[i]), 0);
 		}
+		DS_scroll.map(currentImage, &UBO_scroll, sizeof(UBO_scroll), 0);
+
+		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
+			DS_collectibles[i].map(currentImage, &UBO_collectibles[i], sizeof(UBO_collectibles[i]), 0);
+		}
+
 
 
 		// Placing cat
@@ -1305,6 +1415,11 @@ protected:
 			if (catBox.intersects(collectiblesBBs[i])) {
 				collectiblesMap[collectiblesBBs[i].getName()] = true;
 				std::cout << "Collected " << collectiblesBBs[i].getName() << "!" << std::endl;
+
+				int collectibleIndex = collectiblesHUD[collectiblesBBs[i].getName()];
+
+				UBO_collectibles[collectibleIndex].visible = 0.f;
+				DS_collectibles[collectibleIndex].map(currentImage, &UBO_collectibles[collectibleIndex], sizeof(UBO_collectibles[collectibleIndex]), 0);
 
 				if (collectiblesMap["crystal"] && collectiblesMap["eye"] && collectiblesMap["feather"] &&
 					collectiblesMap["leaf"] && collectiblesMap["potion1"] && collectiblesMap["potion2"] && collectiblesMap["bone"]) {
