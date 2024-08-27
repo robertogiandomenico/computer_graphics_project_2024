@@ -216,7 +216,7 @@ protected:
 	DescriptorSet DS_skyBox, DS_timer[5], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam, T_fire, T_web, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec;
+	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam, T_fire, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec;
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -472,7 +472,7 @@ protected:
 			M_shelf1.init(this,		&VD, "models/lair/lair_shelf1.gltf", GLTF);
 			M_shelf2.init(this,		&VD, "models/lair/lair_shelf2.gltf", GLTF);
 			M_stonetable.init(this, &VD, "models/lair/lair_table.gltf", GLTF);
-			M_web.init(this,		&VD, "models/lair/lair_webPlane.gltf", GLTF);
+			M_web.init(this,		&VD, "models/lair/lair_web.gltf", GLTF);
 			M_steam.init(this,		&VD, "models/lair/lair_steamPlane.gltf", GLTF);
 			M_fire.init(this,		&VD, "models/lair/lair_firePlane.gltf", GLTF);
 
@@ -523,7 +523,7 @@ protected:
 			M_scroll.initMesh(this, &VD_overlay);
 
 			// Create HUD collectibles
-			anchor = glm::vec2(-1.f, -0.92f);
+			anchor = glm::vec2(-1.01f, -0.92f);
 			w = 0.15f;
 			h = w * Ar;
 			for (int i = 0; i < COLLECTIBLES_NUM; i++) {
@@ -544,7 +544,6 @@ protected:
 			T_feather.init(this,	"textures/fabrics_0038_color_1k.jpg");
 			T_steam.init(this,		"textures/steam.png");
 			T_fire.init(this,		"textures/fire.png");
-			T_web.init(this,		"textures/web.png");
 
 			T_hair.init(this,		"textures/hair.jpg");
 			T_hairSpec.init(this,	"textures/hairSpec.jpg");
@@ -742,7 +741,7 @@ protected:
 			});
 		DS_web.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_web},
+					{1, TEXTURE, 0, &T_textures},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
@@ -903,7 +902,6 @@ protected:
 		T_feather.cleanup();
 		T_steam.cleanup();
 		T_fire.cleanup();
-		T_web.cleanup();
 		T_hair.cleanup();
 		T_hairSpec.cleanup();
 
