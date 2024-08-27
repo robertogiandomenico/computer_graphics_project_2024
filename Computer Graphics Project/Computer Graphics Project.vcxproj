@@ -38,6 +38,8 @@
     <None Include="shaders\SkyBoxShader.vert" />
     <None Include="shaders\SteamShader.frag" />
     <None Include="shaders\SteamShader.vert" />
+    <None Include="shaders\TanShader.vert" />
+    <None Include="shaders\WardShader.frag" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

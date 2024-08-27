@@ -12,3 +12,6 @@ glslc BoundingBox.vert -o BoundingBoxVert.spv
 
 glslc Overlay.frag -o OverlayFrag.spv
 glslc Overlay.vert -o OverlayVert.spv
+
+glslc WardShader.frag -o WardFrag.spv
+glslc TanShader.vert -o TanVert.spv

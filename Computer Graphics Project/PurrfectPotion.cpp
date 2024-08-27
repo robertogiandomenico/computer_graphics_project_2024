@@ -74,6 +74,13 @@ struct VertexOverlay {
 	glm::vec2 UV;
 };
 
+struct VertexTan {
+	glm::vec3 pos;
+	glm::vec3 normal;
+	glm::vec4 tangent;
+	glm::vec2 texCoord;
+};
+
 
 // MAIN ! 
 class PurrfectPotion : public BaseProject {
@@ -161,13 +168,13 @@ protected:
 		}
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay;
+	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward;
 
 	// Vertex formats
-	VertexDescriptor VD, VD_skyBox, VD_overlay;
+	VertexDescriptor VD, VD_skyBox, VD_overlay, VD_tangent;
 
 	// Pipelines [Shader couples]
-	Pipeline P, P_skyBox, P_steam, P_overlay;
+	Pipeline P, P_skyBox, P_steam, P_overlay, P_ward;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	// Please note that Model objects depends on the corresponding vertex structure
@@ -185,7 +192,8 @@ protected:
 	// Living room
 	Model<Vertex> M_sofa, M_table, M_tv;
 	// Other
-	Model<Vertex> M_cat, M_floor, M_walls;
+	Model<VertexTan> M_cat;
+	Model<Vertex> M_floor, M_walls;
 	Model<skyBoxVertex> M_skyBox;
 	Model<VertexOverlay> M_timer[5], M_scroll, M_collectibles[COLLECTIBLES_NUM];
 
@@ -208,7 +216,7 @@ protected:
 	DescriptorSet DS_skyBox, DS_timer[5], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam, T_fire, T_web, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM];
+	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam, T_fire, T_web, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec;
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -326,6 +334,14 @@ protected:
 				{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
 		});
 
+		DSL_ward.init(this, {
+				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+				{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+				{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+				{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+				{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+		});
+
 		// Vertex descriptors
 		VD.init(this, {
 			// this array contains the bindings
@@ -364,10 +380,10 @@ protected:
 		});
 
 		VD_skyBox.init(this, {
-			  {0, sizeof(skyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}
+			{0, sizeof(skyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}
 			}, {
-			  {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(skyBoxVertex, pos),
-					sizeof(glm::vec3), POSITION}
+				{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(skyBoxVertex, pos),
+					   sizeof(glm::vec3), POSITION}
 		});
 
 		VD_boundingBox.init(this, {
@@ -380,11 +396,24 @@ protected:
 		VD_overlay.init(this, {
 			{0, sizeof(VertexOverlay), VK_VERTEX_INPUT_RATE_VERTEX}
 			}, {
-				  {0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, pos),
-						 sizeof(glm::vec2), OTHER},
-				  {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, UV),
-						 sizeof(glm::vec2), UV}
-			});
+			   {0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, pos),
+				   	  sizeof(glm::vec2), OTHER},
+			   {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, UV),
+					  sizeof(glm::vec2), UV}
+		});
+
+		VD_tangent.init(this, {
+			{0, sizeof(VertexTan), VK_VERTEX_INPUT_RATE_VERTEX}
+			}, {
+			   {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexTan, pos),
+				   	  sizeof(glm::vec3), POSITION},
+			   {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexTan, normal),
+					  sizeof(glm::vec3), NORMAL},
+			   {0, 2, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VertexTan, tangent),
+					  sizeof(glm::vec3), TANGENT},
+			   {0, 3, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexTan, texCoord),
+					  sizeof(glm::vec2), UV}
+		});
 			
 			// Pipelines [Shader couples]
 			// The second parameter is the pointer to the vertex definition
@@ -405,6 +434,9 @@ protected:
 
 			P_overlay.init(this, &VD_overlay, "shaders/OverlayVert.spv", "shaders/OverlayFrag.spv", { &DSL_overlay });
 			P_overlay.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
+
+			P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_ward });
+			P_ward.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
 			// Models, textures and Descriptors (values assigned to the uniforms)
 
@@ -448,7 +480,7 @@ protected:
 			M_table.init(this,		&VD, "models/livingroom/livingroom_table.gltf", GLTF);
 			M_tv.init(this,			&VD, "models/livingroom/livingroom_tv.gltf", GLTF);
 
-			M_cat.init(this,		&VD, "models/other/cat.gltf", GLTF);
+			M_cat.init(this,		&VD_tangent, "models/other/cat.gltf", GLTF);
 			M_floor.init(this,		&VD, "models/other/floor.gltf", GLTF);
 			M_walls.init(this,		&VD, "models/other/walls.gltf", GLTF);
 
@@ -514,6 +546,9 @@ protected:
 			T_fire.init(this,		"textures/fire.png");
 			T_web.init(this,		"textures/web.png");
 
+			T_hair.init(this,		"textures/hair.jpg");
+			T_hairSpec.init(this,	"textures/hairSpec.jpg");
+
 			T_skyBox.init(this,		"textures/texture.jpg");
 
 			T_timer[0].init(this,	"textures/HUD/timer_100.png");
@@ -541,6 +576,7 @@ protected:
 		P_steam.create();
 		P_boundingBox.create();
 		P_overlay.create();
+		P_ward.create();
 
 		DS_skyBox.init(this, &DSL_skyBox, {
 						{0, UNIFORM, sizeof(SkyBoxUniformBufferObject), nullptr},
@@ -738,12 +774,14 @@ protected:
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 
-		DS_cat.init(this, &DSL, {
+		DS_cat.init(this, &DSL_ward, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
+					{1, TEXTURE, 0, &T_hair},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					{3, UNIFORM, sizeof(glm::vec3), nullptr},
+					{4, TEXTURE, 0, &T_hairSpec}
 			});
+
 		DS_floor.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
@@ -793,6 +831,7 @@ protected:
 		P_steam.cleanup();
 		P_boundingBox.cleanup();
 		P_overlay.cleanup();
+		P_ward.cleanup();
 
 		// Cleanup datasets
 		DS_bathtub.cleanup();
@@ -865,6 +904,8 @@ protected:
 		T_steam.cleanup();
 		T_fire.cleanup();
 		T_web.cleanup();
+		T_hair.cleanup();
+		T_hairSpec.cleanup();
 
 		T_skyBox.cleanup();
 
@@ -941,6 +982,7 @@ protected:
 		DSL_steam.cleanup();
 		DSL_boundingBox.cleanup();
 		DSL_overlay.cleanup();
+		DSL_ward.cleanup();
 
 		// Destroies the pipelines
 		P.destroy();
@@ -948,6 +990,7 @@ protected:
 		P_steam.destroy();
 		P_boundingBox.destroy();
 		P_overlay.destroy();
+		P_ward.destroy();
 	}
 
 	// Here it is the creation of the command buffer:
@@ -1084,10 +1127,6 @@ protected:
 		M_tv.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_tv.indices.size()), 1, 0, 0, 0);
 
-		DS_cat.bind(commandBuffer, P, 0, currentImage);
-		M_cat.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
-
 		DS_floor.bind(commandBuffer, P, 0, currentImage);
 		M_floor.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_floor.indices.size()), 1, 0, 0, 0);
@@ -1095,6 +1134,11 @@ protected:
 		DS_walls.bind(commandBuffer, P, 0, currentImage);
 		M_walls.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_walls.indices.size()), 1, 0, 0, 0);
+		
+		P_ward.bind(commandBuffer);
+		DS_cat.bind(commandBuffer, P_ward, 0, currentImage);
+		M_cat.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
 
 		P_skyBox.bind(commandBuffer);
 		M_skyBox.bind(commandBuffer);
@@ -1519,7 +1563,9 @@ protected:
 		drawBoundingBox(hasBoundingBox, position, rotation, scale, ViewPrj, UBO_boundingBox[id], DS_boundingBox[id], currentImage);
 
 		ds.map(currentImage, &ubo, sizeof(ubo), 0);
+
 		ds.map(currentImage, &gubo, sizeof(gubo), 2);
+	
 		// the .map() method of a DataSet object, requires the current image of the swap chain as first parameter
 		// the second parameter is the pointer to the C++ data structure to transfer to the GPU
 		// the third parameter is its size
