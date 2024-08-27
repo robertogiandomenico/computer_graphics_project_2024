@@ -50,6 +50,7 @@ struct SteamUniformBufferObject {
 	alignas(16) glm::mat4 mMat;
 	alignas(16) glm::mat4 nMat;
 	alignas(4) float time;						// Time variable for animation
+	alignas(4) float speed;
 };
 
 struct OverlayUniformBlock {
@@ -97,7 +98,7 @@ protected:
 
 	// Cat initial position
 	glm::vec3 catPosition = glm::vec3(6.0f, 0.0f, 0.0f);
-	glm::vec3 catDimensions = glm::vec3(1.2f, 1.2f, 0.25f);
+	glm::vec3 catDimensions = glm::vec3(1.2f, 1.2f, 0.2f);
 	// Cat initial orientation
 	float catYaw = 0.f;
 
@@ -124,21 +125,21 @@ protected:
 		PurrfectPotion() {
 
 			// Initialize items with names and set all isCollected to false
-			collectiblesMap["crystal"] = false;
-			collectiblesMap["eye"] = false;
-			collectiblesMap["feather"] = false;
-			collectiblesMap["leaf"] = false;
-			collectiblesMap["potion1"] = false;
-			collectiblesMap["potion2"] = false;
-			collectiblesMap["bone"] = false;
+			collectiblesMap["crystal"]	= false;
+			collectiblesMap["eye"]		= false;
+			collectiblesMap["feather"]	= false;
+			collectiblesMap["leaf"]		= false;
+			collectiblesMap["potion1"]	= false;
+			collectiblesMap["potion2"]	= false;
+			collectiblesMap["bone"]		= false;
 
-			collectiblesHUD["crystal"] = 0;
-			collectiblesHUD["eye"] = 1;
-			collectiblesHUD["feather"] = 2;
-			collectiblesHUD["leaf"] = 3;
-			collectiblesHUD["potion1"] = 4;
-			collectiblesHUD["potion2"] = 5;
-			collectiblesHUD["bone"] = 6;
+			collectiblesHUD["crystal"]	= 0;
+			collectiblesHUD["eye"]		= 1;
+			collectiblesHUD["feather"]	= 2;
+			collectiblesHUD["leaf"]		= 3;
+			collectiblesHUD["potion1"]	= 4;
+			collectiblesHUD["potion2"]	= 5;
+			collectiblesHUD["bone"]		= 6;
 
 			/*for (int i = 0; i < COLLECTIBLES_NUM; i++) {
 				UBO_collectibles[i].visible = 1.f;
@@ -180,11 +181,11 @@ protected:
 	// Kitchen
 	Model<Vertex> M_chair, M_fridge, M_kitchen, M_kitchentable;
 	// Lair
-	Model<Vertex> M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable;
+	Model<Vertex> M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web;
 	// Living room
 	Model<Vertex> M_sofa, M_table, M_tv;
 	// Other
-	Model<Vertex> M_cat, M_floor, M_walls, M_steam;
+	Model<Vertex> M_cat, M_floor, M_walls;
 	Model<skyBoxVertex> M_skyBox;
 	Model<VertexOverlay> M_timer[5], M_scroll, M_collectibles[COLLECTIBLES_NUM];
 
@@ -198,16 +199,16 @@ protected:
 	// Kitchen
 	DescriptorSet DS_chair, DS_fridge, DS_kitchen, DS_kitchentable;
 	// Lair
-	DescriptorSet DS_cauldron, DS_stonechair, DS_chest, DS_shelf1, DS_shelf2, DS_stonetable;
+	DescriptorSet DS_cauldron, DS_stonechair, DS_chest, DS_shelf1, DS_shelf2, DS_stonetable, DS_steam, DS_fire, DS_web;
 	// Living room
 	DescriptorSet DS_sofa, DS_table, DS_tv;
 	// Other
-	DescriptorSet DS_cat, DS_floor, DS_walls, DS_steam;
+	DescriptorSet DS_cat, DS_floor, DS_walls;
 
 	DescriptorSet DS_skyBox, DS_timer[5], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM];
+	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam, T_fire, T_web, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM];
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -219,12 +220,12 @@ protected:
 	// Kitchen
 	UniformBufferObject UBO_chair, UBO_fridge, UBO_kitchen, UBO_kitchenTable;
 	// Lair
-	UniformBufferObject UBO_cauldron, UBO_stoneChair, UBO_chest, UBO_shelf1, UBO_shelf2, UBO_stoneTable;
+	UniformBufferObject UBO_cauldron, UBO_stoneChair, UBO_chest, UBO_shelf1, UBO_shelf2, UBO_stoneTable, UBO_web;
 	// Living room
 	UniformBufferObject UBO_sofa, UBO_table, UBO_tv;
 	// Other
 	UniformBufferObject UBO_cat, UBO_floor, UBO_walls;
-	SteamUniformBufferObject UBO_steam;
+	SteamUniformBufferObject UBO_steam, UBO_fire;
 	OverlayUniformBlock UBO_timer[5], UBO_scroll, UBO_collectibles[COLLECTIBLES_NUM];
 
 	// to display the bounding boxes for debugging
@@ -268,23 +269,23 @@ protected:
 	void localInit() {
 
 		// Create the bounding boxes
-		collectiblesBBs.push_back(BoundingBox("crystal", collectiblesRandomPosition[0], glm::vec3(0.7f)));
-		collectiblesBBs.push_back(BoundingBox("eye", collectiblesRandomPosition[1], glm::vec3(0.5f)));
-		collectiblesBBs.push_back(BoundingBox("feather", collectiblesRandomPosition[2], glm::vec3(0.5f, 0.6f, 0.9f)));
-		collectiblesBBs.push_back(BoundingBox("leaf", collectiblesRandomPosition[3], glm::vec3(0.6f, 0.5f, 0.5f)));
-		collectiblesBBs.push_back(BoundingBox("potion1", collectiblesRandomPosition[4], glm::vec3(0.5f, 1.0f, 0.5f)));
-		collectiblesBBs.push_back(BoundingBox("potion2", collectiblesRandomPosition[5], glm::vec3(0.5f, 1.0f, 0.5f)));
-		collectiblesBBs.push_back(BoundingBox("bone", collectiblesRandomPosition[6], glm::vec3(0.5f, 0.7f, 0.5f)));
+		collectiblesBBs.push_back(BoundingBox("crystal",collectiblesRandomPosition[0], glm::vec3(0.7f)));
+		collectiblesBBs.push_back(BoundingBox("eye",	collectiblesRandomPosition[1], glm::vec3(0.5f)));
+		collectiblesBBs.push_back(BoundingBox("feather",collectiblesRandomPosition[2], glm::vec3(0.5f, 0.6f, 0.9f)));
+		collectiblesBBs.push_back(BoundingBox("leaf",	collectiblesRandomPosition[3], glm::vec3(0.6f, 0.5f, 0.5f)));
+		collectiblesBBs.push_back(BoundingBox("potion1",collectiblesRandomPosition[4], glm::vec3(0.5f, 1.0f, 0.5f)));
+		collectiblesBBs.push_back(BoundingBox("potion2",collectiblesRandomPosition[5], glm::vec3(0.5f, 1.0f, 0.5f)));
+		collectiblesBBs.push_back(BoundingBox("bone",	collectiblesRandomPosition[6], glm::vec3(0.5f, 0.7f, 0.5f)));
 
-		furnitureBBs.push_back(BoundingBox("bathtub", bathtub.pos, glm::vec3(3.3f, 1.4f, 1.4f)));
-		furnitureBBs.push_back(BoundingBox("closet", closet.pos, glm::vec3(5.6f, 3.2f, 1.f)));
-		furnitureBBs.push_back(BoundingBox("bed", bed.pos, glm::vec3(2.f, 1.2f, 4.5f)));
-		furnitureBBs.push_back(BoundingBox("nightTable", nightTable.pos, glm::vec3(0.88, 1.2f, 1.1f)));
-		furnitureBBs.push_back(BoundingBox("chest", chest.pos, glm::vec3(1.4f, 1.5f, 0.7f)));
-		furnitureBBs.push_back(BoundingBox("sofa", sofa.pos, glm::vec3(1.f, 1.1f, 3.f)));
-		furnitureBBs.push_back(BoundingBox("fridge", fridge.pos, glm::vec3(1.5f, 2.7f, 1.5f)));
-		furnitureBBs.push_back(BoundingBox("kitchen", kitchen.pos, glm::vec3(5.f, 3.3f, 1.72f)));
-		furnitureBBs.push_back(BoundingBox("cauldron", cauldron.pos, glm::vec3(1.f, 1.5f, 1.f)));
+		furnitureBBs.push_back(BoundingBox("bathtub",	bathtub.pos, glm::vec3(3.3f, 1.4f, 1.4f)));
+		furnitureBBs.push_back(BoundingBox("closet",	closet.pos, glm::vec3(5.6f, 3.2f, 1.f)));
+		furnitureBBs.push_back(BoundingBox("bed",		bed.pos, glm::vec3(2.f, 1.2f, 4.5f)));
+		furnitureBBs.push_back(BoundingBox("nightTable",nightTable.pos, glm::vec3(0.88, 1.2f, 1.1f)));
+		furnitureBBs.push_back(BoundingBox("chest",		chest.pos, glm::vec3(1.4f, 1.5f, 0.7f)));
+		furnitureBBs.push_back(BoundingBox("sofa",		sofa.pos, glm::vec3(1.f, 1.1f, 3.f)));
+		furnitureBBs.push_back(BoundingBox("fridge",	fridge.pos, glm::vec3(1.5f, 2.7f, 1.5f)));
+		furnitureBBs.push_back(BoundingBox("kitchen",	kitchen.pos, glm::vec3(5.f, 3.3f, 1.72f)));
+		furnitureBBs.push_back(BoundingBox("cauldron",	cauldron.pos, glm::vec3(1.f, 1.5f, 1.f)));
 
 		// create ubo needed for the bounding boxes (debug)
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
@@ -391,7 +392,7 @@ protected:
 			// The last array, is a vector of pointer to the layouts of the sets that will
 			// be used in this pipeline. The first element will be set 0, and so on..
 			P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL });
-			P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+			P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
 
 			P_skyBox.init(this, &VD_skyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSL_skyBox });
 			P_skyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
@@ -411,45 +412,47 @@ protected:
 			// The second parameter is the pointer to the vertex definition for this model
 			// The third parameter is the file name
 			// The last is a constant specifying the file type: currently only OBJ or GLTF
-			M_bathtub.init(this, &VD, "models/bathroom/bathroom_bathtub.gltf", GLTF);
-			M_bidet.init(this, &VD, "models/bathroom/bathroom_bidet.gltf", GLTF);
-			M_sink.init(this, &VD, "models/bathroom/bathroom_sink.gltf", GLTF);
-			M_toilet.init(this, &VD, "models/bathroom/bathroom_toilet.gltf", GLTF);
+			M_bathtub.init(this,	&VD, "models/bathroom/bathroom_bathtub.gltf", GLTF);
+			M_bidet.init(this,		&VD, "models/bathroom/bathroom_bidet.gltf", GLTF);
+			M_sink.init(this,		&VD, "models/bathroom/bathroom_sink.gltf", GLTF);
+			M_toilet.init(this,		&VD, "models/bathroom/bathroom_toilet.gltf", GLTF);
 
-			M_bed.init(this, &VD, "models/bedroom/bedroom_bed.gltf", GLTF);
-			M_closet.init(this, &VD, "models/bedroom/bedroom_closet.gltf", GLTF);
+			M_bed.init(this,		&VD, "models/bedroom/bedroom_bed.gltf", GLTF);
+			M_closet.init(this,		&VD, "models/bedroom/bedroom_closet.gltf", GLTF);
 			M_nighttable.init(this, &VD, "models/bedroom/bedroom_night_table.gltf", GLTF);
 
-			M_bone.init(this, &VD, "models/collectibles/coll_bone.gltf", GLTF);
-			M_crystal.init(this, &VD, "models/collectibles/coll_crystal.gltf", GLTF);
-			M_eye.init(this, &VD, "models/collectibles/coll_eye.gltf", GLTF);
-			M_feather.init(this, &VD, "models/collectibles/coll_feather.gltf", GLTF);
-			M_leaf.init(this, &VD, "models/collectibles/coll_leaf.gltf", GLTF);
-			M_potion1.init(this, &VD, "models/collectibles/coll_potion1.gltf", GLTF);
-			M_potion2.init(this, &VD, "models/collectibles/coll_potion2.gltf", GLTF);
+			M_bone.init(this,		&VD, "models/collectibles/coll_bone.gltf", GLTF);
+			M_crystal.init(this,	&VD, "models/collectibles/coll_crystal.gltf", GLTF);
+			M_eye.init(this,		&VD, "models/collectibles/coll_eye.gltf", GLTF);
+			M_feather.init(this,	&VD, "models/collectibles/coll_feather.gltf", GLTF);
+			M_leaf.init(this,		&VD, "models/collectibles/coll_leaf.gltf", GLTF);
+			M_potion1.init(this,	&VD, "models/collectibles/coll_potion1.gltf", GLTF);
+			M_potion2.init(this,	&VD, "models/collectibles/coll_potion2.gltf", GLTF);
 
-			M_chair.init(this, &VD, "models/kitchen/kitchen_chair.gltf", GLTF);
-			M_fridge.init(this, &VD, "models/kitchen/kitchen_fridge.gltf", GLTF);
-			M_kitchen.init(this, &VD, "models/kitchen/kitchen_kitchen.gltf", GLTF);
-			M_kitchentable.init(this, &VD, "models/kitchen/kitchen_table.gltf", GLTF);
+			M_chair.init(this,		&VD, "models/kitchen/kitchen_chair.gltf", GLTF);
+			M_fridge.init(this,		&VD, "models/kitchen/kitchen_fridge.gltf", GLTF);
+			M_kitchen.init(this,	&VD, "models/kitchen/kitchen_kitchen.gltf", GLTF);
+			M_kitchentable.init(this,&VD, "models/kitchen/kitchen_table.gltf", GLTF);
 
-			M_cauldron.init(this, &VD, "models/lair/lair_cauldron.gltf", GLTF);
+			M_cauldron.init(this,	&VD, "models/lair/lair_cauldron.gltf", GLTF);
 			M_stonechair.init(this, &VD, "models/lair/lair_chair.gltf", GLTF);
-			M_chest.init(this, &VD, "models/lair/lair_chest.gltf", GLTF);
-			M_shelf1.init(this, &VD, "models/lair/lair_shelf1.gltf", GLTF);
-			M_shelf2.init(this, &VD, "models/lair/lair_shelf2.gltf", GLTF);
+			M_chest.init(this,		&VD, "models/lair/lair_chest.gltf", GLTF);
+			M_shelf1.init(this,		&VD, "models/lair/lair_shelf1.gltf", GLTF);
+			M_shelf2.init(this,		&VD, "models/lair/lair_shelf2.gltf", GLTF);
 			M_stonetable.init(this, &VD, "models/lair/lair_table.gltf", GLTF);
-			M_steam.init(this, &VD, "models/lair/lair_plane.gltf", GLTF);
+			M_web.init(this,		&VD, "models/lair/lair_webPlane.gltf", GLTF);
+			M_steam.init(this,		&VD, "models/lair/lair_steamPlane.gltf", GLTF);
+			M_fire.init(this,		&VD, "models/lair/lair_firePlane.gltf", GLTF);
 
-			M_sofa.init(this, &VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
-			M_table.init(this, &VD, "models/livingroom/livingroom_table.gltf", GLTF);
-			M_tv.init(this, &VD, "models/livingroom/livingroom_tv.gltf", GLTF);
+			M_sofa.init(this,		&VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
+			M_table.init(this,		&VD, "models/livingroom/livingroom_table.gltf", GLTF);
+			M_tv.init(this,			&VD, "models/livingroom/livingroom_tv.gltf", GLTF);
 
-			M_cat.init(this, &VD, "models/other/cat.gltf", GLTF);
-			M_floor.init(this, &VD, "models/other/floor.gltf", GLTF);
-			M_walls.init(this, &VD, "models/other/walls.gltf", GLTF);
+			M_cat.init(this,		&VD, "models/other/cat.gltf", GLTF);
+			M_floor.init(this,		&VD, "models/other/floor.gltf", GLTF);
+			M_walls.init(this,		&VD, "models/other/walls.gltf", GLTF);
 
-			M_skyBox.init(this, &VD_skyBox, "models/sky/SkyBoxCube.obj", OBJ);
+			M_skyBox.init(this,		&VD_skyBox, "models/sky/SkyBoxCube.obj", OBJ);
 
 			for (int i = 0; i < collectiblesBBs.size(); i++) {
 				M_boundingBox.push_back(Model<VertexBoundingBox>());
@@ -479,7 +482,7 @@ protected:
 			}
 
 			// Create HUD scroll
-			anchor = glm::vec2(-1.f, -0.9f);
+			anchor = glm::vec2(-1.005f, -0.9f);
 			w = 0.2f;
 			h = 1.8f;
 			M_scroll.vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
@@ -503,29 +506,31 @@ protected:
 
 			// Create the textures
 			// The second parameter is the file name
-			T_textures.init(this, "textures/textures.png");
-			T_closet.init(this, "textures/closet.png");
-			T_eye.init(this, "textures/eye_texture.jpg");
-			T_feather.init(this, "textures/fabrics_0038_color_1k.jpg");
-			T_steam.init(this, "textures/steam.png");
+			T_textures.init(this,	"textures/textures.png");
+			T_closet.init(this,		"textures/closet.png");
+			T_eye.init(this,		"textures/eye_texture.jpg");
+			T_feather.init(this,	"textures/fabrics_0038_color_1k.jpg");
+			T_steam.init(this,		"textures/steam.png");
+			T_fire.init(this,		"textures/fire.png");
+			T_web.init(this,		"textures/web.png");
 
-			T_skyBox.init(this, "textures/texture.jpg");
+			T_skyBox.init(this,		"textures/texture.jpg");
 
-			T_timer[0].init(this, "textures/HUD/timer_100.png");
-			T_timer[1].init(this, "textures/HUD/timer_75.png");
-			T_timer[2].init(this, "textures/HUD/timer_50.png");
-			T_timer[3].init(this, "textures/HUD/timer_25.png");
-			T_timer[4].init(this, "textures/HUD/timer_0.png");
+			T_timer[0].init(this,	"textures/HUD/timer_100.png");
+			T_timer[1].init(this,	"textures/HUD/timer_75.png");
+			T_timer[2].init(this,	"textures/HUD/timer_50.png");
+			T_timer[3].init(this,	"textures/HUD/timer_25.png");
+			T_timer[4].init(this,	"textures/HUD/timer_0.png");
 
 			T_scroll.init(this, "textures/HUD/scroll.png");
 
-			T_collectibles[collectiblesHUD["crystal"]].init(this, "textures/HUD/coll_crystal.png");
-			T_collectibles[collectiblesHUD["eye"]].init(this, "textures/HUD/coll_eye.png");
-			T_collectibles[collectiblesHUD["feather"]].init(this, "textures/HUD/coll_feather.png");
-			T_collectibles[collectiblesHUD["leaf"]].init(this, "textures/HUD/coll_leaf.png");
-			T_collectibles[collectiblesHUD["potion1"]].init(this, "textures/HUD/coll_potion1.png");
-			T_collectibles[collectiblesHUD["potion2"]].init(this, "textures/HUD/coll_potion2.png");
-			T_collectibles[collectiblesHUD["bone"]].init(this, "textures/HUD/coll_bone.png");
+			T_collectibles[collectiblesHUD["crystal"]].init(this,	"textures/HUD/coll_crystal.png");
+			T_collectibles[collectiblesHUD["eye"]].init(this,		"textures/HUD/coll_eye.png");
+			T_collectibles[collectiblesHUD["feather"]].init(this,	"textures/HUD/coll_feather.png");
+			T_collectibles[collectiblesHUD["leaf"]].init(this,		"textures/HUD/coll_leaf.png");
+			T_collectibles[collectiblesHUD["potion1"]].init(this,	"textures/HUD/coll_potion1.png");
+			T_collectibles[collectiblesHUD["potion2"]].init(this,	"textures/HUD/coll_potion2.png");
+			T_collectibles[collectiblesHUD["bone"]].init(this,		"textures/HUD/coll_bone.png");
 	}
 
 	// Here you create your pipelines and Descriptor Sets!
@@ -699,9 +704,19 @@ protected:
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
+		DS_web.init(this, &DSL, {
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_web},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+			});
 		DS_steam.init(this, &DSL_steam, {
 					{0, UNIFORM, sizeof(SteamUniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_steam}
+			});
+		DS_fire.init(this, &DSL_steam, {
+					{0, UNIFORM, sizeof(SteamUniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_fire}
 			});
 
 		DS_sofa.init(this, &DSL, {
@@ -808,7 +823,9 @@ protected:
 		DS_shelf1.cleanup();
 		DS_shelf2.cleanup();
 		DS_stonetable.cleanup();
+		DS_web.cleanup();
 		DS_steam.cleanup();
+		DS_fire.cleanup();
 
 		DS_sofa.cleanup();
 		DS_table.cleanup();
@@ -846,6 +863,8 @@ protected:
 		T_closet.cleanup();
 		T_feather.cleanup();
 		T_steam.cleanup();
+		T_fire.cleanup();
+		T_web.cleanup();
 
 		T_skyBox.cleanup();
 
@@ -889,6 +908,8 @@ protected:
 		M_shelf2.cleanup();
 		M_stonetable.cleanup();
 		M_steam.cleanup();
+		M_fire.cleanup();
+		M_web.cleanup();
 
 		M_sofa.cleanup();
 		M_table.cleanup();
@@ -1047,6 +1068,10 @@ protected:
 		M_stonetable.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_stonetable.indices.size()), 1, 0, 0, 0);
 
+		DS_web.bind(commandBuffer, P, 0, currentImage);
+		M_web.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_web.indices.size()), 1, 0, 0, 0);
+
 		DS_sofa.bind(commandBuffer, P, 0, currentImage);
 		M_sofa.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_sofa.indices.size()), 1, 0, 0, 0);
@@ -1080,6 +1105,10 @@ protected:
 		M_steam.bind(commandBuffer);
 		DS_steam.bind(commandBuffer, P_steam, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_steam.indices.size()), 1, 0, 0, 0);
+
+		M_fire.bind(commandBuffer);
+		DS_fire.bind(commandBuffer, P_steam, 0, currentImage);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_fire.indices.size()), 1, 0, 0, 0);
 
 		P_boundingBox.bind(commandBuffer);
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
@@ -1162,9 +1191,9 @@ protected:
 		const float MOVE_SPEED = 10.0f;
 
 		// Update camera yaw, pitch, and roll
-		camYaw += ROT_SPEED * deltaT * r.y;
+		camYaw   += ROT_SPEED * deltaT * r.y;
 		camPitch -= ROT_SPEED * deltaT * r.x;
-		camRoll -= ROT_SPEED * deltaT * r.z;
+		camRoll  -= ROT_SPEED * deltaT * r.z;
 		camDist -= MOVE_SPEED * deltaT * m.y;
 
 		// Limit the distance from the cat and the pitch to avoid gimbal lock
@@ -1237,7 +1266,7 @@ protected:
 
 		GlobalUniformBufferObject gubo = {};
 		// Set light properties
-		gubo.lightPos[0] = glm::vec3(6.0f, 2.0f, 8.0f);			// position: kitchen
+		gubo.lightPos[0] =glm::vec3(6.0f, 2.0f, 8.0f);			// position: kitchen
 		gubo.lightColor[0] = glm::vec4(glm::vec3(1.4f), 2.0f);	// color: white
 
 		gubo.lightPos[1] = glm::vec3(-8.f, 2.0f, -8.f);						// position: witch lair
@@ -1267,6 +1296,7 @@ protected:
 		gubo.cosOut = glm::cos(glm::radians(45.0f));						// cos of the outer angle of the spot light
 		
 		gubo.eyePos = camPos; // Camera position
+
 		if (gameOver) {
 			gubo.lightOn = glm::vec4(1, 1, 1, 1);
 		} else {
@@ -1282,12 +1312,24 @@ protected:
 		// Steam UBO update
 		SteamUniformBufferObject subo = {};
 		glm::mat4 World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 1.7f, 0)) *		// Steam plane position - over the cauldron
-			glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));									// Steam plane rotation - always face the camera
+						glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));						// Steam plane rotation - always face the camera
 		subo.mvpMat = ViewPrj * World;
 		subo.mMat = World;
 		subo.nMat = glm::transpose(glm::inverse(World));
 		subo.time = totalElapsedTime;
+		subo.speed = 0.7f;
 		DS_steam.map(currentImage, &subo, sizeof(subo), 0);
+
+		// Fire UBO update
+		World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 0.3f, 0.1f)) *				// Fire plane position - under the cauldron
+				glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));								// Fire plane rotation - always face the camera
+		subo.mvpMat = ViewPrj * World;
+		subo.mMat = World;
+		subo.nMat = glm::transpose(glm::inverse(World));
+		subo.time = totalElapsedTime;
+		subo.speed = 4.f;
+		DS_fire.map(currentImage, &subo, sizeof(subo), 0);
+
 
 		// Overlays UBO updates
 		if (OVERLAY) {
@@ -1317,13 +1359,13 @@ protected:
 			UBO_scroll.visible = 1.f;
 
 			// Collectibles
-			UBO_collectibles[collectiblesHUD["crystal"]].visible = !collectiblesMap["crystal"] ? 1.f : 0.f;
-			UBO_collectibles[collectiblesHUD["eye"]].visible = !collectiblesMap["eye"] ? 1.f : 0.f;
-			UBO_collectibles[collectiblesHUD["feather"]].visible = !collectiblesMap["feather"] ? 1.f : 0.f;
-			UBO_collectibles[collectiblesHUD["leaf"]].visible = !collectiblesMap["leaf"] ? 1.f : 0.f;
-			UBO_collectibles[collectiblesHUD["potion1"]].visible = !collectiblesMap["potion1"] ? 1.f : 0.f;
-			UBO_collectibles[collectiblesHUD["potion2"]].visible = !collectiblesMap["potion2"] ? 1.f : 0.f;
-			UBO_collectibles[collectiblesHUD["bone"]].visible = !collectiblesMap["bone"] ? 1.f : 0.f;
+			UBO_collectibles[collectiblesHUD["crystal"]].visible	= !collectiblesMap["crystal"] ? 1.f : 0.f;
+			UBO_collectibles[collectiblesHUD["eye"]].visible		= !collectiblesMap["eye"] ? 1.f : 0.f;
+			UBO_collectibles[collectiblesHUD["feather"]].visible	= !collectiblesMap["feather"] ? 1.f : 0.f;
+			UBO_collectibles[collectiblesHUD["leaf"]].visible		= !collectiblesMap["leaf"] ? 1.f : 0.f;
+			UBO_collectibles[collectiblesHUD["potion1"]].visible	= !collectiblesMap["potion1"] ? 1.f : 0.f;
+			UBO_collectibles[collectiblesHUD["potion2"]].visible	= !collectiblesMap["potion2"] ? 1.f : 0.f;
+			UBO_collectibles[collectiblesHUD["bone"]].visible		= !collectiblesMap["bone"] ? 1.f : 0.f;
 		}
 		else {
 			UBO_timer[0].visible = UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
@@ -1375,6 +1417,7 @@ protected:
 		placeEntity(UBO_cauldron, gubo, cauldron.pos, cauldron.rot, cauldron.scale, glm::vec3(0.0f), ViewPrj, DS_cauldron, currentImage, DEBUG, 15);
 		placeEntity(UBO_shelf1, gubo, shelf1.pos, shelf1.rot, shelf1.scale, glm::vec3(0.0f), ViewPrj, DS_shelf1, currentImage, false);
 		placeEntity(UBO_shelf2, gubo, shelf2.pos, shelf2.rot, shelf2.scale, glm::vec3(0.0f), ViewPrj, DS_shelf2, currentImage, false);
+		placeEntity(UBO_web, gubo, web.pos, web.rot, web.scale, glm::vec3(0.0f), ViewPrj, DS_web, currentImage, false);
 
 		// Bathroom
 		placeEntity(UBO_bathtub, gubo, bathtub.pos, bathtub.rot, bathtub.scale, glm::vec3(0.0f), ViewPrj, DS_bathtub, currentImage, DEBUG, 7);
@@ -1390,32 +1433,32 @@ protected:
 			removeCollectible(UBO_crystal, gubo, ViewPrj, DS_crystal, currentImage, 0);	// it actually scales to zero -> not efficient
 		}
 		if (!collectiblesMap["eye"]) {
-			placeEntity(UBO_eye, gubo, collectiblesRandomPosition[1], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), glm::vec3(2.0f), ViewPrj, DS_eye, currentImage, DEBUG, 1);
+			placeEntity(UBO_eye, gubo, collectiblesRandomPosition[1], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage, DEBUG, 1);
 		} else {
 			removeCollectible(UBO_eye, gubo, ViewPrj, DS_eye, currentImage, 1);
 		}
 		if (!collectiblesMap["feather"]) {
-			placeEntity(UBO_feather, gubo, collectiblesRandomPosition[2], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(2.0f), ViewPrj, DS_feather, currentImage, DEBUG, 2);
+			placeEntity(UBO_feather, gubo, collectiblesRandomPosition[2], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage, DEBUG, 2);
 		} else {
 			removeCollectible(UBO_feather, gubo, ViewPrj, DS_feather, currentImage, 2);
 		}
 		if (!collectiblesMap["leaf"]) {
-			placeEntity(UBO_leaf, gubo, collectiblesRandomPosition[3], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(3.0f), ViewPrj, DS_leaf, currentImage, DEBUG, 3);
+			placeEntity(UBO_leaf, gubo, collectiblesRandomPosition[3], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage, DEBUG, 3);
 		} else {
 			removeCollectible(UBO_leaf, gubo, ViewPrj, DS_leaf, currentImage, 3);
 		}
 		if (!collectiblesMap["potion1"]) {
-			placeEntity(UBO_potion1, gubo, collectiblesRandomPosition[4], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(3.0f), ViewPrj, DS_potion1, currentImage, DEBUG, 4);
+			placeEntity(UBO_potion1, gubo, collectiblesRandomPosition[4], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage, DEBUG, 4);
 		} else {
 			removeCollectible(UBO_potion1, gubo, ViewPrj, DS_potion1, currentImage, 4);
 		}
 		if (!collectiblesMap["potion2"]) {
-			placeEntity(UBO_potion2, gubo, collectiblesRandomPosition[5], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(3.0f), ViewPrj, DS_potion2, currentImage, DEBUG, 5);
+			placeEntity(UBO_potion2, gubo, collectiblesRandomPosition[5], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage, DEBUG, 5);
 		} else {
 			removeCollectible(UBO_potion2, gubo, ViewPrj, DS_potion2, currentImage, 5);
 		}
 		if (!collectiblesMap["bone"]) {
-			placeEntity(UBO_bone, gubo, collectiblesRandomPosition[6], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), glm::vec3(1.0f), ViewPrj, DS_bone, currentImage, DEBUG, 6);
+			placeEntity(UBO_bone, gubo, collectiblesRandomPosition[6], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), glm::vec3(0.5f), ViewPrj, DS_bone, currentImage, DEBUG, 6);
 		} else {
 			removeCollectible(UBO_bone, gubo, ViewPrj, DS_bone, currentImage, 6);
 		}

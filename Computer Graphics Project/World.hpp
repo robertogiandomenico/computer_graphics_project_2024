@@ -74,6 +74,9 @@ inline Transform shelf1 = {
 inline Transform shelf2 = {
      glm::vec3(-9.f, 2.4f, -12.2f), glm::vec3(0, glm::radians(-90.f), 0), glm::vec3(1.0f)
 };
+inline Transform web = {
+     glm::vec3(-12.f, 3.f, -12.f), glm::vec3(0.0f), glm::vec3(1.0f)
+};
 
 // Bathroom
 inline Transform bathtub = {

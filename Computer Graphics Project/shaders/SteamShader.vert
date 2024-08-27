@@ -5,6 +5,7 @@ layout(binding = 0) uniform SteamUniformBufferObject {
     mat4 mMat;
     mat4 nMat;
     float time;
+    float speed;
 } subo;
 
 layout(location = 0) in vec3 inPos;
@@ -15,9 +16,11 @@ layout(location = 0) out vec2 fragUV;
 
 void main() {
     float time = subo.time;
+    float speed = subo.speed;
     vec3 pos = inPos;
-    pos.x += sin(time + inPos.y * 2.0) * 0.1;       // Wiggle effect on the x-axis
-    pos.y += sin(time + inPos.x * 2.0) * 0.1;       // Wiggle effect on the y-axis
+
+    pos.x += sin(time * speed + inPos.y * 2.0) * 0.1;       // Wiggle effect on the x-axis
+    pos.y += sin(time * speed + inPos.x * 2.0) * 0.1;       // Wiggle effect on the y-axis
 
     gl_Position = subo.mvpMat * vec4(pos, 1.0);
     fragUV = inUV;

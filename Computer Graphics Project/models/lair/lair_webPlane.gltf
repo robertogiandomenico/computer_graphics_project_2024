@@ -15,17 +15,17 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Plane",
+			"name":"Plane.002",
 			"translation":[
-				-7.024930000305176,
-				1.7862730026245117,
-				-8.81013011932373
+				-12.068626403808594,
+				2.908170461654663,
+				-12.022777557373047
 			]
 		}
 	],
 	"meshes":[
 		{
-			"name":"Plane",
+			"name":"Plane.009",
 			"primitives":[
 				{
 					"attributes":{
@@ -42,68 +42,68 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":25,
+			"count":4,
 			"max":[
-				0.3848281502723694,
-				1,
-				4.371138828673793e-08
+				0.43249037861824036,
+				0.6116337180137634,
+				0.43249037861824036
 			],
 			"min":[
-				-0.3848281502723694,
-				-1,
-				-4.371138828673793e-08
+				-0.43249037861824036,
+				-0.6116337180137634,
+				-0.43249037861824036
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":25,
+			"count":4,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":25,
+			"count":4,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":96,
+			"count":6,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":300,
+			"byteLength":48,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":300,
-			"byteOffset":300,
+			"byteLength":48,
+			"byteOffset":48,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":200,
-			"byteOffset":600,
+			"byteLength":32,
+			"byteOffset":96,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":192,
-			"byteOffset":800,
+			"byteLength":12,
+			"byteOffset":128,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":992,
-			"uri":"lair_plane.bin"
+			"byteLength":140,
+			"uri":"lair_webPlane.bin"
 		}
 	]
 }

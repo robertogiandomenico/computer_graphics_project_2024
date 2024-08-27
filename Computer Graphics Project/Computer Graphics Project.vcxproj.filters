@@ -61,10 +61,10 @@
     <None Include="shaders\BoundingBox.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="Overlay.frag">
+    <None Include="shaders\Overlay.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="Overlay.vert">
+    <None Include="shaders\Overlay.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

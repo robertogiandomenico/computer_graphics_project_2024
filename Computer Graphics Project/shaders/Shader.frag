@@ -83,6 +83,7 @@ void main() {
     
     vec4 texColor = texture(texSampler, fragUV);
     vec3 Albedo = texColor.rgb;
+    float alpha = texColor.a;
 
     vec3 LD;
     vec3 LC;
@@ -125,5 +126,5 @@ void main() {
     vec3 emissive = eubo.emissiveColor * texColor.rgb;
     result += emissive;
 
-    outColor = vec4(result, 1.0f);
+    outColor = vec4(result, alpha);
 }

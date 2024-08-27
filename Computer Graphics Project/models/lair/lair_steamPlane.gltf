@@ -15,26 +15,25 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cat-body triangulated",
+			"name":"Plane",
 			"translation":[
-				2.046804904937744,
-				0,
-				0.08756384998559952
+				-7.024930000305176,
+				1.7862730026245117,
+				-8.81013011932373
 			]
 		}
 	],
 	"meshes":[
 		{
-			"name":"Cube.001",
+			"name":"Plane",
 			"primitives":[
 				{
 					"attributes":{
 						"POSITION":0,
 						"NORMAL":1,
-						"TEXCOORD_0":2,
-						"TANGENT":3
+						"TEXCOORD_0":2
 					},
-					"indices":4
+					"indices":3
 				}
 			]
 		}
@@ -43,80 +42,68 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":748,
+			"count":25,
 			"max":[
-				0.6818686723709106,
-				0.636338472366333,
-				0.12845292687416077
+				0.3848281502723694,
+				1,
+				4.371138828673793e-08
 			],
 			"min":[
-				-0.6095876097679138,
-				0.001213284907862544,
-				-0.12845292687416077
+				-0.3848281502723694,
+				-1,
+				-4.371138828673793e-08
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":748,
+			"count":25,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":748,
+			"count":25,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
-			"componentType":5126,
-			"count":748,
-			"type":"VEC4"
-		},
-		{
-			"bufferView":4,
 			"componentType":5123,
-			"count":1482,
+			"count":96,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":8976,
+			"byteLength":300,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":8976,
-			"byteOffset":8976,
+			"byteLength":300,
+			"byteOffset":300,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":5984,
-			"byteOffset":17952,
+			"byteLength":200,
+			"byteOffset":600,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":11968,
-			"byteOffset":23936,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":2964,
-			"byteOffset":35904,
+			"byteLength":192,
+			"byteOffset":800,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":38868,
-			"uri":"cat.bin"
+			"byteLength":992,
+			"uri":"lair_steamPlane.bin"
 		}
 	]
 }
