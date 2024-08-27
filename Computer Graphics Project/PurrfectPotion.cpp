@@ -216,7 +216,7 @@ protected:
 	DescriptorSet DS_skyBox, DS_timer[5], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam, T_fire, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec;
+	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam, T_fire, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec, T_hairNorm;
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -339,7 +339,8 @@ protected:
 				{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
 				{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
 				{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-				{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+				{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+				{5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
 		});
 
 		// Vertex descriptors
@@ -545,8 +546,9 @@ protected:
 			T_steam.init(this,		"textures/steam.png");
 			T_fire.init(this,		"textures/fire.png");
 
-			T_hair.init(this,		"textures/hair.jpg");
+			T_hair.init(this,		"textures/hair3.jpg");
 			T_hairSpec.init(this,	"textures/hairSpec.jpg");
+			T_hairNorm.init(this,	"textures/hairNorm.jpg");
 
 			T_skyBox.init(this,		"textures/texture.jpg");
 
@@ -778,7 +780,8 @@ protected:
 					{1, TEXTURE, 0, &T_hair},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr},
-					{4, TEXTURE, 0, &T_hairSpec}
+					{4, TEXTURE, 0, &T_hairSpec},
+					{5, TEXTURE, 0, &T_hairNorm}
 			});
 
 		DS_floor.init(this, &DSL, {
@@ -904,6 +907,7 @@ protected:
 		T_fire.cleanup();
 		T_hair.cleanup();
 		T_hairSpec.cleanup();
+		T_hairNorm.cleanup();
 
 		T_skyBox.cleanup();
 
@@ -1286,7 +1290,7 @@ protected:
 		// Set up the view and projection matrices
 		const float FOVy = glm::radians(45.0f);
 		const float nearPlane = 0.1f;
-		const float farPlane = 300.0f;
+		const float farPlane = 100.0f;
 
 		glm::mat4 M = glm::perspective(FOVy, Ar, nearPlane, farPlane);
 		M[1][1] *= -1;

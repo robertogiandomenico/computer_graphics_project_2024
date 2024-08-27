@@ -27,6 +27,8 @@ layout(binding = 3) uniform EmissiveUniformBufferObject {
 
 layout(binding = 4) uniform sampler2D spet;
 
+layout(binding = 5) uniform sampler2D norm;
+
 vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 T, vec3 B, vec3 Md, vec3 Ms, float alphaT, float alphaB) {
 /* This BRDF should perform the Ward anisotropic specular model with the Lambert diffuse model.
 		 
@@ -51,19 +53,27 @@ Paramters:
     float l_n = dot(L, N);
     float v_n = dot(V, N);
 
-    float exponent = (pow(h_t / alphaT, 2) + pow(h_b / alphaB, 2)) / max(pow(h_n, 2), 1e-5);	// avoid division by zero
-    float denominator = 4.0 * 3.14159 * alphaT * alphaB * sqrt(max(l_n, 0.0) * max(v_n, 0.0));
+    float exponent = (pow(h_t / alphaT, 2) + pow(h_b / alphaB, 2)) / pow(h_n, 2);
+    float denominator = 4.0 * alphaT * alphaB * sqrt(h_n / (l_n * v_n)) * radians(180.0f);
 
-    vec3 Specular = Ms * exp(-exponent) / max(denominator, 1e-5);
+    vec3 Specular = Ms * exp(-exponent) / denominator;
 
 	return (Diffuse + Specular);
 }
 
 void main() {
+
+	// Sample the normal map
+    vec3 normalMapSample = texture(norm, fragUV).rgb;
+
+	// Convert from [0,1] range to [-1,1] range
+    vec3 normalMapNormal = normalize(normalMapSample * 2.0 - 1.0);
+
 	vec3 Norm = normalize(fragNorm);
 	vec3 Tan = normalize(fragTan.xyz - Norm * dot(fragTan.xyz, Norm));
 	vec3 Bitan = cross(Norm, Tan) * fragTan.w;
-	vec3 N = Norm;
+	vec3 N = normalize(normalMapNormal * Tan + normalMapNormal * Bitan + normalMapNormal * fragNorm);
+
 
 	vec3 albedo  = texture(tex,  fragUV).rgb;
 	vec3 specCol = texture(spet, fragUV).rgb;
