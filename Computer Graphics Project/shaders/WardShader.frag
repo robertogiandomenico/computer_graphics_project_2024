@@ -51,10 +51,10 @@ Paramters:
     float l_n = dot(L, N);
     float v_n = dot(V, N);
 
-    float exponent = (pow(h_t/alphaT, 2) + pow(h_b/alphaB, 2)) / pow(h_n, 2);
-    float denominator = 4.0 * radians(180.0f) * alphaT * alphaB * sqrt(h_n / (l_n * v_n));
+    float exponent = (pow(h_t / alphaT, 2) + pow(h_b / alphaB, 2)) / max(pow(h_n, 2), 1e-5);	// avoid division by zero
+    float denominator = 4.0 * 3.14159 * alphaT * alphaB * sqrt(max(l_n, 0.0) * max(v_n, 0.0));
 
-    vec3 Specular = Ms * exp(-exponent)/denominator;
+    vec3 Specular = Ms * exp(-exponent) / max(denominator, 1e-5);
 
 	return (Diffuse + Specular);
 }
@@ -84,7 +84,8 @@ void main() {
         }
 
         float distance = length(gubo.lightPos[i] - fragPos);
-        float attenuation = 1.0 / (distance * distance); // Inverse square law for attenuation
+        float attenuation = 1.0 / (0.1 + 0.1 * distance + 0.01 * distance * distance); // Standard attenuation formula
+		// float attenuation = 1.0 / (distance * distance); // Inverse square attenuation formula
 
         vec3 DiffSpec = BRDF(V, N, L, Tan, Bitan, albedo, specCol, 0.1f, 0.4f);
         
