@@ -97,7 +97,7 @@ void main() {
         result += BRDF(Albedo, Norm, EyeDir, LD) * LC * gubo.lightOn.x;
     
         // Ambient
-        ambient = 0.003 * vec3(gubo.lightColor[i].rgb);
+        ambient = 0.001 * vec3(gubo.lightColor[i].rgb);
 
         // Accumulate the result from this light
         result += ambient * gubo.lightOn.w;
@@ -109,7 +109,7 @@ void main() {
 
     result += BRDF(Albedo, Norm, EyeDir, LD) * LC * gubo.lightOn.y;
 
-    ambient = 0.003 * vec3(gubo.lightColor[7].rgb);
+    ambient = 0.001 * vec3(gubo.lightColor[7].rgb);
     result += ambient * gubo.lightOn.w;
 
     // Add the spot light
@@ -118,7 +118,7 @@ void main() {
 
     result += BRDF(Albedo, Norm, EyeDir, LD) * LC * gubo.lightOn.z;
 
-    ambient = 0.003 * vec3(gubo.lightColor[8].rgb);
+    ambient = 0.001 * vec3(gubo.lightColor[8].rgb);
     result += ambient * gubo.lightOn.z;
 
     // Add emissive color to the final output

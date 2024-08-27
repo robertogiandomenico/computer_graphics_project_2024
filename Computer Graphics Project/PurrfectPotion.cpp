@@ -114,8 +114,9 @@ protected:
 
 	bool DEBUG = false;						// Used to display bounding boxes for debugging
 	bool OVERLAY = true;					// Used to display the overlay
+	bool gameOver = false;					// Used to check if the user has collected all the collectibles
 
-	bool gameOver = false;
+	glm::vec4 lightOn = glm::vec4(1,1,0,1); // Initially all types of light are on, except spot
 
 	public:
 		std::map<std::string, bool> collectiblesMap;
@@ -499,7 +500,6 @@ protected:
 				M_collectibles[i].indices = { 0, 1, 2,    1, 2, 3 };
 				M_collectibles[i].initMesh(this, &VD_overlay);
 			}
-
 
 			// Create the textures
 			// The second parameter is the file name
@@ -1110,6 +1110,9 @@ protected:
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
+		static bool debounce = false;
+		static int curDebounce = 0;
+
 		// Standard procedure to quit when the ESC key is pressed
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
 			glfwSetWindowShouldClose(window, GL_TRUE);
@@ -1125,6 +1128,53 @@ protected:
 			lastPressTime = totalElapsedTime;
 		}
 
+		// Turn on/off point lights
+		if (glfwGetKey(window, GLFW_KEY_1)) {
+			if (!debounce) {
+				debounce = true;
+				curDebounce = GLFW_KEY_1;
+				lightOn.x = 1 - lightOn.x;
+			}
+		} else if ((curDebounce == GLFW_KEY_1) && debounce) {
+			debounce = false;
+			curDebounce = 0;
+		}
+
+		// Turn on/off directional lights
+		if (glfwGetKey(window, GLFW_KEY_2)) {
+			if (!debounce) {
+				debounce = true;
+				curDebounce = GLFW_KEY_2;
+				lightOn.y = 1 - lightOn.y;
+			}
+		} else if ((curDebounce == GLFW_KEY_2) && debounce) {
+			debounce = false;
+			curDebounce = 0;
+		}
+
+		// Turn on/off spot lights
+		if (glfwGetKey(window, GLFW_KEY_3)) {
+			if (!debounce) {
+				debounce = true;
+				curDebounce = GLFW_KEY_3;
+				lightOn.z = 1 - lightOn.z;
+			}
+		} else if ((curDebounce == GLFW_KEY_3) && debounce) {
+			debounce = false;
+			curDebounce = 0;
+		}
+
+		// Turn on/off ambient lights
+		if (glfwGetKey(window, GLFW_KEY_4)) {
+			if (!debounce) {
+				debounce = true;
+				curDebounce = GLFW_KEY_4;
+				lightOn.w = 1 - lightOn.w;
+			}
+		} else if ((curDebounce == GLFW_KEY_4) && debounce) {
+			debounce = false;
+			curDebounce = 0;
+		}
 
 		// Integration with the timers and the controllers
 		float deltaT;
@@ -1267,10 +1317,11 @@ protected:
 		gubo.cosOut = glm::cos(glm::radians(45.0f));						// cos of the outer angle of the spot light
 		
 		gubo.eyePos = camPos; // Camera position
+		
 		if (gameOver) {
 			gubo.lightOn = glm::vec4(1, 1, 1, 1);
 		} else {
-			gubo.lightOn = glm::vec4(1, 1, 0, 1);
+			gubo.lightOn = lightOn;
 		}
 
 		// Sky Box UBO update
