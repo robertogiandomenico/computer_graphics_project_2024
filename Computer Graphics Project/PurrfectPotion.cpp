@@ -465,8 +465,8 @@ protected:
 
 			// Create HUD timer
 			glm::vec2 anchor = glm::vec2(0.8f, -0.95f);
-			float h = 0.22f;
 			float w = 0.15f;
+			float h = w * Ar;		// Respect the aspect ratio since it is a square pic
 			for (int i = 0; i < 5; i++) {
 				M_timer[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
 										{{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
@@ -476,8 +476,8 @@ protected:
 
 			// Create HUD scroll
 			anchor = glm::vec2(-1.f, -0.9f);
-			h = 1.8f;
 			w = 0.2f;
+			h = 1.8f;
 			M_scroll.vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
 								{{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
 			M_scroll.indices = { 0, 1, 2,    1, 2, 3 };
@@ -485,8 +485,8 @@ protected:
 
 			// Create HUD collectibles
 			anchor = glm::vec2(-1.f, -0.92f);
-			h = 0.22f;
 			w = 0.15f;
+			h = w * Ar;
 			for (int i = 0; i < COLLECTIBLES_NUM; i++) {
 				anchor = anchor + (glm::vec2(0.f, 0.2f));
 
