@@ -1345,7 +1345,7 @@ protected:
 
 
 		// Placing cat
-		placeEntity(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.f), glm::vec3(0.0f), ViewPrj, DS_cat, currentImage, DEBUG, 15);
+		placeEntity(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.f), glm::vec3(0.0f), ViewPrj, DS_cat, currentImage, DEBUG, 16);
 		catBox = BoundingBox("cat", catPosition, catDimensions);
 
 		// House
