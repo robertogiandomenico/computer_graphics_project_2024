@@ -28,6 +28,8 @@
     <ClInclude Include="Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Overlay.frag" />
+    <None Include="Overlay.vert" />
     <None Include="shaders\BoundingBox.frag" />
     <None Include="shaders\BoundingBox.vert" />
     <None Include="shaders\Shader.frag" />
