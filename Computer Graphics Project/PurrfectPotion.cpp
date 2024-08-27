@@ -12,7 +12,7 @@
 #include "Utils.hpp"
 #include "World.hpp"
 
-#define LIGHTS_NUM 7
+#define LIGHTS_NUM 9
 #define COLLECTIBLES_NUM 7
 
 // The uniform buffer objects data structures
@@ -31,12 +31,13 @@ struct UniformBufferObject {
 };
 
 struct GlobalUniformBufferObject {
+	alignas(16) glm::vec3 lightDir[LIGHTS_NUM];		// Direction of the lights
 	alignas(16) glm::vec3 lightPos[LIGHTS_NUM];     // Position of the lights
-	alignas(16) glm::vec3 lightColor[LIGHTS_NUM];   // Color of the lights
+	alignas(16) glm::vec4 lightColor[LIGHTS_NUM];   // Color of the lights
 	alignas(16) glm::vec3 eyePos;					// Position of the camera/eye
-	alignas(4) float constant[LIGHTS_NUM];			// Constant attenuation factor
-	alignas(4) float linear[LIGHTS_NUM];			// Linear attenuation factor
-	alignas(4) float quadratic[LIGHTS_NUM];			// Quadratic attenuation factor
+	alignas(16) glm::vec4 lightOn;					// Lights on/off flag (point, direct, spot, ambient component)
+	alignas(4) float cosIn;							// Spot light inner cone angle
+	alignas(4) float cosOut;						// Spot light outer cone angle
 };
 
 struct SkyBoxUniformBufferObject {
@@ -103,7 +104,7 @@ protected:
 	glm::vec3 collectiblesRandomPosition[COLLECTIBLES_NUM];
 
 	// Timer setup
-	const float GAME_DURATION = 120.0f;		// 2 minutes = 120 seconds
+	const float GAME_DURATION = 180.0f;		// 3 minutes = 180 seconds
 	float totalElapsedTime = 0.0f;			// in seconds
 	float remainingTime = GAME_DURATION;	
 	int lastDisplayedTime = static_cast<int>(GAME_DURATION);
@@ -113,6 +114,8 @@ protected:
 
 	bool DEBUG = false;						// Used to display bounding boxes for debugging
 	bool OVERLAY = true;					// Used to display the overlay
+
+	bool gameOver = false;
 
 	public:
 		std::map<std::string, bool> collectiblesMap;
@@ -233,7 +236,7 @@ protected:
 	std::vector<BoundingBoxUniformBlock> UBO_boundingBox;
 
 	std::vector<BoundingBox> collectiblesBBs;
-	std::vector<BoundingBox> fornitureBBs;
+	std::vector<BoundingBox> furnitureBBs;
 	BoundingBox catBox = BoundingBox("cat", catPosition, catDimensions);
 
 	// Here you set the main application parameters
@@ -273,17 +276,18 @@ protected:
 		collectiblesBBs.push_back(BoundingBox("potion2", collectiblesRandomPosition[5], glm::vec3(0.5f, 1.0f, 0.5f)));
 		collectiblesBBs.push_back(BoundingBox("bone", collectiblesRandomPosition[6], glm::vec3(0.5f, 0.7f, 0.5f)));
 
-		fornitureBBs.push_back(BoundingBox("bathtub", bathtub.pos, glm::vec3(3.3f, 1.4f, 1.4f)));
-		fornitureBBs.push_back(BoundingBox("closet", closet.pos, glm::vec3(5.6f, 3.2f, 1.f)));
-		fornitureBBs.push_back(BoundingBox("bed", bed.pos, glm::vec3(2.f, 1.2f, 4.5f)));
-		fornitureBBs.push_back(BoundingBox("nightTable", nightTable.pos, glm::vec3(0.88, 1.2f, 1.1f)));
-		fornitureBBs.push_back(BoundingBox("chest", chest.pos, glm::vec3(1.4f, 1.5f, 0.7f)));
-		fornitureBBs.push_back(BoundingBox("sofa", sofa.pos, glm::vec3(1.f, 1.1f, 3.f)));
-		fornitureBBs.push_back(BoundingBox("fridge", fridge.pos, glm::vec3(1.5f, 2.7f, 1.5f)));
-		fornitureBBs.push_back(BoundingBox("kitchen", kitchen.pos, glm::vec3(5.f, 3.3f, 1.72f)));
+		furnitureBBs.push_back(BoundingBox("bathtub", bathtub.pos, glm::vec3(3.3f, 1.4f, 1.4f)));
+		furnitureBBs.push_back(BoundingBox("closet", closet.pos, glm::vec3(5.6f, 3.2f, 1.f)));
+		furnitureBBs.push_back(BoundingBox("bed", bed.pos, glm::vec3(2.f, 1.2f, 4.5f)));
+		furnitureBBs.push_back(BoundingBox("nightTable", nightTable.pos, glm::vec3(0.88, 1.2f, 1.1f)));
+		furnitureBBs.push_back(BoundingBox("chest", chest.pos, glm::vec3(1.4f, 1.5f, 0.7f)));
+		furnitureBBs.push_back(BoundingBox("sofa", sofa.pos, glm::vec3(1.f, 1.1f, 3.f)));
+		furnitureBBs.push_back(BoundingBox("fridge", fridge.pos, glm::vec3(1.5f, 2.7f, 1.5f)));
+		furnitureBBs.push_back(BoundingBox("kitchen", kitchen.pos, glm::vec3(5.f, 3.3f, 1.72f)));
+		furnitureBBs.push_back(BoundingBox("cauldron", cauldron.pos, glm::vec3(1.f, 1.5f, 1.f)));
 
 		// create ubo needed for the bounding boxes (debug)
-		for (int i = 0; i < collectiblesBBs.size() + fornitureBBs.size() + 1; i++) {
+		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			UBO_boundingBox.push_back(BoundingBoxUniformBlock());
 		}
 
@@ -453,15 +457,15 @@ protected:
 				M_boundingBox[i].initMesh(this, &VD_boundingBox);
 			}
 
-			for (int i = 0; i < fornitureBBs.size(); i++) {
+			for (int i = 0; i < furnitureBBs.size(); i++) {
 				M_boundingBox.push_back(Model<VertexBoundingBox>());
-				createBBModel(M_boundingBox[i + COLLECTIBLES_NUM].vertices, M_boundingBox[i + COLLECTIBLES_NUM].indices, &fornitureBBs[i]);
+				createBBModel(M_boundingBox[i + COLLECTIBLES_NUM].vertices, M_boundingBox[i + COLLECTIBLES_NUM].indices, &furnitureBBs[i]);
 				M_boundingBox[i + COLLECTIBLES_NUM].initMesh(this, &VD_boundingBox);
 			}
 
 			M_boundingBox.push_back(Model<VertexBoundingBox>());
-			createBBModel(M_boundingBox[COLLECTIBLES_NUM + fornitureBBs.size()].vertices, M_boundingBox[COLLECTIBLES_NUM + fornitureBBs.size()].indices, &catBox);
-			M_boundingBox[COLLECTIBLES_NUM + fornitureBBs.size()].initMesh(this, &VD_boundingBox);
+			createBBModel(M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].vertices, M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].indices, &catBox);
+			M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].initMesh(this, &VD_boundingBox);
 
 			// Create HUD timer
 			glm::vec2 anchor = glm::vec2(0.8f, -0.95f);
@@ -738,7 +742,7 @@ protected:
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		
-		for (int i = 0; i < collectiblesBBs.size() + fornitureBBs.size() + 1; i++) {
+		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			DS_boundingBox.push_back(DescriptorSet());
 			DS_boundingBox[i].init(this, &DSL_boundingBox, {
 						{0, UNIFORM, sizeof(BoundingBoxUniformBlock), nullptr},
@@ -816,7 +820,7 @@ protected:
 
 		DS_skyBox.cleanup();
 
-		for (int i = 0; i < collectiblesBBs.size() + fornitureBBs.size() + 1; i++) {
+		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			DS_boundingBox[i].cleanup();
 		}
 
@@ -896,7 +900,7 @@ protected:
 
 		M_skyBox.cleanup();
 
-		for (int i = 0; i < collectiblesBBs.size() + fornitureBBs.size() + 1; i++) {
+		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			M_boundingBox[i].cleanup();
 		}
 		
@@ -1078,7 +1082,7 @@ protected:
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_steam.indices.size()), 1, 0, 0, 0);
 
 		P_boundingBox.bind(commandBuffer);
-		for (int i = 0; i < collectiblesBBs.size() + fornitureBBs.size() + 1; i++) {
+		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			M_boundingBox[i].bind(commandBuffer);
 			DS_boundingBox[i].bind(commandBuffer, P_boundingBox, 0, currentImage);
 			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_boundingBox[i].indices.size()), 1, 0, 0, 0);
@@ -1233,35 +1237,41 @@ protected:
 
 		GlobalUniformBufferObject gubo = {};
 		// Set light properties
-		gubo.lightPos[0] = glm::vec3(6.0f, 2.0f, 8.0f);		// position: kitchen
-		gubo.lightColor[0] = glm::vec3(1.4f);				// color: white
+		gubo.lightPos[0] = glm::vec3(6.0f, 2.0f, 8.0f);			// position: kitchen
+		gubo.lightColor[0] = glm::vec4(glm::vec3(1.4f), 2.0f);	// color: white
 
-		gubo.lightPos[1] = glm::vec3(-8.f, 2.0f, -8.f);		// position: witch lair
-		gubo.lightColor[1] = glm::vec3(0.4f, 0.f, 0.8f);	// color: purple
+		gubo.lightPos[1] = glm::vec3(-8.f, 2.0f, -8.f);						// position: witch lair
+		gubo.lightColor[1] = glm::vec4(glm::vec3(0.4f, 0.f, 0.8f), 2.0f);	// color: purple
 
-		gubo.lightPos[2] = glm::vec3(-6.0f, 1.3f, -8.3f);	// position: witch lair - cauldron
-		gubo.lightColor[2] = glm::vec3(0.02f, 0.07f, 0.02f);// color: green
+		gubo.lightPos[2] = glm::vec3(-6.0f, 1.3f, -8.3f);						// position: witch lair - cauldron
+		gubo.lightColor[2] = glm::vec4(glm::vec3(0.02f, 0.07f, 0.02f), 2.0f);	// color: green
+		gubo.lightPos[3] = glm::vec3(-6.0f, 0.2f, -8.3f);						// position: witch lair - cauldron fire
+		gubo.lightColor[3] = glm::vec4(glm::vec3(0.14f, 0.08f, 0.f), 2.0f);		// color: orange
 
-		gubo.lightPos[3] = glm::vec3(-6.0f, 0.2f, -8.3f);	// position: witch lair - cauldron fire
-		gubo.lightColor[3] = glm::vec3(0.14f, 0.08f, 0.f);	// color: orange
+		gubo.lightPos[4] = glm::vec3(11.9f, 1.0f, -4.f);					// position: bedroom
+		gubo.lightColor[4] = glm::vec4(glm::vec3(0.6f, 0.5f, 0.f), 2.0f);	// color: yellow
 
-		gubo.lightPos[4] = glm::vec3(11.9f, 1.0f, -4.f);	// position: bedroom
-		gubo.lightColor[4] = glm::vec3(0.6f, 0.5f, 0.f);	// color: yellow
+		gubo.lightPos[5] = glm::vec3(-7.0f, 2.0f, 7.f);						// position: living room
+		gubo.lightColor[5] = glm::vec4(glm::vec3(0.2f, 1.0f, 0.2f), 2.0f);	// color: green
 
-		gubo.lightPos[5] = glm::vec3(-7.0f, 2.0f, 7.f);		// position: living room
-		gubo.lightColor[5] = glm::vec3(0.04f, 0.06f, 0.02f);// color: green
+		gubo.lightPos[6] = glm::vec3(0.f, 2.0f, -8.f);						// position: bathroom
+		gubo.lightColor[6] = glm::vec4(glm::vec3(0.06f, 0.03f, 0.f), 2.0f);	// color: orange
 
-		gubo.lightPos[6] = glm::vec3(0.f, 2.0f, -8.f);		// position: bathroom
-		gubo.lightColor[6] = glm::vec3(0.06f, 0.03f, 0.f);	// color: orange
+		gubo.lightDir[7] = glm::vec3(0.5, 1.0, 0.5);						// (sun) light from outside
+		gubo.lightColor[7] = glm::vec4(glm::vec3(1.0f, 0.95f, 0.8f), 2.0f); // color: warm white
 
-
-		for (int i = 0; i < LIGHTS_NUM; i++) {
-			gubo.constant[i] = 1.0f;    // Typically 1.0 for no attenuation
-			gubo.linear[i] = 0.09f;     // Small factor for linear attenuation
-			gubo.quadratic[i] = 0.032f; // Even smaller factor for quadratic attenuation
-		}
+		gubo.lightPos[8] = glm::vec3(-6.0f, 1.5f, -8.3f);					// position: witch lair - cauldron
+		gubo.lightColor[8] = glm::vec4(glm::vec3(0.1f, 0.1f, 1.0f), 20.0f);	// color: blue
+		gubo.lightDir[8] = glm::vec3(0, 1, 0);								// light from above
+		gubo.cosIn = glm::cos(glm::radians(35.0f));							// cos of the inner angle of the spot light
+		gubo.cosOut = glm::cos(glm::radians(45.0f));						// cos of the outer angle of the spot light
 		
 		gubo.eyePos = camPos; // Camera position
+		if (gameOver) {
+			gubo.lightOn = glm::vec4(1, 1, 1, 1);
+		} else {
+			gubo.lightOn = glm::vec4(1, 1, 0, 1);
+		}
 
 		// Sky Box UBO update
 		SkyBoxUniformBufferObject sbubo{};
@@ -1362,7 +1372,7 @@ protected:
 		placeEntity(UBO_chest, gubo, chest.pos, chest.rot, chest.scale, glm::vec3(0.0f), ViewPrj, DS_chest, currentImage, DEBUG, 11);
 		placeEntity(UBO_stoneTable, gubo, stoneTable.pos, stoneTable.rot, stoneTable.scale, glm::vec3(0.0f), ViewPrj, DS_stonetable, currentImage, false);
 		placeEntity(UBO_stoneChair, gubo, stoneChair.pos, stoneChair.rot, stoneChair.scale, glm::vec3(0.0f), ViewPrj, DS_stonechair, currentImage, false);
-		placeEntity(UBO_cauldron, gubo, cauldron.pos, cauldron.rot, cauldron.scale, glm::vec3(0.0f), ViewPrj, DS_cauldron, currentImage, false);
+		placeEntity(UBO_cauldron, gubo, cauldron.pos, cauldron.rot, cauldron.scale, glm::vec3(0.0f), ViewPrj, DS_cauldron, currentImage, DEBUG, 15);
 		placeEntity(UBO_shelf1, gubo, shelf1.pos, shelf1.rot, shelf1.scale, glm::vec3(0.0f), ViewPrj, DS_shelf1, currentImage, false);
 		placeEntity(UBO_shelf2, gubo, shelf2.pos, shelf2.rot, shelf2.scale, glm::vec3(0.0f), ViewPrj, DS_shelf2, currentImage, false);
 
@@ -1425,19 +1435,28 @@ protected:
 					collectiblesMap["leaf"] && collectiblesMap["potion1"] && collectiblesMap["potion2"] && collectiblesMap["bone"]) {
 					std::cout << "\nALL COLLECTIBLES COLLECTED!" << std::endl;
 					// win logic goes here
-					std::cout << "You won!" << std::endl;
-					glfwSetWindowShouldClose(window, GL_TRUE);
+					std::cout << "Now go to the cauldron" << std::endl;
+					gameOver = true;
 				}
 			}
 		}
 
-		for (int j = 0; j < fornitureBBs.size(); j++) {
-			if (catBox.intersects(fornitureBBs[j])) {
+		for (int j = 0; j < furnitureBBs.size(); j++) {
+			if (catBox.intersects(furnitureBBs[j])) {
+				if (furnitureBBs[j].getName() == "cauldron") {
+					if (gameOver) {
+						// win logic goes here
+						std::cout << "You won!" << std::endl;
+						glfwSetWindowShouldClose(window, GL_TRUE);
+					} else {
+						break;
+					}
+				}
 				catPosition += cameraForward * m.z * MOVE_SPEED * deltaT;
 				//catPosition.y -= m.y * MOVE_SPEED * deltaT;
 				catPosition -= cameraRight * m.x * MOVE_SPEED * deltaT;
 
-				std::cout << "Collision with " << fornitureBBs[j].getName() << std::endl;
+				std::cout << "Collision with " << furnitureBBs[j].getName() << std::endl;
 			}
 		}
 	}
