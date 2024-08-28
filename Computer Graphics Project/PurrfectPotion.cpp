@@ -1208,13 +1208,24 @@ protected:
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 
+		// Press P to toggle debug mode
 		if (glfwGetKey(window, GLFW_KEY_P) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
 			DEBUG = !DEBUG;
 			lastPressTime = totalElapsedTime;
 		}
 
+		// Press O to toggle overlay
 		if (glfwGetKey(window, GLFW_KEY_O) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
 			OVERLAY = !OVERLAY;
+			lastPressTime = totalElapsedTime;
+		}
+
+		// Press L to reset the camera view
+		if (glfwGetKey(window, GLFW_KEY_L) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+			camRoll = 0.0f;
+			camPitch = glm::radians(-10.0f);
+			camDist = 3.0f;
+			camYaw = catYaw + glm::radians(90.0f);
 			lastPressTime = totalElapsedTime;
 		}
 
