@@ -20,7 +20,6 @@ layout(binding = 2) uniform GlobalUniformBufferObject {
     vec4 lightOn;                               // Lights on/off flags (point, direct, spot, ambient component)
     float cosIn;                                // Spot light inner cone angle
 	float cosOut;                               // Spot light outer cone angle
-    bool lightOnCollectibles[COLLECTIBLES_NUM]; // Collectibles lights on/off flags
 } gubo;
 
 // New uniform for emissive color
