@@ -190,7 +190,7 @@ protected:
 	// Lair
 	Model<Vertex> M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web;
 	// Living room
-	Model<Vertex> M_sofa, M_table, M_tv;
+	Model<Vertex> M_sofa, M_table, M_tv, M_knight;
 	// Other
 	Model<VertexTan> M_cat;
 	Model<Vertex> M_floor, M_walls;
@@ -209,14 +209,14 @@ protected:
 	// Lair
 	DescriptorSet DS_cauldron, DS_stonechair, DS_chest, DS_shelf1, DS_shelf2, DS_stonetable, DS_steam, DS_fire, DS_web;
 	// Living room
-	DescriptorSet DS_sofa, DS_table, DS_tv;
+	DescriptorSet DS_sofa, DS_table, DS_tv, DS_knight;
 	// Other
 	DescriptorSet DS_cat, DS_floor, DS_walls;
 
 	DescriptorSet DS_skyBox, DS_timer[5], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_skyBox, T_steam, T_fire, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec, T_hairNorm;
+	Texture T_textures, T_eye, T_closet, T_feather, T_knight, T_skyBox, T_steam, T_fire, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec, T_hairNorm;
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -230,7 +230,7 @@ protected:
 	// Lair
 	UniformBufferObject UBO_cauldron, UBO_stoneChair, UBO_chest, UBO_shelf1, UBO_shelf2, UBO_stoneTable, UBO_web;
 	// Living room
-	UniformBufferObject UBO_sofa, UBO_table, UBO_tv;
+	UniformBufferObject UBO_sofa, UBO_table, UBO_tv, UBO_knight;
 	// Other
 	UniformBufferObject UBO_cat, UBO_floor, UBO_walls;
 	SteamUniformBufferObject UBO_steam, UBO_fire;
@@ -480,6 +480,7 @@ protected:
 			M_sofa.init(this,		&VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
 			M_table.init(this,		&VD, "models/livingroom/livingroom_table.gltf", GLTF);
 			M_tv.init(this,			&VD, "models/livingroom/livingroom_tv.gltf", GLTF);
+			M_knight.init(this,		&VD, "models/livingroom/livingroom_knight.gltf", GLTF);
 
 			M_cat.init(this,		&VD_tangent, "models/other/cat.gltf", GLTF);
 			M_floor.init(this,		&VD, "models/other/floor.gltf", GLTF);
@@ -539,18 +540,20 @@ protected:
 
 			// Create the textures
 			// The second parameter is the file name
-			T_textures.init(this,	"textures/textures.png");
+			T_textures.init(this,	"textures/palette.png");
 			T_closet.init(this,		"textures/closet.png");
-			T_eye.init(this,		"textures/eye_texture.jpg");
-			T_feather.init(this,	"textures/fabrics_0038_color_1k.jpg");
-			T_steam.init(this,		"textures/steam.png");
-			T_fire.init(this,		"textures/fire.png");
+			T_eye.init(this,		"textures/collectibles/eye_diffuse.jpg");
+			T_feather.init(this,	"textures/collectibles/feather_diffuse.jpg");
+			T_steam.init(this,		"textures/lair/steam.png");
+			T_fire.init(this,		"textures/lair/fire.png");
+
+			T_knight.init(this, "textures/knight/knight_diffuse.png");
 
 			T_hair.init(this,		"textures/hair3.jpg");
 			T_hairSpec.init(this,	"textures/hairSpec.jpg");
 			T_hairNorm.init(this,	"textures/hairNorm.jpg");
 
-			T_skyBox.init(this,		"textures/texture.jpg");
+			T_skyBox.init(this,		"textures/sky_Texture.jpg");
 
 			T_timer[0].init(this,	"textures/HUD/timer_100.png");
 			T_timer[1].init(this,	"textures/HUD/timer_75.png");
@@ -774,6 +777,12 @@ protected:
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
+		DS_knight.init(this, &DSL, {
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_knight},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+			});
 
 		DS_cat.init(this, &DSL_ward, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
@@ -871,6 +880,7 @@ protected:
 		DS_sofa.cleanup();
 		DS_table.cleanup();
 		DS_tv.cleanup();
+		DS_knight.cleanup();
 
 		DS_cat.cleanup();
 		DS_floor.cleanup();
@@ -905,6 +915,9 @@ protected:
 		T_feather.cleanup();
 		T_steam.cleanup();
 		T_fire.cleanup();
+
+		T_knight.cleanup();
+
 		T_hair.cleanup();
 		T_hairSpec.cleanup();
 		T_hairNorm.cleanup();
@@ -957,6 +970,7 @@ protected:
 		M_sofa.cleanup();
 		M_table.cleanup();
 		M_tv.cleanup();
+		M_knight.cleanup();
 
 		M_cat.cleanup();
 		M_floor.cleanup();
@@ -1129,6 +1143,10 @@ protected:
 		M_tv.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_tv.indices.size()), 1, 0, 0, 0);
 
+		DS_knight.bind(commandBuffer, P, 0, currentImage);
+		M_knight.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_knight.indices.size()), 1, 0, 0, 0);
+
 		DS_floor.bind(commandBuffer, P, 0, currentImage);
 		M_floor.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_floor.indices.size()), 1, 0, 0, 0);
@@ -1240,7 +1258,7 @@ protected:
 		camYaw   += ROT_SPEED * deltaT * r.y;
 		camPitch -= ROT_SPEED * deltaT * r.x;
 		camRoll  -= ROT_SPEED * deltaT * r.z;
-		camDist -= MOVE_SPEED * deltaT * m.y;
+		camDist  -= MOVE_SPEED * deltaT * m.y;
 
 		// Limit the distance from the cat and the pitch to avoid gimbal lock
 		camDist = glm::clamp(camDist, -1.0f, 4.0f);
@@ -1296,9 +1314,9 @@ protected:
 		M[1][1] *= -1;
 
 		// View matrix for camera following the cat
-		glm::mat4 Mv = glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
+		glm::mat4 Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
+			glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
 			glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
-			glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
 			glm::translate(glm::mat4(1.0f), -camPos);
 
 		glm::mat4 ViewPrj = M * Mv;
@@ -1384,7 +1402,7 @@ protected:
 				UBO_timer[0].visible = 1.f;
 				UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
 			}
-			else if (remainingTime >= GAME_DURATION / 2 && remainingTime) {
+			else if (remainingTime >= GAME_DURATION / 2) {
 				UBO_timer[1].visible = 1.f;
 				UBO_timer[0].visible = UBO_timer[2].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
 			}
@@ -1455,6 +1473,7 @@ protected:
 		placeEntity(UBO_sofa, gubo, sofa.pos, sofa.rot, sofa.scale, glm::vec3(0.0f), ViewPrj, DS_sofa, currentImage, DEBUG, 12);
 		placeEntity(UBO_table, gubo, table.pos, table.rot, table.scale, glm::vec3(0.0f), ViewPrj, DS_table, currentImage, false);
 		placeEntity(UBO_tv, gubo, tv.pos, tv.rot, tv.scale, glm::vec3(0.0f), ViewPrj, DS_tv, currentImage, false);
+		placeEntity(UBO_knight, gubo, knight.pos, knight.rot, knight.scale, glm::vec3(0.0f), ViewPrj, DS_knight, currentImage, false);
 
 		// Witch lair
 		placeEntity(UBO_chest, gubo, chest.pos, chest.rot, chest.scale, glm::vec3(0.0f), ViewPrj, DS_chest, currentImage, DEBUG, 11);

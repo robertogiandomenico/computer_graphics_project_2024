@@ -22,7 +22,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="World.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

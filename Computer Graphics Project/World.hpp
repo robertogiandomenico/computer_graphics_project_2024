@@ -54,6 +54,9 @@ inline Transform table = {
 inline Transform tv = {
      glm::vec3(-7.5f, 0.0f, 9.5f), glm::vec3(0.0f), glm::vec3(1.0f)
 };
+inline Transform knight = {
+     glm::vec3(-2.f, 0.0f, 6.5f), glm::vec3(0.0f), glm::vec3(1.0f)
+};
 
 // Witch lair
 inline Transform chest = {
