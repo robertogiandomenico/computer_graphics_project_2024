@@ -190,9 +190,9 @@ protected:
 	// Lair
 	Model<Vertex> M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web;
 	// Living room
-	Model<Vertex> M_sofa, M_table, M_tv, M_knight;
+	Model<Vertex> M_sofa, M_table, M_tv, M_cat;
 	// Other
-	Model<VertexTan> M_cat;
+	Model<VertexTan> M_knight;
 	Model<Vertex> M_floor, M_walls;
 	Model<skyBoxVertex> M_skyBox;
 	Model<VertexOverlay> M_timer[5], M_scroll, M_collectibles[COLLECTIBLES_NUM];
@@ -216,7 +216,7 @@ protected:
 	DescriptorSet DS_skyBox, DS_timer[5], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_knight, T_skyBox, T_steam, T_fire, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec, T_hairNorm;
+	Texture T_textures, T_eye, T_closet, T_feather, T_knight, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec, T_hairNorm;
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -480,9 +480,9 @@ protected:
 			M_sofa.init(this,		&VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
 			M_table.init(this,		&VD, "models/livingroom/livingroom_table.gltf", GLTF);
 			M_tv.init(this,			&VD, "models/livingroom/livingroom_tv.gltf", GLTF);
-			M_knight.init(this,		&VD, "models/livingroom/livingroom_knight.gltf", GLTF);
+			M_knight.init(this,		&VD_tangent, "models/livingroom/livingroom_knight.gltf", GLTF);
 
-			M_cat.init(this,		&VD_tangent, "models/other/cat.gltf", GLTF);
+			M_cat.init(this,		&VD, "models/other/cat.gltf", GLTF);
 			M_floor.init(this,		&VD, "models/other/floor.gltf", GLTF);
 			M_walls.init(this,		&VD, "models/other/walls.gltf", GLTF);
 
@@ -548,6 +548,8 @@ protected:
 			T_fire.init(this,		"textures/lair/fire.png");
 
 			T_knight.init(this, "textures/knight/knight_diffuse.png");
+			T_knightSpec.init(this, "textures/knight/knight_metallic.png");
+			T_knightNorm.init(this, "textures/knight/knight_normal.png");
 
 			T_hair.init(this,		"textures/hair3.jpg");
 			T_hairSpec.init(this,	"textures/hairSpec.jpg");
@@ -777,20 +779,20 @@ protected:
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
-		DS_knight.init(this, &DSL, {
+		DS_knight.init(this, &DSL_ward, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_knight},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					{3, UNIFORM, sizeof(glm::vec3), nullptr},
+					{4, TEXTURE, 0, &T_knightSpec},
+					{5, TEXTURE, 0, &T_knightNorm}
 			});
 
-		DS_cat.init(this, &DSL_ward, {
+		DS_cat.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_hair},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr},
-					{4, TEXTURE, 0, &T_hairSpec},
-					{5, TEXTURE, 0, &T_hairNorm}
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 
 		DS_floor.init(this, &DSL, {
@@ -917,6 +919,8 @@ protected:
 		T_fire.cleanup();
 
 		T_knight.cleanup();
+		T_knightSpec.cleanup();
+		T_knightNorm.cleanup();
 
 		T_hair.cleanup();
 		T_hairSpec.cleanup();
@@ -1143,9 +1147,9 @@ protected:
 		M_tv.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_tv.indices.size()), 1, 0, 0, 0);
 
-		DS_knight.bind(commandBuffer, P, 0, currentImage);
-		M_knight.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_knight.indices.size()), 1, 0, 0, 0);
+		DS_cat.bind(commandBuffer, P, 0, currentImage);
+		M_cat.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
 
 		DS_floor.bind(commandBuffer, P, 0, currentImage);
 		M_floor.bind(commandBuffer);
@@ -1156,9 +1160,9 @@ protected:
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_walls.indices.size()), 1, 0, 0, 0);
 		
 		P_ward.bind(commandBuffer);
-		DS_cat.bind(commandBuffer, P_ward, 0, currentImage);
-		M_cat.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
+		DS_knight.bind(commandBuffer, P_ward, 0, currentImage);
+		M_knight.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_knight.indices.size()), 1, 0, 0, 0);
 
 		P_skyBox.bind(commandBuffer);
 		M_skyBox.bind(commandBuffer);
@@ -1361,7 +1365,8 @@ protected:
 		gubo.lightPos[6] = glm::vec3(0.f, 2.0f, -8.f);						// position: bathroom
 		gubo.lightColor[6] = glm::vec4(glm::vec3(0.06f, 0.03f, 0.f), 2.0f);	// color: orange
 
-		gubo.lightDir[7] = glm::vec3(0.5, 1.0, 0.5);						// (sun) light from outside
+		gubo.lightPos[7] = glm::vec3(0.0f, 0.0f, 0.0f);						// position: null
+		gubo.lightDir[7] = glm::vec3(-0.5, 1.0, 0.5);						// (sun) light from outside
 		gubo.lightColor[7] = glm::vec4(glm::vec3(1.0f, 0.95f, 0.8f), 2.0f); // color: warm white
 
 		gubo.lightPos[8] = glm::vec3(-6.0f, 1.5f, -8.3f);					// position: witch lair - cauldron
