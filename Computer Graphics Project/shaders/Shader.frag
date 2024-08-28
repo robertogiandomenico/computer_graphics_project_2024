@@ -1,7 +1,8 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-#define LIGHTS_NUM 9
+#define LIGHTS_NUM 16
+#define COLLECTIBLES_NUM 7
 
 layout(location = 0) in vec2 fragUV;
 layout(location = 1) in vec3 fragNorm;
@@ -12,13 +13,14 @@ layout(location = 0) out vec4 outColor;
 layout(binding = 1) uniform sampler2D texSampler;
 
 layout(binding = 2) uniform GlobalUniformBufferObject {
-    vec3 lightDir[LIGHTS_NUM];          // Direction of the lights
-    vec3 lightPos[LIGHTS_NUM];          // Position of the lights
-    vec4 lightColor[LIGHTS_NUM];        // Color of the lights
-    vec3 eyePos;                        // Position of the camera/eye
-    vec4 lightOn;                       // Lights on/off flags (point, direct, spot, ambient component)
-    float cosIn;                        // Spot light inner cone angle
-	float cosOut;                       // Spot light outer cone angle
+    vec3 lightDir[LIGHTS_NUM];                  // Direction of the lights
+    vec3 lightPos[LIGHTS_NUM];                  // Position of the lights
+    vec4 lightColor[LIGHTS_NUM];                // Color of the lights
+    vec3 eyePos;                                // Position of the camera/eye
+    vec4 lightOn;                               // Lights on/off flags (point, direct, spot, ambient component)
+    float cosIn;                                // Spot light inner cone angle
+	float cosOut;                               // Spot light outer cone angle
+    bool lightOnCollectibles[COLLECTIBLES_NUM]; // Collectibles lights on/off flags
 } gubo;
 
 // New uniform for emissive color
@@ -62,8 +64,16 @@ vec3 spot_light_color(vec3 fragPos, int i) {
     float beta = 1.0f;  // inverse-linear decay factor
     vec3 p = gubo.lightPos[i];
     vec3 d = gubo.lightDir[i];
-    float cosin = gubo.cosIn;
-    float cosout = gubo.cosOut;
+    float cosin;
+    float cosout;
+
+    if (i == 8) {
+        cosin = gubo.cosIn;
+        cosout = gubo.cosOut;
+    } else {
+        cosin = gubo.cosIn + radians(10.0f);
+        cosout = gubo.cosOut + radians(10.0f);
+    }
 
     return pow(g/length(p - fragPos), beta) * clamp((dot(normalize(p - fragPos), d) - cosout)/(cosin - cosout), 0.0, 1.0) * l;
 }
@@ -91,7 +101,7 @@ void main() {
     vec3 result = vec3(0.0); // Initialize result color
     vec3 ambient = vec3(0.0); // Initialize ambient color
 
-    for (int i = 0; i < LIGHTS_NUM - 2; ++i) {       
+    for (int i = 0; i < (LIGHTS_NUM - COLLECTIBLES_NUM - 2); ++i) {       
         LD = point_light_dir(fragPos, i);
         LC = point_light_color(fragPos, i);
 
@@ -113,7 +123,7 @@ void main() {
     ambient = 0.003 * vec3(gubo.lightColor[7].rgb);
     result += ambient * gubo.lightOn.w;
 
-    // Add the spot light
+    // Add the cauldron spot light
     LD = spot_light_dir(fragPos, 8);
     LC = spot_light_color(fragPos, 8);
 
@@ -121,6 +131,14 @@ void main() {
 
     ambient = 0.003 * vec3(gubo.lightColor[8].rgb);
     result += ambient * gubo.lightOn.z;
+
+    // Add the collectibles spot lights
+    for (int i=0; i < COLLECTIBLES_NUM; i++) {
+        LD = spot_light_dir(fragPos, i+9);
+        LC = spot_light_color(fragPos, i+9);
+
+        result += BRDF(Albedo, Norm, EyeDir, LD) * LC * gubo.lightOn.z;
+    }
 
     // Add emissive color to the final output
     vec3 emissive = eubo.emissiveColor * texColor.rgb;

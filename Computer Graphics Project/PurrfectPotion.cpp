@@ -12,7 +12,7 @@
 #include "Utils.hpp"
 #include "World.hpp"
 
-#define LIGHTS_NUM 9
+#define LIGHTS_NUM 16
 #define COLLECTIBLES_NUM 7
 
 // The uniform buffer objects data structures
@@ -31,13 +31,13 @@ struct UniformBufferObject {
 };
 
 struct GlobalUniformBufferObject {
-	alignas(16) glm::vec3 lightDir[LIGHTS_NUM];		// Direction of the lights
-	alignas(16) glm::vec3 lightPos[LIGHTS_NUM];     // Position of the lights
-	alignas(16) glm::vec4 lightColor[LIGHTS_NUM];   // Color of the lights
-	alignas(16) glm::vec3 eyePos;					// Position of the camera/eye
-	alignas(16) glm::vec4 lightOn;					// Lights on/off flag (point, direct, spot, ambient component)
-	alignas(4) float cosIn;							// Spot light inner cone angle
-	alignas(4) float cosOut;						// Spot light outer cone angle
+	alignas(16) glm::vec3 lightDir[LIGHTS_NUM];				 // Direction of the lights
+	alignas(16) glm::vec3 lightPos[LIGHTS_NUM];				 // Position of the lights
+	alignas(16) glm::vec4 lightColor[LIGHTS_NUM];			 // Color of the lights
+	alignas(16) glm::vec3 eyePos;							 // Position of the camera/eye
+	alignas(16) glm::vec4 lightOn;							 // Lights on/off flag (point, direct, spot, ambient component)
+	alignas(4) float cosIn;									 // Spot light inner cone angle
+	alignas(4) float cosOut;								 // Spot light outer cone angle
 };
 
 struct SkyBoxUniformBufferObject {
@@ -1370,13 +1370,22 @@ protected:
 		gubo.cosIn = glm::cos(glm::radians(35.0f));							// cos of the inner angle of the spot light
 		gubo.cosOut = glm::cos(glm::radians(45.0f));						// cos of the outer angle of the spot light
 		
-		gubo.eyePos = camPos; // Camera position
+		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
+			gubo.lightPos[i + 9] = collectiblesRandomPosition[i] + glm::vec3(0.f, 0.5f, 0.f);
+			gubo.lightDir[i + 9] = glm::vec3(0, 1, 0);
+			gubo.lightColor[i + 9] = collectiblesMap[collectiblesNames[i]] ? glm::vec4(glm::vec3(0.0f), 0.0f) : glm::vec4(glm::vec3(0.7f, 0.1f, 1.0f), 10.0f);
+		}
 
+		gubo.eyePos = camPos; // Camera position
+		gubo.lightOn = glm::vec4(1);
+
+		/*
 		if (gameOver) {
 			gubo.lightOn = glm::vec4(1, 1, 1, 1);
 		} else {
 			gubo.lightOn = glm::vec4(1, 1, 0, 1);
 		}
+		*/
 
 		// Sky Box UBO update
 		SkyBoxUniformBufferObject sbubo{};
