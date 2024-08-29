@@ -122,7 +122,7 @@ protected:
 
 	bool DEBUG = false;						// Used to display bounding boxes for debugging
 	bool OVERLAY = true;					// Used to display the overlay
-
+	bool FIRST_PERSON = false;				// Used to switch between first and third person view
 	bool gameOver = false;
 
 	public:
@@ -1233,6 +1233,12 @@ protected:
 			lastPressTime = totalElapsedTime;
 		}
 
+		// Press V to switch between 1st and 3rd person view
+		if (glfwGetKey(window, GLFW_KEY_V) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+			FIRST_PERSON = !FIRST_PERSON;
+			lastPressTime = totalElapsedTime;
+		}
+
 
 		// Integration with the timers and the controllers
 		float deltaT;
@@ -1277,7 +1283,7 @@ protected:
 
 		// Limit the distance from the cat and the pitch to avoid gimbal lock
 		camDist = glm::clamp(camDist, -1.0f, 4.0f);
-		camPitch = glm::clamp(camPitch, glm::radians(-18.0f), glm::radians(5.0f));
+		camPitch = glm::clamp(camPitch, FIRST_PERSON ? glm::radians(-13.0f) : glm::radians(-18.0f), glm::radians(5.0f));
 		// camRoll = glm::clamp(camRoll, glm::radians(-10.0f), glm::radians(10.0f));
 
 		// Camera movement + redefine forward and right vectors
@@ -1289,39 +1295,41 @@ protected:
 		// Cat movement
 		if ((m.x != 0) || (m.z != 0)) {
 			// catPosition.x += m.x * MOVE_SPEED * deltaT;	// Move left/right
-			//catPosition.y += m.y * MOVE_SPEED * deltaT;	// Move up/down - do not enable otherwise cat flies
+			// catPosition.y += m.y * MOVE_SPEED * deltaT;	// Move up/down - do not enable otherwise cat flies
 			// catPosition.z -= m.z * MOVE_SPEED * deltaT;	// Move forward/backward
-			catPosition -= cameraForward * m.z * MOVE_SPEED * deltaT;
 			catPosition += cameraRight * m.x * MOVE_SPEED * deltaT;
+			catPosition -= cameraForward * m.z * MOVE_SPEED * deltaT;
 
 			// Cat rotation based on the movement vector
 			float targetYaw = atan2(m.z, m.x);
-			targetYaw += glm::radians(-180.0f); // same as + 3.1416 / 2.0
+			targetYaw += glm::radians(-180.0f);
 			catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);	// 6.0 is the damping factor
 		}
 
 		// Limit the cat's movement to the house
-		catPosition.x = glm::clamp(catPosition.x, -12.2f, 12.2f);
-		catPosition.z = glm::clamp(catPosition.z, -12.2f, 12.2f);
+		catPosition.x = glm::clamp(catPosition.x, -11.8f, 11.8f);
+		catPosition.z = glm::clamp(catPosition.z, -11.8f, 11.8f);
 
-		glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
-			glm::vec4(CamTargetDelta, 1));
+		if (FIRST_PERSON) {
+			// First person camera
+			camPos = catPosition + MOVE_SPEED * m.x * ux * deltaT;
+			camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;
+			camPos = camPos + MOVE_SPEED * m.z * uz * deltaT;
 
-		// Update the camera position relative to the cat's position
-		//camPos = catPosition + MOVE_SPEED * m.x * ux * deltaT;
-		//camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;
-		//camPos = camPos + MOVE_SPEED * m.z * uz * deltaT;
-
-		//camPos.y += 4.0f;
-		//camPos.z += 3.0f;
-
-		camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
-			glm::vec4(0, 0, camDist, 1));
+			camPos.y += 0.9f;
+		}
+		else {
+			// Third person camera
+			glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
+				glm::vec4(CamTargetDelta, 1));
+			camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
+				glm::vec4(0, 0, camDist, 1));
+		}
 
 		// Parameters
 		// Camera FOV-y, Near Plane and Far Plane
 		// Set up the view and projection matrices
-		const float FOVy = glm::radians(45.0f);
+		const float FOVy = FIRST_PERSON ? glm::radians(25.0f) : glm::radians(45.0f);
 		const float nearPlane = 0.1f;
 		const float farPlane = 100.0f;
 
