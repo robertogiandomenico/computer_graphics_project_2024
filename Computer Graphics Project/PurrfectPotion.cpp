@@ -1335,7 +1335,6 @@ protected:
 				DS_screens[i].map(currentImage, &UBO_screens[i], sizeof(UBO_screens[i]), 0);
 			}
 			
-			totalElapsedTime += deltaT;
 			remainingTime = GAME_DURATION - totalElapsedTime;
 
 			// Press P to toggle debug mode
