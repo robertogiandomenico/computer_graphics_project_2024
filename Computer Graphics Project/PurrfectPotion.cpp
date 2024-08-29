@@ -133,26 +133,15 @@ protected:
 
 		PurrfectPotion() {
 
-			// Initialize items with names and set all isCollected to false
-			collectiblesMap["crystal"]	= false;
-			collectiblesMap["eye"]		= false;
-			collectiblesMap["feather"]	= false;
-			collectiblesMap["leaf"]		= false;
-			collectiblesMap["potion1"]	= false;
-			collectiblesMap["potion2"]	= false;
-			collectiblesMap["bone"]		= false;
-
-			collectiblesHUD["crystal"]	= 0;
-			collectiblesHUD["eye"]		= 1;
-			collectiblesHUD["feather"]	= 2;
-			collectiblesHUD["leaf"]		= 3;
-			collectiblesHUD["potion1"]	= 4;
-			collectiblesHUD["potion2"]	= 5;
-			collectiblesHUD["bone"]		= 6;
-
-			/*for (int i = 0; i < COLLECTIBLES_NUM; i++) {
-				UBO_collectibles[i].visible = 1.f;
-			}*/
+			collectiblesHUD = {
+				{"crystal", 0},
+				{"eye",		1},
+				{"feather", 2},
+				{"leaf",	3},
+				{"potion1", 4},
+				{"potion2", 5},
+				{"bone",	6}
+			};
 
 			srand(static_cast<unsigned int>(time(0)));
 			for (int i = 0; i < COLLECTIBLES_NUM; ++i) {
@@ -197,7 +186,7 @@ protected:
 	Model<VertexTan> M_cat;
 	Model<Vertex> M_floor, M_walls;
 	Model<skyBoxVertex> M_skyBox;
-	Model<VertexOverlay> M_timer[5], M_scroll, M_collectibles[COLLECTIBLES_NUM];
+	Model<VertexOverlay> M_timer[5], M_screens[3], M_scroll, M_collectibles[COLLECTIBLES_NUM];
 
 	// Descriptor sets
 	// Bathroom
@@ -215,10 +204,10 @@ protected:
 	// Other
 	DescriptorSet DS_cat, DS_floor, DS_walls;
 
-	DescriptorSet DS_skyBox, DS_timer[5], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
+	DescriptorSet DS_skyBox, DS_timer[5], DS_screens[3], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_knight, T_skyBox, T_steam, T_fire, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec, T_hairNorm;
+	Texture T_textures, T_eye, T_closet, T_feather, T_knight, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec, T_hairNorm;
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -236,7 +225,7 @@ protected:
 	// Other
 	UniformBufferObject UBO_cat, UBO_floor, UBO_walls;
 	SteamUniformBufferObject UBO_steam, UBO_fire;
-	OverlayUniformBlock UBO_timer[5], UBO_scroll, UBO_collectibles[COLLECTIBLES_NUM];
+	OverlayUniformBlock UBO_timer[5], UBO_screens[3], UBO_scroll, UBO_collectibles[COLLECTIBLES_NUM];
 
 	// to display the bounding boxes for debugging
 	Pipeline P_boundingBox;
@@ -506,10 +495,22 @@ protected:
 			createBBModel(M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].vertices, M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].indices, &catBox);
 			M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].initMesh(this, &VD_boundingBox);
 
+
+			// Create HUD screens
+			glm::vec2 anchor = glm::vec2(-1.0f, -1.0f);
+			float w = 2.f;
+			float h = 2.f;
+			for (int i = 0; i < 3; i++) {
+				M_screens[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
+										  {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
+				M_screens[i].indices = { 0, 1, 2,    1, 2, 3 };
+				M_screens[i].initMesh(this, &VD_overlay);
+			}
+
 			// Create HUD timer
-			glm::vec2 anchor = glm::vec2(0.8f, -0.95f);
-			float w = 0.15f;
-			float h = w * Ar;		// Respect the aspect ratio since it is a square pic
+			anchor = glm::vec2(0.8f, -0.95f);
+			w = 0.15f;						// Respect the aspect ratio since it is a square pic
+			h = w * Ar;
 			for (int i = 0; i < 5; i++) {
 				M_timer[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
 										{{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
@@ -522,7 +523,7 @@ protected:
 			w = 0.2f;
 			h = 1.8f;
 			M_scroll.vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
-								{{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
+								  {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
 			M_scroll.indices = { 0, 1, 2,    1, 2, 3 };
 			M_scroll.initMesh(this, &VD_overlay);
 
@@ -534,7 +535,7 @@ protected:
 				anchor = anchor + (glm::vec2(0.f, 0.2f));
 
 				M_collectibles[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
-											{{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
+											   {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
 				M_collectibles[i].indices = { 0, 1, 2,    1, 2, 3 };
 				M_collectibles[i].initMesh(this, &VD_overlay);
 			}
@@ -562,6 +563,10 @@ protected:
 			T_timer[2].init(this,	"textures/HUD/timer_50.png");
 			T_timer[3].init(this,	"textures/HUD/timer_25.png");
 			T_timer[4].init(this,	"textures/HUD/timer_0.png");
+
+			T_screens[0].init(this, "textures/screens/start_screen.png");
+			T_screens[1].init(this, "textures/screens/win_screen.png");
+			T_screens[2].init(this, "textures/screens/lose_screen.png");
 
 			T_scroll.init(this, "textures/HUD/scroll.png");
 
@@ -815,6 +820,13 @@ protected:
 				});
 		}
 
+		for (int i = 0; i < 3; i++) {
+			DS_screens[i].init(this, &DSL_overlay, {
+					{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
+					{1, TEXTURE, 0, &T_screens[i]}
+				});
+		}
+
 		for (int i = 0; i < 5; i++) {
 			DS_timer[i].init(this, &DSL_overlay, {
 					{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
@@ -894,6 +906,10 @@ protected:
 			DS_boundingBox[i].cleanup();
 		}
 
+		for (int i = 0; i < 3; i++) {
+			DS_screens[i].cleanup();
+		}
+
 		for (int i = 0; i < 5; i++) {
 			DS_timer[i].cleanup();
 		}
@@ -925,6 +941,10 @@ protected:
 		T_hairNorm.cleanup();
 
 		T_skyBox.cleanup();
+
+		for (int i = 0; i < 3; i++) {
+			T_screens[i].cleanup();
+		}
 
 		for (int i = 0; i < 5; i++) {
 			T_timer[i].cleanup();
@@ -982,6 +1002,10 @@ protected:
 
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			M_boundingBox[i].cleanup();
+		}
+
+		for (int i = 0; i < 3; i++) {
+			M_screens[i].cleanup();
 		}
 		
 		for (int i = 0; i < 5; i++) {
@@ -1184,6 +1208,12 @@ protected:
 		}
 
 		P_overlay.bind(commandBuffer);
+		for (int i = 0; i < 3; i++) {
+			M_screens[i].bind(commandBuffer);
+			DS_screens[i].bind(commandBuffer, P_overlay, 0, currentImage);
+			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_screens[i].indices.size()), 1, 0, 0, 0);
+		}
+
 		for (int i = 0; i < 5; i++) {
 			M_timer[i].bind(commandBuffer);
 			DS_timer[i].bind(commandBuffer, P_overlay, 0, currentImage);
@@ -1241,10 +1271,36 @@ protected:
 
 		GlobalUniformBufferObject gubo = {};
 
-		if (gameState == GAME_STATE_START_SCREEN) {
+		if (gameState == GAME_STATE_START_SCREEN || gameState == GAME_STATE_GAME_WIN || gameState == GAME_STATE_GAME_LOSE) {
+
+			camPos = glm::vec3(-5.7f, 3.5f, -1.7f);
+			camYaw = glm::radians(30.0f);
+			camPitch = glm::radians(-20.0f);
+			camRoll = 0.0f;
+
+			catPosition = glm::vec3(-7.5f, 0.0f, -8.5f);
+			catYaw = glm::radians(110.0f);
+
+			gubo.lightOn = glm::vec4(1, 1, 1, 1);
+
+			OVERLAY = false;
+
+			if (gameState == GAME_STATE_START_SCREEN) {
+				UBO_screens[0].visible = 1.f;
+				UBO_screens[1].visible = UBO_screens[2].visible = 0.f;
+			} else if (gameState == GAME_STATE_GAME_WIN) {
+				UBO_screens[1].visible = 1.f;
+				UBO_screens[0].visible = UBO_screens[2].visible = 0.f;
+			} else if (gameState == GAME_STATE_GAME_LOSE) {
+				UBO_screens[2].visible = 1.f;
+				UBO_screens[0].visible = UBO_screens[1].visible = 0.f;
+			}
+
 
 			if (start) {	// Setting the variables ready to start the game
 				OVERLAY = true;
+
+				UBO_screens[0].visible = UBO_screens[1].visible = UBO_screens[2].visible = 0.f;
 
 				camPos = glm::vec3(0.0f, 1.5f, 7.0f);
 				camYaw = glm::radians(90.0f);
@@ -1257,24 +1313,27 @@ protected:
 				catYaw = 0.0f;
 
 				gubo.lightOn = glm::vec4(1, 1, 0, 1);
-				
+
+				// Set all the elements to not_collected
+				for (auto& element : collectiblesMap) {
+					element.second = false;
+				}
+
 				totalElapsedTime = 0.0f;
 				gameState = GAME_STATE_PLAY;
 			}
 
-			camPos = glm::vec3(-5.7f, 3.5f, -1.7f);
-			camYaw = glm::radians(30.0f);
-			camPitch = glm::radians(-20.0f);
-			camRoll = 0.0f;
-
-			catPosition = glm::vec3(-7.5f, 0.0f, -8.5f);
-			catYaw = glm::radians(110.0f);
-
-			gubo.lightOn = glm::vec4(1, 1, 1, 1);
-			
-
+			// Update screens overlay
+			for (int i = 0; i < 3; i++) {
+				DS_screens[i].map(currentImage, &UBO_screens[i], sizeof(UBO_screens[i]), 0);
+			}
 		}
-		else if (gameState == GAME_STATE_PLAY) {
+		else if (gameState == GAME_STATE_PLAY) {	//******************************* GAME PLAY ****************************************
+
+			// Update DS screens overlay to make them disappear
+			for (int i = 0; i < 3; i++) {
+				DS_screens[i].map(currentImage, &UBO_screens[i], sizeof(UBO_screens[i]), 0);
+			}
 			
 			totalElapsedTime += deltaT;
 			remainingTime = GAME_DURATION - totalElapsedTime;
@@ -1338,14 +1397,13 @@ protected:
 			else {
 				gubo.lightOn = glm::vec4(1, 1, 0, 1);
 			}
-		}	//******************************************** END GAME ELSE **********************************************
+		}					//******************************************** END GAME PLAY **********************************************
 
 		// Check if game is over because time has run out
 		if (totalElapsedTime >= GAME_DURATION) {
 			// game over logic goes here
 			// for now it just closes the window
-			std::cout << "Game Over" << std::endl;
-			glfwSetWindowShouldClose(window, GL_TRUE);
+			gameState = GAME_STATE_GAME_LOSE;
 		} else if (static_cast<int>(remainingTime) != lastDisplayedTime) {
 			std::cout << "Time remaining: " << static_cast<int>(remainingTime) << std::endl;
 			lastDisplayedTime = static_cast<int>(remainingTime);
@@ -1538,37 +1596,37 @@ protected:
 
 		// Collectibles
 		if (!collectiblesMap["crystal"]) {
-			placeEntity(UBO_crystal, gubo, collectiblesRandomPosition[0], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage, DEBUG, 0);
+			placeEntity(UBO_crystal, gubo, collectiblesRandomPosition[0], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage, DEBUG, 0);
 		} else {
 			removeCollectible(UBO_crystal, gubo, ViewPrj, DS_crystal, currentImage, 0);	// it actually scales to zero -> not efficient
 		}
 		if (!collectiblesMap["eye"]) {
-			placeEntity(UBO_eye, gubo, collectiblesRandomPosition[1], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage, DEBUG, 1);
+			placeEntity(UBO_eye, gubo, collectiblesRandomPosition[1], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage, DEBUG, 1);
 		} else {
 			removeCollectible(UBO_eye, gubo, ViewPrj, DS_eye, currentImage, 1);
 		}
 		if (!collectiblesMap["feather"]) {
-			placeEntity(UBO_feather, gubo, collectiblesRandomPosition[2], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage, DEBUG, 2);
+			placeEntity(UBO_feather, gubo, collectiblesRandomPosition[2], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage, DEBUG, 2);
 		} else {
 			removeCollectible(UBO_feather, gubo, ViewPrj, DS_feather, currentImage, 2);
 		}
 		if (!collectiblesMap["leaf"]) {
-			placeEntity(UBO_leaf, gubo, collectiblesRandomPosition[3], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage, DEBUG, 3);
+			placeEntity(UBO_leaf, gubo, collectiblesRandomPosition[3], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage, DEBUG, 3);
 		} else {
 			removeCollectible(UBO_leaf, gubo, ViewPrj, DS_leaf, currentImage, 3);
 		}
 		if (!collectiblesMap["potion1"]) {
-			placeEntity(UBO_potion1, gubo, collectiblesRandomPosition[4], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage, DEBUG, 4);
+			placeEntity(UBO_potion1, gubo, collectiblesRandomPosition[4], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage, DEBUG, 4);
 		} else {
 			removeCollectible(UBO_potion1, gubo, ViewPrj, DS_potion1, currentImage, 4);
 		}
 		if (!collectiblesMap["potion2"]) {
-			placeEntity(UBO_potion2, gubo, collectiblesRandomPosition[5], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage, DEBUG, 5);
+			placeEntity(UBO_potion2, gubo, collectiblesRandomPosition[5], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage, DEBUG, 5);
 		} else {
 			removeCollectible(UBO_potion2, gubo, ViewPrj, DS_potion2, currentImage, 5);
 		}
 		if (!collectiblesMap["bone"]) {
-			placeEntity(UBO_bone, gubo, collectiblesRandomPosition[6], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState), glm::vec3(0.5f), ViewPrj, DS_bone, currentImage, DEBUG, 6);
+			placeEntity(UBO_bone, gubo, collectiblesRandomPosition[6], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(0.5f), ViewPrj, DS_bone, currentImage, DEBUG, 6);
 		} else {
 			removeCollectible(UBO_bone, gubo, ViewPrj, DS_bone, currentImage, 6);
 		}
@@ -1586,8 +1644,8 @@ protected:
 
 				if (collectiblesMap["crystal"] && collectiblesMap["eye"] && collectiblesMap["feather"] &&
 					collectiblesMap["leaf"] && collectiblesMap["potion1"] && collectiblesMap["potion2"] && collectiblesMap["bone"]) {
+
 					std::cout << "\nALL COLLECTIBLES COLLECTED!" << std::endl;
-					// win logic goes here
 					std::cout << "Now go to the cauldron" << std::endl;
 					gameOver = true;
 				}
@@ -1599,8 +1657,7 @@ protected:
 				if (furnitureBBs[j].getName() == "cauldron") {
 					if (gameOver) {
 						// win logic goes here
-						std::cout << "You won!" << std::endl;
-						glfwSetWindowShouldClose(window, GL_TRUE);
+						gameState = GAME_STATE_GAME_WIN;
 					} else {
 						break;
 					}

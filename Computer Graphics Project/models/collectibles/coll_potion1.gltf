@@ -15,17 +15,17 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Potion2",
+			"name":"Potion1",
 			"translation":[
-				-5.913629531860352,
-				0.33193984627723694,
-				0.21969950199127197
+				-4.502650260925293,
+				0.3448321223258972,
+				0.2593717575073242
 			]
 		}
 	],
 	"meshes":[
 		{
-			"name":"Sphere.021",
+			"name":"Sphere.020",
 			"primitives":[
 				{
 					"attributes":{
@@ -42,67 +42,67 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":508,
+			"count":422,
 			"max":[
-				0.240247905254364,
-				0.45915424823760986,
-				0.25261160731315613
+				0.09260966628789902,
+				0.3580343425273895,
+				0.09737557172775269
 			],
 			"min":[
-				-0.2402479499578476,
-				-0.13857637345790863,
-				-0.25261160731315613
+				-0.09260968118906021,
+				-0.06502702832221985,
+				-0.09737557172775269
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":508,
+			"count":422,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":508,
+			"count":422,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":1440,
+			"count":1200,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":6096,
+			"byteLength":5064,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":6096,
-			"byteOffset":6096,
+			"byteLength":5064,
+			"byteOffset":5064,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4064,
-			"byteOffset":12192,
+			"byteLength":3376,
+			"byteOffset":10128,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2880,
-			"byteOffset":16256,
+			"byteLength":2400,
+			"byteOffset":13504,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":19136,
+			"byteLength":15904,
 			"uri":"coll_potion1.bin"
 		}
 	]
