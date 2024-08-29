@@ -12,7 +12,7 @@
 #include "Utils.hpp"
 #include "World.hpp"
 
-#define LIGHTS_NUM 9
+#define LIGHTS_NUM 16
 #define COLLECTIBLES_NUM 7
 
 // The uniform buffer objects data structures
@@ -31,13 +31,13 @@ struct UniformBufferObject {
 };
 
 struct GlobalUniformBufferObject {
-	alignas(16) glm::vec3 lightDir[LIGHTS_NUM];		// Direction of the lights
-	alignas(16) glm::vec3 lightPos[LIGHTS_NUM];     // Position of the lights
-	alignas(16) glm::vec4 lightColor[LIGHTS_NUM];   // Color of the lights
-	alignas(16) glm::vec3 eyePos;					// Position of the camera/eye
-	alignas(16) glm::vec4 lightOn;					// Lights on/off flag (point, direct, spot, ambient component)
-	alignas(4) float cosIn;							// Spot light inner cone angle
-	alignas(4) float cosOut;						// Spot light outer cone angle
+	alignas(16) glm::vec3 lightDir[LIGHTS_NUM];				 // Direction of the lights
+	alignas(16) glm::vec3 lightPos[LIGHTS_NUM];				 // Position of the lights
+	alignas(16) glm::vec4 lightColor[LIGHTS_NUM];			 // Color of the lights
+	alignas(16) glm::vec3 eyePos;							 // Position of the camera/eye
+	alignas(16) glm::vec4 lightOn;							 // Lights on/off flag (point, direct, spot, ambient component)
+	alignas(4) float cosIn;									 // Spot light inner cone angle
+	alignas(4) float cosOut;								 // Spot light outer cone angle
 };
 
 struct SkyBoxUniformBufferObject {
@@ -122,9 +122,8 @@ protected:
 
 	bool DEBUG = false;						// Used to display bounding boxes for debugging
 	bool OVERLAY = false;					// Used to display the overlay
-
 	int gameState = GAME_STATE_START_SCREEN;
-
+	bool FIRST_PERSON = false;				// Used to switch between first and third person view
 	bool gameOver = false;
 
 	public:
@@ -181,9 +180,9 @@ protected:
 	// Lair
 	Model<Vertex> M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web;
 	// Living room
-	Model<Vertex> M_sofa, M_table, M_tv, M_knight;
+	Model<Vertex> M_sofa, M_table, M_tv, M_cat;
 	// Other
-	Model<VertexTan> M_cat;
+	Model<VertexTan> M_knight;
 	Model<Vertex> M_floor, M_walls;
 	Model<skyBoxVertex> M_skyBox;
 	Model<VertexOverlay> M_timer[5], M_screens[3], M_scroll, M_collectibles[COLLECTIBLES_NUM];
@@ -207,7 +206,7 @@ protected:
 	DescriptorSet DS_skyBox, DS_timer[5], DS_screens[3], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_knight, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec, T_hairNorm;
+	Texture T_textures, T_eye, T_closet, T_feather, T_knight, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec, T_hairNorm;
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -471,9 +470,9 @@ protected:
 			M_sofa.init(this,		&VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
 			M_table.init(this,		&VD, "models/livingroom/livingroom_table.gltf", GLTF);
 			M_tv.init(this,			&VD, "models/livingroom/livingroom_tv.gltf", GLTF);
-			M_knight.init(this,		&VD, "models/livingroom/livingroom_knight.gltf", GLTF);
+			M_knight.init(this,		&VD_tangent, "models/livingroom/livingroom_knight.gltf", GLTF);
 
-			M_cat.init(this,		&VD_tangent, "models/other/cat.gltf", GLTF);
+			M_cat.init(this,		&VD, "models/other/cat.gltf", GLTF);
 			M_floor.init(this,		&VD, "models/other/floor.gltf", GLTF);
 			M_walls.init(this,		&VD, "models/other/walls.gltf", GLTF);
 
@@ -551,6 +550,8 @@ protected:
 			T_fire.init(this,		"textures/lair/fire.png");
 
 			T_knight.init(this, "textures/knight/knight_diffuse.png");
+			T_knightSpec.init(this, "textures/knight/knight_metallic.png");
+			T_knightNorm.init(this, "textures/knight/knight_normal.png");
 
 			T_hair.init(this,		"textures/hair3.jpg");
 			T_hairSpec.init(this,	"textures/hairSpec.jpg");
@@ -784,20 +785,20 @@ protected:
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
-		DS_knight.init(this, &DSL, {
+		DS_knight.init(this, &DSL_ward, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_knight},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					{3, UNIFORM, sizeof(glm::vec3), nullptr},
+					{4, TEXTURE, 0, &T_knightSpec},
+					{5, TEXTURE, 0, &T_knightNorm}
 			});
 
-		DS_cat.init(this, &DSL_ward, {
+		DS_cat.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_hair},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr},
-					{4, TEXTURE, 0, &T_hairSpec},
-					{5, TEXTURE, 0, &T_hairNorm}
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 
 		DS_floor.init(this, &DSL, {
@@ -935,6 +936,8 @@ protected:
 		T_fire.cleanup();
 
 		T_knight.cleanup();
+		T_knightSpec.cleanup();
+		T_knightNorm.cleanup();
 
 		T_hair.cleanup();
 		T_hairSpec.cleanup();
@@ -1169,9 +1172,9 @@ protected:
 		M_tv.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_tv.indices.size()), 1, 0, 0, 0);
 
-		DS_knight.bind(commandBuffer, P, 0, currentImage);
-		M_knight.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_knight.indices.size()), 1, 0, 0, 0);
+		DS_cat.bind(commandBuffer, P, 0, currentImage);
+		M_cat.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
 
 		DS_floor.bind(commandBuffer, P, 0, currentImage);
 		M_floor.bind(commandBuffer);
@@ -1182,9 +1185,9 @@ protected:
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_walls.indices.size()), 1, 0, 0, 0);
 		
 		P_ward.bind(commandBuffer);
-		DS_cat.bind(commandBuffer, P_ward, 0, currentImage);
-		M_cat.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
+		DS_knight.bind(commandBuffer, P_ward, 0, currentImage);
+		M_knight.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_knight.indices.size()), 1, 0, 0, 0);
 
 		P_skyBox.bind(commandBuffer);
 		M_skyBox.bind(commandBuffer);
@@ -1357,10 +1360,16 @@ protected:
 				camYaw = catYaw + glm::radians(90.0f);
 				lastPressTime = totalElapsedTime;
 			}
+      
+      // Press V to switch between 1st and 3rd person view
+		  if (glfwGetKey(window, GLFW_KEY_V) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+        FIRST_PERSON = !FIRST_PERSON;
+        lastPressTime = totalElapsedTime;
+      }
 
 			// Limit the distance from the cat and the pitch to avoid gimbal lock
 			camDist = glm::clamp(camDist, -1.0f, 4.0f);
-			camPitch = glm::clamp(camPitch, glm::radians(-18.0f), glm::radians(5.0f));
+      camPitch = glm::clamp(camPitch, FIRST_PERSON ? glm::radians(-13.0f) : glm::radians(-18.0f), glm::radians(5.0f));
 			// camRoll = glm::clamp(camRoll, glm::radians(-10.0f), glm::radians(10.0f));
 
 			// Update camera yaw, pitch, and roll
@@ -1368,12 +1377,6 @@ protected:
 			camPitch -= ROT_SPEED * deltaT * r.x;
 			camRoll -= ROT_SPEED * deltaT * r.z;
 			camDist -= MOVE_SPEED * deltaT * m.y;
-
-			glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
-				glm::vec4(CamTargetDelta, 1));
-
-			camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
-				glm::vec4(0, 0, camDist, 1));
 
 			// Redefine camera forward and right vectors
 			cameraForward = glm::normalize(glm::vec3(sin(camYaw), 0.0f, cos(camYaw)));
@@ -1389,13 +1392,30 @@ protected:
 				targetYaw += glm::radians(-180.0f); // same as + 3.1416 / 2.0
 				catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);	// 6.0 is the damping factor
 			}
+      
+      if (FIRST_PERSON) {
+			// First person camera
+			camPos = catPosition + MOVE_SPEED * m.x * ux * deltaT;
+			camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;
+			camPos = camPos + MOVE_SPEED * m.z * uz * deltaT;
 
-			if (gameOver) {
+			camPos.y += 0.9f;
+      }
+      else {
+        // Third person camera
+        glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
+          glm::vec4(CamTargetDelta, 1));
+        camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
+          glm::vec4(0, 0, camDist, 1));
+      }
+      
+      gubo.lightOn = glm::vec4(1, 1, 1, 1);   // to delete in case
+			/*if (gameOver) {
 				gubo.lightOn = glm::vec4(1, 1, 1, 1);
 			}
 			else {
 				gubo.lightOn = glm::vec4(1, 1, 0, 1);
-			}
+			}*/
 		}					//******************************************** END GAME PLAY **********************************************
 
 		// Check if game is over because time has run out
@@ -1409,13 +1429,13 @@ protected:
 		}
 
 		// Limit the cat's movement to the house
-		catPosition.x = glm::clamp(catPosition.x, -12.2f, 12.2f);
-		catPosition.z = glm::clamp(catPosition.z, -12.2f, 12.2f);
+		catPosition.x = glm::clamp(catPosition.x, -11.8f, 11.8f);
+		catPosition.z = glm::clamp(catPosition.z, -11.8f, 11.8f);
 
 		// Parameters
 		// Camera FOV-y, Near Plane and Far Plane
 		// Set up the view and projection matrices
-		const float FOVy = glm::radians(45.0f);
+		const float FOVy = FIRST_PERSON ? glm::radians(25.0f) : glm::radians(45.0f);
 		const float nearPlane = 0.1f;
 		const float farPlane = 100.0f;
 
@@ -1457,7 +1477,8 @@ protected:
 		gubo.lightPos[6] = glm::vec3(0.f, 2.0f, -8.f);						// position: bathroom
 		gubo.lightColor[6] = glm::vec4(glm::vec3(0.06f, 0.03f, 0.f), 2.0f);	// color: orange
 
-		gubo.lightDir[7] = glm::vec3(0.5, 1.0, 0.5);						// (sun) light from outside
+		gubo.lightPos[7] = glm::vec3(0.0f, 0.0f, 0.0f);						// position: null
+		gubo.lightDir[7] = glm::vec3(-0.5, 1.0, 0.5);						// (sun) light from outside
 		gubo.lightColor[7] = glm::vec4(glm::vec3(1.0f, 0.95f, 0.8f), 2.0f); // color: warm white
 
 		gubo.lightPos[8] = glm::vec3(-6.0f, 1.5f, -8.3f);					// position: witch lair - cauldron
@@ -1466,8 +1487,14 @@ protected:
 		gubo.cosIn = glm::cos(glm::radians(35.0f));							// cos of the inner angle of the spot light
 		gubo.cosOut = glm::cos(glm::radians(45.0f));						// cos of the outer angle of the spot light
 		
-		gubo.eyePos = camPos; // Camera position
+		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
+			gubo.lightPos[i + 9] = collectiblesRandomPosition[i] + glm::vec3(0.f, 0.5f, 0.f);
+			gubo.lightDir[i + 9] = glm::vec3(0, 1, 0);
+			gubo.lightColor[i + 9] = collectiblesMap[collectiblesNames[i]] ? glm::vec4(glm::vec3(0.0f), 0.0f) : glm::vec4(glm::vec3(0.7f, 0.1f, 1.0f), 10.0f);
+		}
 
+		gubo.eyePos = camPos; // Camera position
+		gubo.lightOn = glm::vec4(1);
 
 		// Sky Box UBO update
 		SkyBoxUniformBufferObject sbubo{};

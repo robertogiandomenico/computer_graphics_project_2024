@@ -1,6 +1,9 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+#define LIGHTS_NUM 16
+#define COLLECTIBLES_NUM 7
+
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec3 fragNorm;
 layout(location = 2) in vec4 fragTan;
@@ -11,13 +14,13 @@ layout(location = 0) out vec4 outColor;
 layout(binding = 1) uniform sampler2D tex;
 
 layout(binding = 2) uniform GlobalUniformBufferObject {
-    vec3 lightDir[9];          // Direction of the lights
-    vec3 lightPos[9];          // Position of the lights
-    vec4 lightColor[9];        // Color of the lights
-    vec3 eyePos;               // Position of the camera/eye
-    vec4 lightOn;              // Lights on/off flags (point, direct, spot, ambient component)
-    float cosIn;               // Spot light inner cone angle
-	float cosOut;              // Spot light outer cone angle
+    vec3 lightDir[LIGHTS_NUM];      // Direction of the lights
+    vec3 lightPos[LIGHTS_NUM];      // Position of the lights
+    vec4 lightColor[LIGHTS_NUM];    // Color of the lights
+    vec3 eyePos;					// Position of the camera/eye
+    vec4 lightOn;					// Lights on/off flags (point, direct, spot, ambient component)
+    float cosIn;					// Spot light inner cone angle
+	float cosOut;					// Spot light outer cone angle
 } gubo;
 
 // New uniform for emissive color
@@ -53,10 +56,14 @@ Paramters:
     float l_n = dot(L, N);
     float v_n = dot(V, N);
 
+    float epsilon = 1e-6;
+
     float exponent = (pow(h_t / alphaT, 2) + pow(h_b / alphaB, 2)) / pow(h_n, 2);
     float denominator = 4.0 * alphaT * alphaB * sqrt(h_n / (l_n * v_n)) * radians(180.0f);
+    denominator = max(denominator, epsilon);
 
     vec3 Specular = Ms * exp(-exponent) / denominator;
+    Specular = max(Specular, epsilon);
 
 	return (Diffuse + Specular);
 }
@@ -82,39 +89,32 @@ void main() {
 
 	vec3 V = normalize(gubo.eyePos - fragPos);
 
-	for (int i = 0; i < 9; ++i) {
+	for (int i = 0; i < LIGHTS_NUM - COLLECTIBLES_NUM - 1; ++i) {
+        // contribution of all lights except spot lights
+        
         vec3 L;
+        float attenuation = 1.0;
         
         if (length(gubo.lightDir[i]) > 0.0) {
-            // Directional light
+            // directional light
             L = normalize(gubo.lightDir[i]);
+            attenuation = 1.0 * gubo.lightOn.y;
         } else {
-            // Point or spot light
+            // point lights
             L = normalize(gubo.lightPos[i] - fragPos);
+            
+            float distance = length(gubo.lightPos[i] - fragPos);
+            attenuation = 1.0 / (0.1 + 0.1 * distance + 0.01 * distance * distance) * gubo.lightOn.x;   // standard attenuation formula
         }
 
-        float distance = length(gubo.lightPos[i] - fragPos);
-        float attenuation = 1.0 / (0.1 + 0.1 * distance + 0.01 * distance * distance); // Standard attenuation formula
-		// float attenuation = 1.0 / (distance * distance); // Inverse square attenuation formula
-
-        vec3 DiffSpec = BRDF(V, N, L, Tan, Bitan, albedo, specCol, 0.1f, 0.4f);
+        vec3 DiffSpec = BRDF(V, N, L, Tan, Bitan, albedo, specCol, 0.1f, 0.1f);
         
         finalColor += DiffSpec * gubo.lightColor[i].rgb * attenuation;
     }
 
 	finalColor += eubo.emissiveColor;
-
-	/*
-	const vec3 cxp = vec3(1.0,0.5,0.5) * 0.15;
-	const vec3 cxn = vec3(0.9,0.6,0.4) * 0.15;
-	const vec3 cyp = vec3(0.3,1.0,1.0) * 0.15;
-	const vec3 cyn = vec3(0.5,0.5,0.5) * 0.15;
-	const vec3 czp = vec3(0.8,0.2,0.4) * 0.15;
-	const vec3 czn = vec3(0.3,0.6,0.7) * 0.15;
 	
-	vec3 Ambient =((N.x > 0 ? cxp : cxn) * (N.x * N.x) +
-				   (N.y > 0 ? cyp : cyn) * (N.y * N.y) +
-				   (N.z > 0 ? czp : czn) * (N.z * N.z)) * albedo;
-	*/
-	outColor = vec4(finalColor, 1.0f);
+	vec3 Ambient = albedo * 0.5 * gubo.lightOn.w;
+	
+	outColor = vec4(finalColor + Ambient, 1.0f);
 }
