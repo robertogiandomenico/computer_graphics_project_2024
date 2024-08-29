@@ -90,12 +90,12 @@ protected:
 	float Ar;
 
 	// Other application parameters
-	glm::vec3 camPos = glm::vec3(0.0, 1.5, 7.0);
-	float camYaw = glm::radians(90.0f);
-	float camPitch = glm::radians(-10.0f);
-	float camRoll = 0.0f;
-	float camDist = 3.0f;
-	const glm::vec3 CamTargetDelta = glm::vec3(0, 1.5f, 0);
+	glm::vec3 camPos;
+	float camYaw ;
+	float camPitch;
+	float camRoll;
+	float camDist;
+	glm::vec3 CamTargetDelta = glm::vec3(0.0f);
 	//const glm::vec3 Cam1stPos = glm::vec3(0.49061f, 2.07f, 2.7445f);
 	float Yaw = 0.0f;
 	// Rotation angle for the cube
@@ -104,10 +104,10 @@ protected:
 	const float collectibleRotationSpeed = glm::radians(45.0f);  // 45 degrees per second
 
 	// Cat initial position
-	glm::vec3 catPosition = glm::vec3(6.0f, 0.0f, 0.0f);
+	glm::vec3 catPosition;
 	glm::vec3 catDimensions = glm::vec3(1.2f, 1.2f, 0.2f);
 	// Cat initial orientation
-	float catYaw = 0.f;
+	float catYaw;
 
 	glm::vec3 collectiblesRandomPosition[COLLECTIBLES_NUM];
 
@@ -121,7 +121,8 @@ protected:
 	float lastPressTime = 0.0f;
 
 	bool DEBUG = false;						// Used to display bounding boxes for debugging
-	bool OVERLAY = true;					// Used to display the overlay
+	bool OVERLAY = false;					// Used to display the overlay
+	int gameState = GAME_STATE_START_SCREEN;
 	bool FIRST_PERSON = false;				// Used to switch between first and third person view
 	bool gameOver = false;
 
@@ -131,26 +132,15 @@ protected:
 
 		PurrfectPotion() {
 
-			// Initialize items with names and set all isCollected to false
-			collectiblesMap["crystal"]	= false;
-			collectiblesMap["eye"]		= false;
-			collectiblesMap["feather"]	= false;
-			collectiblesMap["leaf"]		= false;
-			collectiblesMap["potion1"]	= false;
-			collectiblesMap["potion2"]	= false;
-			collectiblesMap["bone"]		= false;
-
-			collectiblesHUD["crystal"]	= 0;
-			collectiblesHUD["eye"]		= 1;
-			collectiblesHUD["feather"]	= 2;
-			collectiblesHUD["leaf"]		= 3;
-			collectiblesHUD["potion1"]	= 4;
-			collectiblesHUD["potion2"]	= 5;
-			collectiblesHUD["bone"]		= 6;
-
-			/*for (int i = 0; i < COLLECTIBLES_NUM; i++) {
-				UBO_collectibles[i].visible = 1.f;
-			}*/
+			collectiblesHUD = {
+				{"crystal", 0},
+				{"eye",		1},
+				{"feather", 2},
+				{"leaf",	3},
+				{"potion1", 4},
+				{"potion2", 5},
+				{"bone",	6}
+			};
 
 			srand(static_cast<unsigned int>(time(0)));
 			for (int i = 0; i < COLLECTIBLES_NUM; ++i) {
@@ -195,7 +185,7 @@ protected:
 	Model<VertexTan> M_knight;
 	Model<Vertex> M_floor, M_walls;
 	Model<skyBoxVertex> M_skyBox;
-	Model<VertexOverlay> M_timer[5], M_scroll, M_collectibles[COLLECTIBLES_NUM];
+	Model<VertexOverlay> M_timer[5], M_screens[3], M_scroll, M_collectibles[COLLECTIBLES_NUM];
 
 	// Descriptor sets
 	// Bathroom
@@ -213,10 +203,10 @@ protected:
 	// Other
 	DescriptorSet DS_cat, DS_floor, DS_walls;
 
-	DescriptorSet DS_skyBox, DS_timer[5], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
+	DescriptorSet DS_skyBox, DS_timer[5], DS_screens[3], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_knight, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec, T_hairNorm;
+	Texture T_textures, T_eye, T_closet, T_feather, T_knight, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec, T_hairNorm;
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -234,7 +224,7 @@ protected:
 	// Other
 	UniformBufferObject UBO_cat, UBO_floor, UBO_walls;
 	SteamUniformBufferObject UBO_steam, UBO_fire;
-	OverlayUniformBlock UBO_timer[5], UBO_scroll, UBO_collectibles[COLLECTIBLES_NUM];
+	OverlayUniformBlock UBO_timer[5], UBO_screens[3], UBO_scroll, UBO_collectibles[COLLECTIBLES_NUM];
 
 	// to display the bounding boxes for debugging
 	Pipeline P_boundingBox;
@@ -504,10 +494,22 @@ protected:
 			createBBModel(M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].vertices, M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].indices, &catBox);
 			M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].initMesh(this, &VD_boundingBox);
 
+
+			// Create HUD screens
+			glm::vec2 anchor = glm::vec2(-1.0f, -1.0f);
+			float w = 2.f;
+			float h = 2.f;
+			for (int i = 0; i < 3; i++) {
+				M_screens[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
+										  {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
+				M_screens[i].indices = { 0, 1, 2,    1, 2, 3 };
+				M_screens[i].initMesh(this, &VD_overlay);
+			}
+
 			// Create HUD timer
-			glm::vec2 anchor = glm::vec2(0.8f, -0.95f);
-			float w = 0.15f;
-			float h = w * Ar;		// Respect the aspect ratio since it is a square pic
+			anchor = glm::vec2(0.8f, -0.95f);
+			w = 0.15f;						// Respect the aspect ratio since it is a square pic
+			h = w * Ar;
 			for (int i = 0; i < 5; i++) {
 				M_timer[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
 										{{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
@@ -520,7 +522,7 @@ protected:
 			w = 0.2f;
 			h = 1.8f;
 			M_scroll.vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
-								{{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
+								  {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
 			M_scroll.indices = { 0, 1, 2,    1, 2, 3 };
 			M_scroll.initMesh(this, &VD_overlay);
 
@@ -532,7 +534,7 @@ protected:
 				anchor = anchor + (glm::vec2(0.f, 0.2f));
 
 				M_collectibles[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
-											{{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
+											   {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
 				M_collectibles[i].indices = { 0, 1, 2,    1, 2, 3 };
 				M_collectibles[i].initMesh(this, &VD_overlay);
 			}
@@ -562,6 +564,10 @@ protected:
 			T_timer[2].init(this,	"textures/HUD/timer_50.png");
 			T_timer[3].init(this,	"textures/HUD/timer_25.png");
 			T_timer[4].init(this,	"textures/HUD/timer_0.png");
+
+			T_screens[0].init(this, "textures/screens/start_screen.png");
+			T_screens[1].init(this, "textures/screens/win_screen.png");
+			T_screens[2].init(this, "textures/screens/lose_screen.png");
 
 			T_scroll.init(this, "textures/HUD/scroll.png");
 
@@ -815,6 +821,13 @@ protected:
 				});
 		}
 
+		for (int i = 0; i < 3; i++) {
+			DS_screens[i].init(this, &DSL_overlay, {
+					{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
+					{1, TEXTURE, 0, &T_screens[i]}
+				});
+		}
+
 		for (int i = 0; i < 5; i++) {
 			DS_timer[i].init(this, &DSL_overlay, {
 					{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
@@ -894,6 +907,10 @@ protected:
 			DS_boundingBox[i].cleanup();
 		}
 
+		for (int i = 0; i < 3; i++) {
+			DS_screens[i].cleanup();
+		}
+
 		for (int i = 0; i < 5; i++) {
 			DS_timer[i].cleanup();
 		}
@@ -927,6 +944,10 @@ protected:
 		T_hairNorm.cleanup();
 
 		T_skyBox.cleanup();
+
+		for (int i = 0; i < 3; i++) {
+			T_screens[i].cleanup();
+		}
 
 		for (int i = 0; i < 5; i++) {
 			T_timer[i].cleanup();
@@ -984,6 +1005,10 @@ protected:
 
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			M_boundingBox[i].cleanup();
+		}
+
+		for (int i = 0; i < 3; i++) {
+			M_screens[i].cleanup();
 		}
 		
 		for (int i = 0; i < 5; i++) {
@@ -1186,6 +1211,12 @@ protected:
 		}
 
 		P_overlay.bind(commandBuffer);
+		for (int i = 0; i < 3; i++) {
+			M_screens[i].bind(commandBuffer);
+			DS_screens[i].bind(commandBuffer, P_overlay, 0, currentImage);
+			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_screens[i].indices.size()), 1, 0, 0, 0);
+		}
+
 		for (int i = 0; i < 5; i++) {
 			M_timer[i].bind(commandBuffer);
 			DS_timer[i].bind(commandBuffer, P_overlay, 0, currentImage);
@@ -1212,39 +1243,12 @@ protected:
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 
-		// Press P to toggle debug mode
-		if (glfwGetKey(window, GLFW_KEY_P) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
-			DEBUG = !DEBUG;
-			lastPressTime = totalElapsedTime;
-		}
-
-		// Press O to toggle overlay
-		if (glfwGetKey(window, GLFW_KEY_O) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
-			OVERLAY = !OVERLAY;
-			lastPressTime = totalElapsedTime;
-		}
-
-		// Press L to reset the camera view
-		if (glfwGetKey(window, GLFW_KEY_L) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
-			camRoll = 0.0f;
-			camPitch = glm::radians(-10.0f);
-			camDist = 3.0f;
-			camYaw = catYaw + glm::radians(90.0f);
-			lastPressTime = totalElapsedTime;
-		}
-
-		// Press V to switch between 1st and 3rd person view
-		if (glfwGetKey(window, GLFW_KEY_V) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
-			FIRST_PERSON = !FIRST_PERSON;
-			lastPressTime = totalElapsedTime;
-		}
-
-
 		// Integration with the timers and the controllers
 		float deltaT;
 		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
 		bool fire = false;
-		getSixAxis(deltaT, m, r, fire);
+		bool start = false;
+		getSixAxis(deltaT, m, r, fire, start);
 		// getSixAxis() is defined in Starter.hpp in the base class.
 		// It fills the float point variable passed in its first parameter with the time
 		// since the last call to the procedure.
@@ -1254,77 +1258,179 @@ protected:
 		// to motion (with right stick of the gamepad, or Arrow keys + QE keys on the keyboard, or mouse)
 		// If fills the last boolean variable with true if fire has been pressed:
 		//          SPACE on the keyboard, A or B button on the Gamepad, Right mouse button
-
-		// Check if game is over because time has run out
-		totalElapsedTime += deltaT;
-		remainingTime = GAME_DURATION - totalElapsedTime;
-
-		if (totalElapsedTime >= GAME_DURATION) {
-			// game over logic goes here
-			// for now it just closes the window
-			std::cout << "Game Over" << std::endl;
-			glfwSetWindowShouldClose(window, GL_TRUE);
-		}
-		else if (static_cast<int>(remainingTime) != lastDisplayedTime) {
-			std::cout << "Time remaining: " << static_cast<int>(remainingTime) << std::endl;
-			lastDisplayedTime = static_cast<int>(remainingTime);
-		}
-
+		
+		glm::mat4 World;
+		glm::mat4 ViewPrj;
+		glm::mat4 Mv;
 
 		// Parameters for camera movement and rotation
 		const float ROT_SPEED = glm::radians(90.0f);
 		const float MOVE_SPEED = 10.0f;
 
-		// Update camera yaw, pitch, and roll
-		camYaw   += ROT_SPEED * deltaT * r.y;
-		camPitch -= ROT_SPEED * deltaT * r.x;
-		camRoll  -= ROT_SPEED * deltaT * r.z;
-		camDist  -= MOVE_SPEED * deltaT * m.y;
+		totalElapsedTime += deltaT;
 
-		// Limit the distance from the cat and the pitch to avoid gimbal lock
-		camDist = glm::clamp(camDist, -1.0f, 4.0f);
-		camPitch = glm::clamp(camPitch, FIRST_PERSON ? glm::radians(-13.0f) : glm::radians(-18.0f), glm::radians(5.0f));
-		// camRoll = glm::clamp(camRoll, glm::radians(-10.0f), glm::radians(10.0f));
+		glm::vec3 cameraForward;
+		glm::vec3 cameraRight;
 
-		// Camera movement + redefine forward and right vectors
-		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(1, 0, 0, 1);
-		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(0, 0, -1, 1);
-		glm::vec3 cameraForward = glm::normalize(glm::vec3(sin(camYaw), 0.0f, cos(camYaw)));
-		glm::vec3 cameraRight = glm::normalize(glm::vec3(cos(camYaw), 0.0f, -sin(camYaw)));
+		GlobalUniformBufferObject gubo = {};
 
-		// Cat movement
-		if ((m.x != 0) || (m.z != 0)) {
-			// catPosition.x += m.x * MOVE_SPEED * deltaT;	// Move left/right
-			// catPosition.y += m.y * MOVE_SPEED * deltaT;	// Move up/down - do not enable otherwise cat flies
-			// catPosition.z -= m.z * MOVE_SPEED * deltaT;	// Move forward/backward
-			catPosition += cameraRight * m.x * MOVE_SPEED * deltaT;
-			catPosition -= cameraForward * m.z * MOVE_SPEED * deltaT;
+		if (gameState == GAME_STATE_START_SCREEN || gameState == GAME_STATE_GAME_WIN || gameState == GAME_STATE_GAME_LOSE) {
 
-			// Cat rotation based on the movement vector
-			float targetYaw = atan2(m.z, m.x);
-			targetYaw += glm::radians(-180.0f);
-			catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);	// 6.0 is the damping factor
+			camPos = glm::vec3(-5.7f, 3.5f, -1.7f);
+			camYaw = glm::radians(30.0f);
+			camPitch = glm::radians(-20.0f);
+			camRoll = 0.0f;
+
+			catPosition = glm::vec3(-7.5f, 0.0f, -8.5f);
+			catYaw = glm::radians(110.0f);
+
+			gubo.lightOn = glm::vec4(1, 1, 1, 1);
+
+			OVERLAY = false;
+
+			if (gameState == GAME_STATE_START_SCREEN) {
+				UBO_screens[0].visible = 1.f;
+				UBO_screens[1].visible = UBO_screens[2].visible = 0.f;
+			} else if (gameState == GAME_STATE_GAME_WIN) {
+				UBO_screens[1].visible = 1.f;
+				UBO_screens[0].visible = UBO_screens[2].visible = 0.f;
+			} else if (gameState == GAME_STATE_GAME_LOSE) {
+				UBO_screens[2].visible = 1.f;
+				UBO_screens[0].visible = UBO_screens[1].visible = 0.f;
+			}
+
+
+			if (start) {	// Setting the variables ready to start the game
+				OVERLAY = true;
+
+				UBO_screens[0].visible = UBO_screens[1].visible = UBO_screens[2].visible = 0.f;
+
+				camPos = glm::vec3(0.0f, 1.5f, 7.0f);
+				camYaw = glm::radians(90.0f);
+				camPitch = glm::radians(-10.0f);
+				camRoll = 0.0f;
+				camDist = 3.0f;
+				CamTargetDelta = glm::vec3(0.0f, 1.5f, 0.0f);
+
+				catPosition = glm::vec3(6.0f, 0.0f, 0.0f);
+				catYaw = 0.0f;
+
+				gubo.lightOn = glm::vec4(1, 1, 0, 1);
+
+				// Set all the elements to not_collected
+				for (auto& element : collectiblesMap) {
+					element.second = false;
+				}
+
+				totalElapsedTime = 0.0f;
+				gameState = GAME_STATE_PLAY;
+			}
+
+			// Update screens overlay
+			for (int i = 0; i < 3; i++) {
+				DS_screens[i].map(currentImage, &UBO_screens[i], sizeof(UBO_screens[i]), 0);
+			}
 		}
+		else if (gameState == GAME_STATE_PLAY) {	//******************************* GAME PLAY ****************************************
 
-		// Limit the cat's movement to the house
-		catPosition.x = glm::clamp(catPosition.x, -11.8f, 11.8f);
-		catPosition.z = glm::clamp(catPosition.z, -11.8f, 11.8f);
+			// Update DS screens overlay to make them disappear
+			for (int i = 0; i < 3; i++) {
+				DS_screens[i].map(currentImage, &UBO_screens[i], sizeof(UBO_screens[i]), 0);
+			}
+			
+			remainingTime = GAME_DURATION - totalElapsedTime;
 
-		if (FIRST_PERSON) {
+			// Press P to toggle debug mode
+			if (glfwGetKey(window, GLFW_KEY_P) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+				DEBUG = !DEBUG;
+				lastPressTime = totalElapsedTime;
+			}
+
+			// Press O to toggle overlay
+			if (glfwGetKey(window, GLFW_KEY_O) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+				OVERLAY = !OVERLAY;
+				lastPressTime = totalElapsedTime;
+			}
+
+			// Press L to reset the camera view
+			if (glfwGetKey(window, GLFW_KEY_L) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+				camRoll = 0.0f;
+				camPitch = glm::radians(-10.0f);
+				camDist = 3.0f;
+				camYaw = catYaw + glm::radians(90.0f);
+				lastPressTime = totalElapsedTime;
+			}
+      
+      // Press V to switch between 1st and 3rd person view
+		  if (glfwGetKey(window, GLFW_KEY_V) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+        FIRST_PERSON = !FIRST_PERSON;
+        lastPressTime = totalElapsedTime;
+      }
+
+			// Limit the distance from the cat and the pitch to avoid gimbal lock
+			camDist = glm::clamp(camDist, -1.0f, 4.0f);
+      camPitch = glm::clamp(camPitch, FIRST_PERSON ? glm::radians(-13.0f) : glm::radians(-18.0f), glm::radians(5.0f));
+			// camRoll = glm::clamp(camRoll, glm::radians(-10.0f), glm::radians(10.0f));
+
+			// Update camera yaw, pitch, and roll
+			camYaw += ROT_SPEED * deltaT * r.y;
+			camPitch -= ROT_SPEED * deltaT * r.x;
+			camRoll -= ROT_SPEED * deltaT * r.z;
+			camDist -= MOVE_SPEED * deltaT * m.y;
+
+			// Redefine camera forward and right vectors
+			cameraForward = glm::normalize(glm::vec3(sin(camYaw), 0.0f, cos(camYaw)));
+			cameraRight = glm::normalize(glm::vec3(cos(camYaw), 0.0f, -sin(camYaw)));
+
+			// Cat movement
+			if ((m.x != 0) || (m.z != 0)) {
+				catPosition -= cameraForward * m.z * MOVE_SPEED * deltaT;
+				catPosition += cameraRight * m.x * MOVE_SPEED * deltaT;
+
+				// Cat rotation based on the movement vector
+				float targetYaw = atan2(m.z, m.x);
+				targetYaw += glm::radians(-180.0f); // same as + 3.1416 / 2.0
+				catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);	// 6.0 is the damping factor
+			}
+      
+      if (FIRST_PERSON) {
 			// First person camera
 			camPos = catPosition + MOVE_SPEED * m.x * ux * deltaT;
 			camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;
 			camPos = camPos + MOVE_SPEED * m.z * uz * deltaT;
 
 			camPos.y += 0.9f;
+      }
+      else {
+        // Third person camera
+        glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
+          glm::vec4(CamTargetDelta, 1));
+        camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
+          glm::vec4(0, 0, camDist, 1));
+      }
+      
+      gubo.lightOn = glm::vec4(1, 1, 1, 1);   // to delete in case
+			/*if (gameOver) {
+				gubo.lightOn = glm::vec4(1, 1, 1, 1);
+			}
+			else {
+				gubo.lightOn = glm::vec4(1, 1, 0, 1);
+			}*/
+		}					//******************************************** END GAME PLAY **********************************************
+
+		// Check if game is over because time has run out
+		if (totalElapsedTime >= GAME_DURATION) {
+			// game over logic goes here
+			// for now it just closes the window
+			gameState = GAME_STATE_GAME_LOSE;
+		} else if (static_cast<int>(remainingTime) != lastDisplayedTime) {
+			std::cout << "Time remaining: " << static_cast<int>(remainingTime) << std::endl;
+			lastDisplayedTime = static_cast<int>(remainingTime);
 		}
-		else {
-			// Third person camera
-			glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
-				glm::vec4(CamTargetDelta, 1));
-			camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
-				glm::vec4(0, 0, camDist, 1));
-		}
+
+		// Limit the cat's movement to the house
+		catPosition.x = glm::clamp(catPosition.x, -11.8f, 11.8f);
+		catPosition.z = glm::clamp(catPosition.z, -11.8f, 11.8f);
 
 		// Parameters
 		// Camera FOV-y, Near Plane and Far Plane
@@ -1337,21 +1443,19 @@ protected:
 		M[1][1] *= -1;
 
 		// View matrix for camera following the cat
-		glm::mat4 Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
-			glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
-			glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
-			glm::translate(glm::mat4(1.0f), -camPos);
-
-		glm::mat4 ViewPrj = M * Mv;
+		Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
+			 glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
+			 glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
+			 glm::translate(glm::mat4(1.0f), -camPos);
+		ViewPrj = M * Mv;
 
 		// Update rotation angle of the collectibles
 		collectibleRotationAngle += collectibleRotationSpeed * deltaT;
-		if (collectibleRotationAngle >= glm::two_pi<float>()) {
-			collectibleRotationAngle -= glm::two_pi<float>();
+		if (collectibleRotationAngle >= 2 * PI) {
+			collectibleRotationAngle -= 2* PI;
 		}
 
 
-		GlobalUniformBufferObject gubo = {};
 		// Set light properties
 		gubo.lightPos[0] =glm::vec3(6.0f, 2.0f, 8.0f);			// position: kitchen
 		gubo.lightColor[0] = glm::vec4(glm::vec3(1.4f), 2.0f);	// color: white
@@ -1392,14 +1496,6 @@ protected:
 		gubo.eyePos = camPos; // Camera position
 		gubo.lightOn = glm::vec4(1);
 
-		/*
-		if (gameOver) {
-			gubo.lightOn = glm::vec4(1, 1, 1, 1);
-		} else {
-			gubo.lightOn = glm::vec4(1, 1, 0, 1);
-		}
-		*/
-
 		// Sky Box UBO update
 		SkyBoxUniformBufferObject sbubo{};
 		sbubo.mvpMat = M * glm::mat4(glm::mat3(Mv));
@@ -1408,8 +1504,8 @@ protected:
 
 		// Steam UBO update
 		SteamUniformBufferObject subo = {};
-		glm::mat4 World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 1.7f, 0)) *		// Steam plane position - over the cauldron
-						glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));						// Steam plane rotation - always face the camera
+		World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 1.7f, 0)) *		// Steam plane position - over the cauldron
+				glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));						// Steam plane rotation - always face the camera
 		subo.mvpMat = ViewPrj * World;
 		subo.mMat = World;
 		subo.nMat = glm::transpose(glm::inverse(World));
@@ -1428,7 +1524,7 @@ protected:
 		DS_fire.map(currentImage, &subo, sizeof(subo), 0);
 
 
-		// Overlays UBO updates
+		// Overlays updates
 		if (OVERLAY) {
 			// Timer
 			if (remainingTime >= GAME_DURATION * 3 / 4) {
@@ -1526,37 +1622,37 @@ protected:
 
 		// Collectibles
 		if (!collectiblesMap["crystal"]) {
-			placeEntity(UBO_crystal, gubo, collectiblesRandomPosition[0], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage, DEBUG, 0);
+			placeEntity(UBO_crystal, gubo, collectiblesRandomPosition[0], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage, DEBUG, 0);
 		} else {
 			removeCollectible(UBO_crystal, gubo, ViewPrj, DS_crystal, currentImage, 0);	// it actually scales to zero -> not efficient
 		}
 		if (!collectiblesMap["eye"]) {
-			placeEntity(UBO_eye, gubo, collectiblesRandomPosition[1], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage, DEBUG, 1);
+			placeEntity(UBO_eye, gubo, collectiblesRandomPosition[1], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage, DEBUG, 1);
 		} else {
 			removeCollectible(UBO_eye, gubo, ViewPrj, DS_eye, currentImage, 1);
 		}
 		if (!collectiblesMap["feather"]) {
-			placeEntity(UBO_feather, gubo, collectiblesRandomPosition[2], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage, DEBUG, 2);
+			placeEntity(UBO_feather, gubo, collectiblesRandomPosition[2], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage, DEBUG, 2);
 		} else {
 			removeCollectible(UBO_feather, gubo, ViewPrj, DS_feather, currentImage, 2);
 		}
 		if (!collectiblesMap["leaf"]) {
-			placeEntity(UBO_leaf, gubo, collectiblesRandomPosition[3], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage, DEBUG, 3);
+			placeEntity(UBO_leaf, gubo, collectiblesRandomPosition[3], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage, DEBUG, 3);
 		} else {
 			removeCollectible(UBO_leaf, gubo, ViewPrj, DS_leaf, currentImage, 3);
 		}
 		if (!collectiblesMap["potion1"]) {
-			placeEntity(UBO_potion1, gubo, collectiblesRandomPosition[4], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage, DEBUG, 4);
+			placeEntity(UBO_potion1, gubo, collectiblesRandomPosition[4], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage, DEBUG, 4);
 		} else {
 			removeCollectible(UBO_potion1, gubo, ViewPrj, DS_potion1, currentImage, 4);
 		}
 		if (!collectiblesMap["potion2"]) {
-			placeEntity(UBO_potion2, gubo, collectiblesRandomPosition[5], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(0.7f), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage, DEBUG, 5);
+			placeEntity(UBO_potion2, gubo, collectiblesRandomPosition[5], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage, DEBUG, 5);
 		} else {
 			removeCollectible(UBO_potion2, gubo, ViewPrj, DS_potion2, currentImage, 5);
 		}
 		if (!collectiblesMap["bone"]) {
-			placeEntity(UBO_bone, gubo, collectiblesRandomPosition[6], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(1.0f), glm::vec3(0.5f), ViewPrj, DS_bone, currentImage, DEBUG, 6);
+			placeEntity(UBO_bone, gubo, collectiblesRandomPosition[6], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(0.5f), ViewPrj, DS_bone, currentImage, DEBUG, 6);
 		} else {
 			removeCollectible(UBO_bone, gubo, ViewPrj, DS_bone, currentImage, 6);
 		}
@@ -1574,8 +1670,8 @@ protected:
 
 				if (collectiblesMap["crystal"] && collectiblesMap["eye"] && collectiblesMap["feather"] &&
 					collectiblesMap["leaf"] && collectiblesMap["potion1"] && collectiblesMap["potion2"] && collectiblesMap["bone"]) {
+
 					std::cout << "\nALL COLLECTIBLES COLLECTED!" << std::endl;
-					// win logic goes here
 					std::cout << "Now go to the cauldron" << std::endl;
 					gameOver = true;
 				}
@@ -1587,8 +1683,7 @@ protected:
 				if (furnitureBBs[j].getName() == "cauldron") {
 					if (gameOver) {
 						// win logic goes here
-						std::cout << "You won!" << std::endl;
-						glfwSetWindowShouldClose(window, GL_TRUE);
+						gameState = GAME_STATE_GAME_WIN;
 					} else {
 						break;
 					}
