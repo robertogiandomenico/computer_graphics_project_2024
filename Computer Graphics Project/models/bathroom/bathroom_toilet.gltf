@@ -42,67 +42,67 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":408,
+			"count":291,
 			"max":[
 				0.39799582958221436,
 				1.2831553220748901,
-				0.31438198685646057
+				0.31438201665878296
 			],
 			"min":[
 				-0.7695212364196777,
 				0,
-				-0.31438198685646057
+				-0.31438201665878296
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":408,
+			"count":291,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":408,
+			"count":291,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":936,
+			"count":558,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":4896,
+			"byteLength":3492,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4896,
-			"byteOffset":4896,
+			"byteLength":3492,
+			"byteOffset":3492,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3264,
-			"byteOffset":9792,
+			"byteLength":2328,
+			"byteOffset":6984,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1872,
-			"byteOffset":13056,
+			"byteLength":1116,
+			"byteOffset":9312,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":14928,
+			"byteLength":10428,
 			"uri":"bathroom_toilet.bin"
 		}
 	]

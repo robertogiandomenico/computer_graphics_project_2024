@@ -22,7 +22,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="World.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -61,10 +61,16 @@
     <None Include="shaders\BoundingBox.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="Overlay.frag">
+    <None Include="shaders\Overlay.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="Overlay.vert">
+    <None Include="shaders\Overlay.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\TanShader.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\WardShader.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

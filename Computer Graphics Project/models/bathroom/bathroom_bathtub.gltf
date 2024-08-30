@@ -42,10 +42,10 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":112,
+			"count":96,
 			"max":[
 				1.60201895236969,
-				1.3692957162857056,
+				1.3692958354949951,
 				0.6512876152992249
 			],
 			"min":[
@@ -58,51 +58,51 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":112,
+			"count":96,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":112,
+			"count":96,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":228,
+			"count":180,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":1344,
+			"byteLength":1152,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1344,
-			"byteOffset":1344,
+			"byteLength":1152,
+			"byteOffset":1152,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":896,
-			"byteOffset":2688,
+			"byteLength":768,
+			"byteOffset":2304,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":456,
-			"byteOffset":3584,
+			"byteLength":360,
+			"byteOffset":3072,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":4040,
+			"byteLength":3432,
 			"uri":"bathroom_bathtub.bin"
 		}
 	]

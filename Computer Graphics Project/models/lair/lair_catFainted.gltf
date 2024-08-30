@@ -15,25 +15,26 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Plane",
+			"name":"Cat-body-bones",
 			"translation":[
-				-7.024930000305176,
-				1.7862730026245117,
-				-8.81013011932373
+				-7.958863258361816,
+				-0.0003385692834854126,
+				-11.648761749267578
 			]
 		}
 	],
 	"meshes":[
 		{
-			"name":"Plane",
+			"name":"Cube.007",
 			"primitives":[
 				{
 					"attributes":{
 						"POSITION":0,
 						"NORMAL":1,
-						"TEXCOORD_0":2
+						"TEXCOORD_0":2,
+						"TANGENT":3
 					},
-					"indices":3
+					"indices":4
 				}
 			]
 		}
@@ -42,68 +43,80 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":25,
+			"count":753,
 			"max":[
-				0.3848281502723694,
-				1,
-				4.371138828673793e-08
+				0.4070308804512024,
+				0.25461292266845703,
+				0.4566316604614258
 			],
 			"min":[
-				-0.3848281502723694,
-				-1,
-				-4.371138828673793e-08
+				-0.6033576726913452,
+				2.002716064453125e-05,
+				-0.3665724992752075
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":25,
+			"count":753,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":25,
+			"count":753,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
+			"componentType":5126,
+			"count":753,
+			"type":"VEC4"
+		},
+		{
+			"bufferView":4,
 			"componentType":5123,
-			"count":96,
+			"count":1482,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":300,
+			"byteLength":9036,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":300,
-			"byteOffset":300,
+			"byteLength":9036,
+			"byteOffset":9036,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":200,
-			"byteOffset":600,
+			"byteLength":6024,
+			"byteOffset":18072,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":192,
-			"byteOffset":800,
+			"byteLength":12048,
+			"byteOffset":24096,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":2964,
+			"byteOffset":36144,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":992,
-			"uri":"lair_plane.bin"
+			"byteLength":39108,
+			"uri":"lair_catFainted.bin"
 		}
 	]
 }

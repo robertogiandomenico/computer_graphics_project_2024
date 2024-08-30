@@ -42,7 +42,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":464,
+			"count":430,
 			"max":[
 				0.4293210804462433,
 				1.839789628982544,
@@ -58,51 +58,51 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":464,
+			"count":430,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":464,
+			"count":430,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":780,
+			"count":702,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":5568,
+			"byteLength":5160,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":5568,
-			"byteOffset":5568,
+			"byteLength":5160,
+			"byteOffset":5160,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3712,
-			"byteOffset":11136,
+			"byteLength":3440,
+			"byteOffset":10320,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1560,
-			"byteOffset":14848,
+			"byteLength":1404,
+			"byteOffset":13760,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":16408,
+			"byteLength":15164,
 			"uri":"lair_chair.bin"
 		}
 	]

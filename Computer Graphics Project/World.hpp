@@ -9,7 +9,7 @@ struct Transform {
     glm::vec3 scale;
 };
 
-// Define as an inline variable to make only one instace of it
+// Define as an inline variable to make only one instance of it
 
 //House
 inline Transform houseFloor = {
@@ -54,6 +54,9 @@ inline Transform table = {
 inline Transform tv = {
      glm::vec3(-7.5f, 0.0f, 9.5f), glm::vec3(0.0f), glm::vec3(1.0f)
 };
+inline Transform knight = {
+     glm::vec3(-2.f, 0.0f, 6.5f), glm::vec3(0.0f), glm::vec3(1.0f)
+};
 
 // Witch lair
 inline Transform chest = {
@@ -73,6 +76,12 @@ inline Transform shelf1 = {
 };
 inline Transform shelf2 = {
      glm::vec3(-9.f, 2.4f, -12.2f), glm::vec3(0, glm::radians(-90.f), 0), glm::vec3(1.0f)
+};
+inline Transform web = {
+     glm::vec3(-12.f, 2.5f, -12.f), glm::vec3(0.0f), glm::vec3(1.0f)
+};
+inline Transform catFainted = {
+     glm::vec3(-8.5f, 0.f, -10.0f), glm::vec3(0.0f), glm::vec3(1.0f)
 };
 
 // Bathroom

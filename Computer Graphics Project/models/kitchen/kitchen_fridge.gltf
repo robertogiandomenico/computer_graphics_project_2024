@@ -42,67 +42,67 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":266,
+			"count":203,
 			"max":[
 				0.7467992305755615,
-				2.7102341651916504,
+				2.7102344036102295,
 				0.6210606098175049
 			],
 			"min":[
 				-0.7467992305755615,
 				0,
-				-0.8960413932800293
+				-0.8976445198059082
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":266,
+			"count":203,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":266,
+			"count":203,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":540,
+			"count":336,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":3192,
+			"byteLength":2436,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3192,
-			"byteOffset":3192,
+			"byteLength":2436,
+			"byteOffset":2436,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2128,
-			"byteOffset":6384,
+			"byteLength":1624,
+			"byteOffset":4872,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1080,
-			"byteOffset":8512,
+			"byteLength":672,
+			"byteOffset":6496,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":9592,
+			"byteLength":7168,
 			"uri":"kitchen_fridge.bin"
 		}
 	]

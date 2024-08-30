@@ -42,67 +42,67 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":528,
+			"count":424,
 			"max":[
-				0.24763333797454834,
+				0.247633159160614,
 				1.2366366386413574,
-				1.112542986869812
+				1.1132148504257202
 			],
 			"min":[
-				-0.24218791723251343,
+				-0.24218755960464478,
 				0,
-				-1.112542986869812
+				-1.1132148504257202
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":528,
+			"count":424,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":528,
+			"count":424,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":972,
+			"count":678,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":6336,
+			"byteLength":5088,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":6336,
-			"byteOffset":6336,
+			"byteLength":5088,
+			"byteOffset":5088,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4224,
-			"byteOffset":12672,
+			"byteLength":3392,
+			"byteOffset":10176,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1944,
-			"byteOffset":16896,
+			"byteLength":1356,
+			"byteOffset":13568,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":18840,
+			"byteLength":14924,
 			"uri":"livingroom_tv.bin"
 		}
 	]

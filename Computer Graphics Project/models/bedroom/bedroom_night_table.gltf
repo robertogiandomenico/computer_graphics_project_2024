@@ -42,7 +42,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":860,
+			"count":648,
 			"max":[
 				0.5494540929794312,
 				1.2279947996139526,
@@ -58,51 +58,51 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":860,
+			"count":648,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":860,
+			"count":648,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":1872,
+			"count":1254,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":10320,
+			"byteLength":7776,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":10320,
-			"byteOffset":10320,
+			"byteLength":7776,
+			"byteOffset":7776,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":6880,
-			"byteOffset":20640,
+			"byteLength":5184,
+			"byteOffset":15552,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3744,
-			"byteOffset":27520,
+			"byteLength":2508,
+			"byteOffset":20736,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":31264,
+			"byteLength":23244,
 			"uri":"bedroom_night_table.bin"
 		}
 	]
