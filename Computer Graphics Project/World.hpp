@@ -80,6 +80,9 @@ inline Transform shelf2 = {
 inline Transform web = {
      glm::vec3(-12.f, 2.5f, -12.f), glm::vec3(0.0f), glm::vec3(1.0f)
 };
+inline Transform catFainted = {
+     glm::vec3(-8.6f, 0.f, -12.0f), glm::vec3(glm::radians(90.0f), glm::radians(90.0f), 0.0f), glm::vec3(1.0f)
+};
 
 // Bathroom
 inline Transform bathtub = {

@@ -173,7 +173,7 @@ protected:
 	// Kitchen
 	Model<Vertex> M_chair, M_fridge, M_kitchen, M_kitchentable;
 	// Lair
-	Model<Vertex> M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web;
+	Model<Vertex> M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web, M_catFainted;
 	// Living room
 	Model<Vertex> M_sofa, M_table, M_tv, M_cat;
 	// Other
@@ -192,7 +192,7 @@ protected:
 	// Kitchen
 	DescriptorSet DS_chair, DS_fridge, DS_kitchen, DS_kitchentable;
 	// Lair
-	DescriptorSet DS_cauldron, DS_stonechair, DS_chest, DS_shelf1, DS_shelf2, DS_stonetable, DS_steam, DS_fire, DS_web;
+	DescriptorSet DS_cauldron, DS_stonechair, DS_chest, DS_shelf1, DS_shelf2, DS_stonetable, DS_steam, DS_fire, DS_web, DS_catFainted;
 	// Living room
 	DescriptorSet DS_sofa, DS_table, DS_tv, DS_knight;
 	// Other
@@ -201,7 +201,7 @@ protected:
 	DescriptorSet DS_skyBox, DS_timer[5], DS_screens[3], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_knightDiffuse, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_catDiffuse, T_catSpec, T_catNorm;
+	Texture T_textures, T_eye, T_closet, T_feather, T_knightDiffuse, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_catDiffuse, T_catDiffuseGhost, T_catSpec, T_catNorm;
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -213,7 +213,7 @@ protected:
 	// Kitchen
 	UniformBufferObject UBO_chair, UBO_fridge, UBO_kitchen, UBO_kitchenTable;
 	// Lair
-	UniformBufferObject UBO_cauldron, UBO_stoneChair, UBO_chest, UBO_shelf1, UBO_shelf2, UBO_stoneTable, UBO_web;
+	UniformBufferObject UBO_cauldron, UBO_stoneChair, UBO_chest, UBO_shelf1, UBO_shelf2, UBO_stoneTable, UBO_web, UBO_catFainted;
 	// Living room
 	UniformBufferObject UBO_sofa, UBO_table, UBO_tv, UBO_knight;
 	// Other
@@ -453,6 +453,7 @@ protected:
 			M_web.init(this,		&VD, "models/lair/lair_web.gltf", GLTF);
 			M_steam.init(this,		&VD, "models/lair/lair_steamPlane.gltf", GLTF);
 			M_fire.init(this,		&VD, "models/lair/lair_firePlane.gltf", GLTF);
+			M_catFainted.init(this, &VD, "models/lair/lair_catFainted.gltf", GLTF);
 
 			M_sofa.init(this,		&VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
 			M_table.init(this,		&VD, "models/livingroom/livingroom_table.gltf", GLTF);
@@ -541,6 +542,7 @@ protected:
 			T_knightNorm.init(this,		"textures/knight/knight_normal.png");
 
 			T_catDiffuse.init(this,	"textures/cat/cat_diffuse.png");
+			T_catDiffuseGhost.init(this, "textures/cat/cat_diffuse_ghost.png");
 			T_catSpec.init(this,	"textures/cat/hairSpec.jpg");
 			T_catNorm.init(this,	"textures/cat/hairNorm.jpg");
 
@@ -783,6 +785,12 @@ protected:
 
 		DS_cat.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T_catDiffuseGhost},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+			});
+		DS_catFainted.init(this, &DSL, {
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_catDiffuse},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
@@ -876,6 +884,7 @@ protected:
 		DS_shelf2.cleanup();
 		DS_stonetable.cleanup();
 		DS_web.cleanup();
+		DS_catFainted.cleanup();
 		DS_steam.cleanup();
 		DS_fire.cleanup();
 
@@ -927,6 +936,7 @@ protected:
 		T_knightNorm.cleanup();
 
 		T_catDiffuse.cleanup();
+		T_catDiffuseGhost.cleanup();
 		T_catSpec.cleanup();
 		T_catNorm.cleanup();
 
@@ -978,6 +988,7 @@ protected:
 		M_steam.cleanup();
 		M_fire.cleanup();
 		M_web.cleanup();
+		M_catFainted.cleanup();
 
 		M_sofa.cleanup();
 		M_table.cleanup();
@@ -1147,6 +1158,10 @@ protected:
 		M_web.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_web.indices.size()), 1, 0, 0, 0);
 
+		DS_catFainted.bind(commandBuffer, P, 0, currentImage);
+		M_catFainted.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_catFainted.indices.size()), 1, 0, 0, 0);
+
 		DS_sofa.bind(commandBuffer, P, 0, currentImage);
 		M_sofa.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_sofa.indices.size()), 1, 0, 0, 0);
@@ -1268,7 +1283,7 @@ protected:
 			camPitch = glm::radians(-20.0f);
 			camRoll = 0.0f;
 
-			catPosition = glm::vec3(-7.5f, 0.0f, -8.5f);
+			catPosition = glm::vec3(-7.0f, 0.0f, -8.8f);
 			catYaw = glm::radians(110.0f);
 
 			gubo.lightOn = glm::vec4(1, 1, 0, 1);
@@ -1609,6 +1624,7 @@ protected:
 		placeEntity(UBO_shelf1, gubo, shelf1.pos, shelf1.rot, shelf1.scale, glm::vec3(0.0f), ViewPrj, DS_shelf1, currentImage, false);
 		placeEntity(UBO_shelf2, gubo, shelf2.pos, shelf2.rot, shelf2.scale, glm::vec3(0.0f), ViewPrj, DS_shelf2, currentImage, false);
 		placeEntity(UBO_web, gubo, web.pos, web.rot, web.scale, glm::vec3(0.0f), ViewPrj, DS_web, currentImage, false);
+		placeEntity(UBO_catFainted, gubo, catFainted.pos, catFainted.rot, catFainted.scale, glm::vec3(0.0f), ViewPrj, DS_catFainted, currentImage, false);
 
 		// Bathroom
 		placeEntity(UBO_bathtub, gubo, bathtub.pos, bathtub.rot, bathtub.scale, glm::vec3(0.0f), ViewPrj, DS_bathtub, currentImage, DEBUG, 7);
