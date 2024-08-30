@@ -899,7 +899,7 @@ protected:
 
 		DS_skyBox.cleanup();
 
-		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
+		for (int i = 0; i < COLLECTIBLES_NUM + furnitureBBs.size() + 1; i++) {
 			DS_boundingBox[i].cleanup();
 		}
 
@@ -1001,7 +1001,7 @@ protected:
 
 		M_skyBox.cleanup();
 
-		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
+		for (int i = 0; i < COLLECTIBLES_NUM + furnitureBBs.size() + 1; i++) {
 			M_boundingBox[i].cleanup();
 		}
 
@@ -1283,7 +1283,7 @@ protected:
 			camPitch = glm::radians(-20.0f);
 			camRoll = 0.0f;
 
-			catPosition = glm::vec3(-7.0f, 0.0f, -8.8f);
+			catPosition = glm::vec3(-7.2f, 0.0f, -9.0f);
 			catYaw = glm::radians(110.0f);
 
 			gubo.lightOn = glm::vec4(1, 1, 0, 1);

@@ -105,12 +105,6 @@ void main() {
         LC = point_light_color(fragPos, i);
 
         result += BRDF(Albedo, Norm, EyeDir, LD) * LC * gubo.lightOn.x;
-    
-        // Ambient
-        ambient = 0.003 * vec3(gubo.lightColor[i].rgb);
-
-        // Accumulate the result from this light
-        result += ambient * gubo.lightOn.w;
     }
     
     // Add the directional light
@@ -119,17 +113,11 @@ void main() {
 
     result += BRDF(Albedo, Norm, EyeDir, LD) * LC * gubo.lightOn.y;
 
-    ambient = 0.003 * vec3(gubo.lightColor[7].rgb);
-    result += ambient * gubo.lightOn.w;
-
     // Add the cauldron spot light
     LD = spot_light_dir(fragPos, 8);
     LC = spot_light_color(fragPos, 8);
 
     result += BRDF(Albedo, Norm, EyeDir, LD) * LC * gubo.lightOn.z;
-
-    ambient = 0.003 * vec3(gubo.lightColor[8].rgb);
-    result += ambient * gubo.lightOn.z;
 
     // Add the collectibles spot lights
     for (int i=0; i < COLLECTIBLES_NUM; i++) {
@@ -142,6 +130,13 @@ void main() {
     // Add emissive color to the final output
     vec3 emissive = eubo.emissiveColor * texColor.rgb;
     result += emissive;
+    
+    
+    // Ambient
+    ambient = 0.003 * Albedo;
+
+    // Accumulate the result from this light
+    result += ambient * gubo.lightOn.w;
 
     outColor = vec4(result, alpha);
 }
