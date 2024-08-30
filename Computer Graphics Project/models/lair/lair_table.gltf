@@ -42,15 +42,15 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":1508,
+			"count":923,
 			"max":[
 				0.7482316493988037,
-				2.1681885719299316,
+				2.167001962661743,
 				1.08536958694458
 			],
 			"min":[
 				-0.7482306957244873,
-				0,
+				-0.007938789203763008,
 				-1.0853686332702637
 			],
 			"type":"VEC3"
@@ -58,51 +58,51 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":1508,
+			"count":923,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":1508,
+			"count":923,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":3486,
+			"count":1908,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":18096,
+			"byteLength":11076,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":18096,
-			"byteOffset":18096,
+			"byteLength":11076,
+			"byteOffset":11076,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":12064,
-			"byteOffset":36192,
+			"byteLength":7384,
+			"byteOffset":22152,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":6972,
-			"byteOffset":48256,
+			"byteLength":3816,
+			"byteOffset":29536,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":55228,
+			"byteLength":33352,
 			"uri":"lair_table.bin"
 		}
 	]

@@ -1,19 +1,10 @@
+#ifndef UTILS_HPP
+#define UTILS_HPP
+
 #include <glm/glm.hpp>
 #include <string>
 
 #define COLLECTIBLES_NUM 7
-
-std::string collectiblesNames[COLLECTIBLES_NUM] = {
-	"crystal",
-	"eye",
-	"feather",
-	"leaf",
-	"potion1",
-	"potion2",
-	"bone"
-};
-
-
 #define GAME_STATE_START_SCREEN 0
 #define GAME_STATE_PLAY 1
 #define GAME_STATE_GAME_WIN 2
@@ -32,3 +23,5 @@ glm::vec3 generateRandomPosition(int squareSide) {
 
 	return randomPosition;
 }
+
+#endif

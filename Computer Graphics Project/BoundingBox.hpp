@@ -1,4 +1,10 @@
-# include <glm/glm.hpp>
+#include <glm/glm.hpp>
+#include <cstdlib>  // For rand() and srand()
+#include <ctime>    // For time() - to seed rand()
+
+#include "Utils.hpp"
+
+#define COLLECTIBLES_NUM 7
 
 struct BoundingBox {
 	glm::vec3 min;
@@ -93,7 +99,7 @@ void createBBModel(std::vector<VertexBoundingBox>& vDef, std::vector<uint32_t>& 
 void drawBoundingBox(bool hasBoundingBox, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::mat4 ViewPrj,
 					BoundingBoxUniformBlock UBO_boundingBox, DescriptorSet DS_boundingBox, int currentImage) {
 	glm::mat4 World;
-	
+		
 	if (hasBoundingBox) {	// set hasBoundingBox to false to not display the bounding box
 		World = glm::translate(glm::mat4(1), position) *
 			glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *
@@ -109,4 +115,34 @@ void drawBoundingBox(bool hasBoundingBox, glm::vec3 position, glm::vec3 rotation
 	UBO_boundingBox.mMat = World;
 	UBO_boundingBox.nMat = glm::inverse(glm::transpose(World));
 	DS_boundingBox.map(currentImage, &UBO_boundingBox, sizeof(UBO_boundingBox), 0);
+}
+
+void emptyBBList(std::vector<BoundingBox>* BBList) {
+	BBList->clear();
+}
+
+void fillBBList(std::vector<BoundingBox>* BBList, glm::vec3* BBPosition) {
+
+	srand(static_cast<unsigned int>(time(0)));
+	for (int i = 0; i < COLLECTIBLES_NUM; ++i) {
+		glm::vec3 randomPosition = generateRandomPosition(10.3f);
+
+		// make sure collectibles are not spawned in the same position or too close to each other
+		for (int j = 0; j < i; ++j) {
+			if (glm::distance(randomPosition, BBPosition[j]) < 2.0f) {
+				randomPosition = generateRandomPosition(10.3f);
+				j = -1;
+			}
+		}
+		BBPosition[i] = randomPosition;
+	}
+
+	// Create the bounding boxes
+	BBList->push_back(BoundingBox("crystal", BBPosition[0], glm::vec3(0.7f)));
+	BBList->push_back(BoundingBox("eye",	 BBPosition[1], glm::vec3(0.5f)));
+	BBList->push_back(BoundingBox("feather", BBPosition[2], glm::vec3(0.5f, 0.6f, 0.9f)));
+	BBList->push_back(BoundingBox("leaf",	 BBPosition[3], glm::vec3(0.6f, 0.5f, 0.5f)));
+	BBList->push_back(BoundingBox("potion1", BBPosition[4], glm::vec3(0.5f, 1.0f, 0.5f)));
+	BBList->push_back(BoundingBox("potion2", BBPosition[5], glm::vec3(0.5f, 1.0f, 0.5f)));
+	BBList->push_back(BoundingBox("bone",	 BBPosition[6], glm::vec3(0.5f, 0.7f, 0.5f)));
 }

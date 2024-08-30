@@ -15,17 +15,12 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"chest",
-			"translation":[
-				-6.2937445640563965,
-				-1.1682510375976562e-05,
-				-12.042871475219727
-			]
+			"name":"Cube"
 		}
 	],
 	"meshes":[
 		{
-			"name":"Cube.013",
+			"name":"Cube",
 			"primitives":[
 				{
 					"attributes":{
@@ -42,68 +37,68 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":822,
+			"count":24,
 			"max":[
-				1.2026572227478027,
-				2.07869291305542,
-				0.359549343585968
+				1,
+				1,
+				1
 			],
 			"min":[
-				-0.6797426342964172,
-				0,
-				-0.3536261320114136
+				-1,
+				-1,
+				-1
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":822,
+			"count":24,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":822,
+			"count":24,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":1746,
+			"count":36,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":9864,
+			"byteLength":288,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":9864,
-			"byteOffset":9864,
+			"byteLength":288,
+			"byteOffset":288,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":6576,
-			"byteOffset":19728,
+			"byteLength":192,
+			"byteOffset":576,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3492,
-			"byteOffset":26304,
+			"byteLength":72,
+			"byteOffset":768,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":29796,
-			"uri":"lair_chest.bin"
+			"byteLength":840,
+			"uri":"skyBoxCube.bin"
 		}
 	]
 }

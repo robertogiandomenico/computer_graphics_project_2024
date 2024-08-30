@@ -4,8 +4,6 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <cstdlib>  // For rand() and srand()
-#include <ctime>    // For time() - to seed rand()
 
 #include "Starter.hpp"
 #include "BoundingBox.hpp"
@@ -81,6 +79,16 @@ struct VertexTan {
 	glm::vec2 texCoord;
 };
 
+std::string collectiblesNames[COLLECTIBLES_NUM] = {
+	"crystal",
+	"eye",
+	"feather",
+	"leaf",
+	"potion1",
+	"potion2",
+	"bone"
+};
+
 
 // MAIN ! 
 class PurrfectPotion : public BaseProject {
@@ -114,10 +122,10 @@ protected:
 	// Timer setup
 	const float GAME_DURATION = 180.0f;		// 3 minutes = 180 seconds
 	float totalElapsedTime = 0.0f;			// in seconds
-	float remainingTime = GAME_DURATION;	
+	float timeLeft = GAME_DURATION;	
 	int lastDisplayedTime = static_cast<int>(GAME_DURATION);
 
-	float minimumPressDelay = 0.1f;
+	float minimumPressDelay = 0.08f;
 	float lastPressTime = 0.0f;
 
 	bool DEBUG = false;						// Used to display bounding boxes for debugging
@@ -129,6 +137,7 @@ protected:
 	public:
 		std::map<std::string, bool> collectiblesMap;
 		std::map<std::string, int> collectiblesHUD;
+		std::vector<BoundingBox> collectiblesBBs;
 
 		PurrfectPotion() {
 
@@ -141,20 +150,6 @@ protected:
 				{"potion2", 5},
 				{"bone",	6}
 			};
-
-			srand(static_cast<unsigned int>(time(0)));
-			for (int i = 0; i < COLLECTIBLES_NUM; ++i) {
-				glm::vec3 randomPosition = generateRandomPosition(10.3f);
-
-				// make sure collectibles are not spawned in the same position or too close to each other
-				for (int j = 0; j < i; ++j) {
-					if (glm::distance(randomPosition, collectiblesRandomPosition[j]) < 2.0f) {
-						randomPosition = generateRandomPosition(10.3f);
-						j = -1;
-					}
-				}
-				collectiblesRandomPosition[i] = randomPosition;
-			}
 		}
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
@@ -206,7 +201,7 @@ protected:
 	DescriptorSet DS_skyBox, DS_timer[5], DS_screens[3], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_knight, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_hair, T_hairSpec, T_hairNorm;
+	Texture T_textures, T_eye, T_closet, T_feather, T_knightDiffuse, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_catDiffuse, T_catSpec, T_catNorm;
 
 	// C++ storage for uniform variables
 	// Bathroom
@@ -234,7 +229,6 @@ protected:
 	std::vector<DescriptorSet> DS_boundingBox;
 	std::vector<BoundingBoxUniformBlock> UBO_boundingBox;
 
-	std::vector<BoundingBox> collectiblesBBs;
 	std::vector<BoundingBox> furnitureBBs;
 	BoundingBox catBox = BoundingBox("cat", catPosition, catDimensions);
 
@@ -266,14 +260,7 @@ protected:
 	// Here you also create your Descriptor set layouts and load the shaders for the pipelines
 	void localInit() {
 
-		// Create the bounding boxes
-		collectiblesBBs.push_back(BoundingBox("crystal",collectiblesRandomPosition[0], glm::vec3(0.7f)));
-		collectiblesBBs.push_back(BoundingBox("eye",	collectiblesRandomPosition[1], glm::vec3(0.5f)));
-		collectiblesBBs.push_back(BoundingBox("feather",collectiblesRandomPosition[2], glm::vec3(0.5f, 0.6f, 0.9f)));
-		collectiblesBBs.push_back(BoundingBox("leaf",	collectiblesRandomPosition[3], glm::vec3(0.6f, 0.5f, 0.5f)));
-		collectiblesBBs.push_back(BoundingBox("potion1",collectiblesRandomPosition[4], glm::vec3(0.5f, 1.0f, 0.5f)));
-		collectiblesBBs.push_back(BoundingBox("potion2",collectiblesRandomPosition[5], glm::vec3(0.5f, 1.0f, 0.5f)));
-		collectiblesBBs.push_back(BoundingBox("bone",	collectiblesRandomPosition[6], glm::vec3(0.5f, 0.7f, 0.5f)));
+		fillBBList(&collectiblesBBs, collectiblesRandomPosition);
 
 		furnitureBBs.push_back(BoundingBox("bathtub",	bathtub.pos, glm::vec3(3.3f, 1.4f, 1.4f)));
 		furnitureBBs.push_back(BoundingBox("closet",	closet.pos, glm::vec3(5.6f, 3.2f, 1.f)));
@@ -549,13 +536,13 @@ protected:
 			T_steam.init(this,		"textures/lair/steam.png");
 			T_fire.init(this,		"textures/lair/fire.png");
 
-			T_knight.init(this, "textures/knight/knight_diffuse.png");
-			T_knightSpec.init(this, "textures/knight/knight_metallic.png");
-			T_knightNorm.init(this, "textures/knight/knight_normal.png");
+			T_knightDiffuse.init(this,	"textures/knight/knight_diffuse.png");
+			T_knightSpec.init(this,		"textures/knight/knight_metallic.png");
+			T_knightNorm.init(this,		"textures/knight/knight_normal.png");
 
-			T_hair.init(this,		"textures/hair3.jpg");
-			T_hairSpec.init(this,	"textures/hairSpec.jpg");
-			T_hairNorm.init(this,	"textures/hairNorm.jpg");
+			T_catDiffuse.init(this,	"textures/cat/cat_diffuse.png");
+			T_catSpec.init(this,	"textures/cat/hairSpec.jpg");
+			T_catNorm.init(this,	"textures/cat/hairNorm.jpg");
 
 			T_skyBox.init(this,		"textures/sky_Texture.jpg");
 
@@ -787,7 +774,7 @@ protected:
 			});
 		DS_knight.init(this, &DSL_ward, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_knight},
+					{1, TEXTURE, 0, &T_knightDiffuse},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr},
 					{4, TEXTURE, 0, &T_knightSpec},
@@ -796,7 +783,7 @@ protected:
 
 		DS_cat.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_hair},
+					{1, TEXTURE, 0, &T_catDiffuse},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
@@ -935,13 +922,13 @@ protected:
 		T_steam.cleanup();
 		T_fire.cleanup();
 
-		T_knight.cleanup();
+		T_knightDiffuse.cleanup();
 		T_knightSpec.cleanup();
 		T_knightNorm.cleanup();
 
-		T_hair.cleanup();
-		T_hairSpec.cleanup();
-		T_hairNorm.cleanup();
+		T_catDiffuse.cleanup();
+		T_catSpec.cleanup();
+		T_catNorm.cleanup();
 
 		T_skyBox.cleanup();
 
@@ -1284,9 +1271,10 @@ protected:
 			catPosition = glm::vec3(-7.5f, 0.0f, -8.5f);
 			catYaw = glm::radians(110.0f);
 
-			gubo.lightOn = glm::vec4(1, 1, 1, 1);
+			gubo.lightOn = glm::vec4(1, 1, 0, 1);
 
 			OVERLAY = false;
+			DEBUG = false;
 
 			if (gameState == GAME_STATE_START_SCREEN) {
 				UBO_screens[0].visible = 1.f;
@@ -1294,14 +1282,22 @@ protected:
 			} else if (gameState == GAME_STATE_GAME_WIN) {
 				UBO_screens[1].visible = 1.f;
 				UBO_screens[0].visible = UBO_screens[2].visible = 0.f;
+				emptyBBList(&collectiblesBBs);
 			} else if (gameState == GAME_STATE_GAME_LOSE) {
 				UBO_screens[2].visible = 1.f;
 				UBO_screens[0].visible = UBO_screens[1].visible = 0.f;
+				emptyBBList(&collectiblesBBs);
+			}
+
+			// Set all the elements to not_collected
+			for (auto& element : collectiblesMap) {
+				element.second = false;
 			}
 
 
 			if (start) {	// Setting the variables ready to start the game
 				OVERLAY = true;
+				gameOver = false;
 
 				UBO_screens[0].visible = UBO_screens[1].visible = UBO_screens[2].visible = 0.f;
 
@@ -1315,15 +1311,12 @@ protected:
 				catPosition = glm::vec3(6.0f, 0.0f, 0.0f);
 				catYaw = 0.0f;
 
-				gubo.lightOn = glm::vec4(1, 1, 0, 1);
-
-				// Set all the elements to not_collected
-				for (auto& element : collectiblesMap) {
-					element.second = false;
-				}
-
 				totalElapsedTime = 0.0f;
 				gameState = GAME_STATE_PLAY;
+
+				if (collectiblesBBs.size() == 0) {
+					fillBBList(&collectiblesBBs, collectiblesRandomPosition);
+				}
 			}
 
 			// Update screens overlay
@@ -1338,7 +1331,7 @@ protected:
 				DS_screens[i].map(currentImage, &UBO_screens[i], sizeof(UBO_screens[i]), 0);
 			}
 			
-			remainingTime = GAME_DURATION - totalElapsedTime;
+			timeLeft = GAME_DURATION - totalElapsedTime;
 
 			// Press P to toggle debug mode
 			if (glfwGetKey(window, GLFW_KEY_P) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
@@ -1361,15 +1354,15 @@ protected:
 				lastPressTime = totalElapsedTime;
 			}
       
-      // Press V to switch between 1st and 3rd person view
-		  if (glfwGetKey(window, GLFW_KEY_V) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
-        FIRST_PERSON = !FIRST_PERSON;
-        lastPressTime = totalElapsedTime;
-      }
+			// Press V to switch between 1st and 3rd person view
+			if (glfwGetKey(window, GLFW_KEY_V) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+				FIRST_PERSON = !FIRST_PERSON;
+				lastPressTime = totalElapsedTime;
+			}
 
 			// Limit the distance from the cat and the pitch to avoid gimbal lock
 			camDist = glm::clamp(camDist, -1.0f, 4.0f);
-      camPitch = glm::clamp(camPitch, FIRST_PERSON ? glm::radians(-13.0f) : glm::radians(-18.0f), glm::radians(5.0f));
+			camPitch = glm::clamp(camPitch, FIRST_PERSON ? glm::radians(-13.0f) : glm::radians(-18.0f), glm::radians(5.0f));
 			// camRoll = glm::clamp(camRoll, glm::radians(-10.0f), glm::radians(10.0f));
 
 			// Update camera yaw, pitch, and roll
@@ -1393,40 +1386,44 @@ protected:
 				catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);	// 6.0 is the damping factor
 			}
       
-      if (FIRST_PERSON) {
-			// First person camera
-			camPos = catPosition + MOVE_SPEED * m.x * ux * deltaT;
-			camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;
-			camPos = camPos + MOVE_SPEED * m.z * uz * deltaT;
+			if (FIRST_PERSON) {
+				// First person camera
+				glm::vec3 ux = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(1, 0, 0, 1);
+				glm::vec3 uz = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(0, 0, -1, 1);
 
-			camPos.y += 0.9f;
-      }
-      else {
-        // Third person camera
-        glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
-          glm::vec4(CamTargetDelta, 1));
-        camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
-          glm::vec4(0, 0, camDist, 1));
-      }
-      
-      gubo.lightOn = glm::vec4(1, 1, 1, 1);   // to delete in case
+				camPos = catPosition + MOVE_SPEED * m.x * ux * deltaT;
+				camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;
+				camPos = camPos + MOVE_SPEED * m.z * uz * deltaT;
+
+				camPos.y += 0.9f;
+			} else {
+				// Third person camera
+				glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
+				glm::vec4(CamTargetDelta, 1));
+				camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
+				glm::vec4(0, 0, camDist, 1));
+			}
+			
+			gubo.lightOn = glm::vec4(1.0f);		// to delete in case this one under becomes valid
 			/*if (gameOver) {
-				gubo.lightOn = glm::vec4(1, 1, 1, 1);
+			gubo.lightOn = glm::vec4(1, 1, 1, 1);
 			}
 			else {
-				gubo.lightOn = glm::vec4(1, 1, 0, 1);
+			gubo.lightOn = glm::vec4(1, 1, 0, 1);
 			}*/
-		}					//******************************************** END GAME PLAY **********************************************
 
-		// Check if game is over because time has run out
-		if (totalElapsedTime >= GAME_DURATION) {
-			// game over logic goes here
-			// for now it just closes the window
-			gameState = GAME_STATE_GAME_LOSE;
-		} else if (static_cast<int>(remainingTime) != lastDisplayedTime) {
-			std::cout << "Time remaining: " << static_cast<int>(remainingTime) << std::endl;
-			lastDisplayedTime = static_cast<int>(remainingTime);
-		}
+			// Check if game is over because time has run out
+			if (totalElapsedTime >= GAME_DURATION) {
+				// game over logic goes here
+				// for now it just closes the window
+				gameState = GAME_STATE_GAME_LOSE;
+			}
+			else if (static_cast<int>(timeLeft) != lastDisplayedTime) {
+				std::cout << "Time remaining: " << static_cast<int>(timeLeft) << std::endl;
+				lastDisplayedTime = static_cast<int>(timeLeft);
+			}
+
+		}					//******************************************** END GAME PLAY **********************************************
 
 		// Limit the cat's movement to the house
 		catPosition.x = glm::clamp(catPosition.x, -11.8f, 11.8f);
@@ -1457,7 +1454,7 @@ protected:
 
 
 		// Set light properties
-		gubo.lightPos[0] =glm::vec3(6.0f, 2.0f, 8.0f);			// position: kitchen
+		gubo.lightPos[0] = glm::vec3(6.0f, 2.0f, 8.0f);			// position: kitchen
 		gubo.lightColor[0] = glm::vec4(glm::vec3(1.4f), 2.0f);	// color: white
 
 		gubo.lightPos[1] = glm::vec3(-8.f, 2.0f, -8.f);						// position: witch lair
@@ -1494,7 +1491,7 @@ protected:
 		}
 
 		gubo.eyePos = camPos; // Camera position
-		gubo.lightOn = glm::vec4(1);
+		//gubo.lightOn = glm::vec4(1);
 
 		// Sky Box UBO update
 		SkyBoxUniformBufferObject sbubo{};
@@ -1527,19 +1524,19 @@ protected:
 		// Overlays updates
 		if (OVERLAY) {
 			// Timer
-			if (remainingTime >= GAME_DURATION * 3 / 4) {
+			if (timeLeft >= GAME_DURATION * 3 / 4) {
 				UBO_timer[0].visible = 1.f;
 				UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
 			}
-			else if (remainingTime >= GAME_DURATION / 2) {
+			else if (timeLeft >= GAME_DURATION / 2) {
 				UBO_timer[1].visible = 1.f;
 				UBO_timer[0].visible = UBO_timer[2].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
 			}
-			else if (remainingTime >= GAME_DURATION / 4) {
+			else if (timeLeft >= GAME_DURATION / 4) {
 				UBO_timer[2].visible = 1.f;
 				UBO_timer[0].visible = UBO_timer[1].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
 			}
-			else if (remainingTime > 0) {
+			else if (timeLeft > 0) {
 				UBO_timer[3].visible = 1.f;
 				UBO_timer[0].visible = UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[4].visible = 0.f;
 			}

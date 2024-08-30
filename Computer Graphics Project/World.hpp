@@ -9,7 +9,7 @@ struct Transform {
     glm::vec3 scale;
 };
 
-// Define as an inline variable to make only one instace of it
+// Define as an inline variable to make only one instance of it
 
 //House
 inline Transform houseFloor = {

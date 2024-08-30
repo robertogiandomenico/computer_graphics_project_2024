@@ -15,7 +15,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cat-body triangulated",
+			"name":"Cat-body",
 			"translation":[
 				2.046804904937744,
 				0,
@@ -25,7 +25,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube.001",
+			"name":"Cube.031",
 			"primitives":[
 				{
 					"attributes":{
@@ -43,10 +43,10 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":700,
+			"count":756,
 			"max":[
 				0.6818686723709106,
-				0.6355981230735779,
+				0.6367963552474976,
 				0.12845292687416077
 			],
 			"min":[
@@ -59,63 +59,63 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":700,
+			"count":756,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":700,
+			"count":756,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5126,
-			"count":700,
+			"count":756,
 			"type":"VEC4"
 		},
 		{
 			"bufferView":4,
 			"componentType":5123,
-			"count":1470,
+			"count":1482,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":8400,
+			"byteLength":9072,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":8400,
-			"byteOffset":8400,
+			"byteLength":9072,
+			"byteOffset":9072,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":5600,
-			"byteOffset":16800,
+			"byteLength":6048,
+			"byteOffset":18144,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":11200,
-			"byteOffset":22400,
+			"byteLength":12096,
+			"byteOffset":24192,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2940,
-			"byteOffset":33600,
+			"byteLength":2964,
+			"byteOffset":36288,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":36540,
+			"byteLength":39252,
 			"uri":"cat.bin"
 		}
 	]

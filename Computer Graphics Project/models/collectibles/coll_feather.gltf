@@ -42,67 +42,67 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":104,
+			"count":80,
 			"max":[
-				0.08455689251422882,
+				0.0841798409819603,
 				0.23815084993839264,
-				0.307113915681839
+				0.3028891980648041
 			],
 			"min":[
 				-0.0716281533241272,
-				-0.15165157616138458,
-				-0.21701845526695251
+				-0.1593020260334015,
+				-0.2158229500055313
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":104,
+			"count":80,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":104,
+			"count":80,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":324,
+			"count":180,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":1248,
+			"byteLength":960,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1248,
-			"byteOffset":1248,
+			"byteLength":960,
+			"byteOffset":960,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":832,
-			"byteOffset":2496,
+			"byteLength":640,
+			"byteOffset":1920,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":648,
-			"byteOffset":3328,
+			"byteLength":360,
+			"byteOffset":2560,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":3976,
+			"byteLength":2920,
 			"uri":"coll_feather.bin"
 		}
 	]

@@ -42,7 +42,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":1625,
+			"count":1273,
 			"max":[
 				2.7191970348358154,
 				3.1664981842041016,
@@ -58,51 +58,51 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":1625,
+			"count":1273,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":1625,
+			"count":1273,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":3390,
+			"count":2370,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":19500,
+			"byteLength":15276,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":19500,
-			"byteOffset":19500,
+			"byteLength":15276,
+			"byteOffset":15276,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":13000,
-			"byteOffset":39000,
+			"byteLength":10184,
+			"byteOffset":30552,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":6780,
-			"byteOffset":52000,
+			"byteLength":4740,
+			"byteOffset":40736,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":58780,
+			"byteLength":45476,
 			"uri":"bedroom_closet.bin"
 		}
 	]

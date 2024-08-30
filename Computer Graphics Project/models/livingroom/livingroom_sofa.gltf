@@ -42,67 +42,67 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":343,
+			"count":245,
 			"max":[
-				0.5044041275978088,
+				0.5044041872024536,
 				1.0629022121429443,
-				1.5
+				1.5000909566879272
 			],
 			"min":[
-				-0.5041781067848206,
-				0.0025221705436706543,
-				-1.5
+				-0.5066455006599426,
+				0.0035787601955235004,
+				-1.5000909566879272
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":343,
+			"count":245,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":343,
+			"count":245,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":864,
+			"count":516,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":4116,
+			"byteLength":2940,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4116,
-			"byteOffset":4116,
+			"byteLength":2940,
+			"byteOffset":2940,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2744,
-			"byteOffset":8232,
+			"byteLength":1960,
+			"byteOffset":5880,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1728,
-			"byteOffset":10976,
+			"byteLength":1032,
+			"byteOffset":7840,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":12704,
+			"byteLength":8872,
 			"uri":"livingroom_sofa.bin"
 		}
 	]
