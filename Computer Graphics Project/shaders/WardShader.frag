@@ -81,7 +81,6 @@ void main() {
 	vec3 Bitan = cross(Norm, Tan) * fragTan.w;
 	vec3 N = normalize(normalMapNormal * Tan + normalMapNormal * Bitan + normalMapNormal * fragNorm);
 
-
 	vec3 albedo  = texture(tex,  fragUV).rgb;
 	vec3 specCol = texture(spet, fragUV).rgb;
 
@@ -89,7 +88,7 @@ void main() {
 
 	vec3 V = normalize(gubo.eyePos - fragPos);
 
-	for (int i = 0; i < LIGHTS_NUM - COLLECTIBLES_NUM - 1; ++i) {
+	for (int i = 0; i < (LIGHTS_NUM - COLLECTIBLES_NUM - 1); ++i) {
         // contribution of all lights except spot lights
         
         vec3 L;
@@ -112,9 +111,12 @@ void main() {
         finalColor += DiffSpec * gubo.lightColor[i].rgb * attenuation;
     }
 
-	finalColor += eubo.emissiveColor;
+    // Add emissive color
+	finalColor += eubo.emissiveColor * albedo;
 	
-	vec3 Ambient = albedo * 0.5 * gubo.lightOn.w;
+    // Add ambient light
+	vec3 ambient = 0.5 * albedo;
+    finalColor += ambient * gubo.lightOn.w;
 	
-	outColor = vec4(finalColor + Ambient, 1.0f);
+	outColor = vec4(finalColor, 1.0f);
 }

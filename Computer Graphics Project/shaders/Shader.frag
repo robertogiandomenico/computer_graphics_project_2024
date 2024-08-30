@@ -121,21 +121,19 @@ void main() {
 
     // Add the collectibles spot lights
     for (int i=0; i < COLLECTIBLES_NUM; i++) {
-        LD = spot_light_dir(fragPos, i+9);
-        LC = spot_light_color(fragPos, i+9);
+        LD = spot_light_dir(fragPos, i+(LIGHTS_NUM-COLLECTIBLES_NUM) );
+        LC = spot_light_color(fragPos, i+(LIGHTS_NUM-COLLECTIBLES_NUM) );
 
         result += BRDF(Albedo, Norm, EyeDir, LD) * LC * gubo.lightOn.z;
     }
 
-    // Add emissive color to the final output
-    vec3 emissive = eubo.emissiveColor * texColor.rgb;
+    // Add emissive color
+    vec3 emissive = eubo.emissiveColor * Albedo;
     result += emissive;
     
     
-    // Ambient
+    // Add ambient light
     ambient = 0.003 * Albedo;
-
-    // Accumulate the result from this light
     result += ambient * gubo.lightOn.w;
 
     outColor = vec4(result, alpha);
