@@ -1397,7 +1397,7 @@ protected:
 
 				// Cat rotation based on the movement vector
 				float targetYaw = atan2(m.z, m.x);
-				targetYaw += glm::radians(-180.0f); // same as + 3.1416 / 2.0
+				targetYaw += glm::radians(-180.0f);
 				catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);	// 6.0 is the damping factor
 			}
       
@@ -1407,7 +1407,7 @@ protected:
 				glm::vec3 uz = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(0, 0, -1, 1);
 
 				camPos = catPosition + MOVE_SPEED * m.x * ux * deltaT;
-				camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;
+				// camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;	// uncomment to enable R and F keys
 				camPos = camPos + MOVE_SPEED * m.z * uz * deltaT;
 
 				camPos.y += 0.9f;
