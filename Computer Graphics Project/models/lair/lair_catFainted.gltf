@@ -16,16 +16,10 @@
 		{
 			"mesh":0,
 			"name":"Cat-body-bones",
-			"rotation":[
-				0.6518363356590271,
-				0.6518363952636719,
-				0.2740609049797058,
-				0.2740609347820282
-			],
 			"translation":[
-				-7.8408708572387695,
-				2.6226043701171875e-06,
-				-12.159501075744629
+				-7.958863258361816,
+				-0.0003385692834854126,
+				-11.648761749267578
 			]
 		}
 	],
@@ -49,79 +43,79 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":452,
+			"count":753,
 			"max":[
-				0.2515909671783447,
-				0.5698229074478149,
-				0.5639254450798035
+				0.4070308804512024,
+				0.25461292266845703,
+				0.4566316604614258
 			],
 			"min":[
-				-0.00614398717880249,
-				-0.07308172434568405,
-				-0.43429794907569885
+				-0.6033576726913452,
+				2.002716064453125e-05,
+				-0.3665724992752075
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":452,
+			"count":753,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":452,
+			"count":753,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5126,
-			"count":452,
+			"count":753,
 			"type":"VEC4"
 		},
 		{
 			"bufferView":4,
 			"componentType":5123,
-			"count":810,
+			"count":1482,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":5424,
+			"byteLength":9036,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":5424,
-			"byteOffset":5424,
+			"byteLength":9036,
+			"byteOffset":9036,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3616,
-			"byteOffset":10848,
+			"byteLength":6024,
+			"byteOffset":18072,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":7232,
-			"byteOffset":14464,
+			"byteLength":12048,
+			"byteOffset":24096,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1620,
-			"byteOffset":21696,
+			"byteLength":2964,
+			"byteOffset":36144,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":23316,
+			"byteLength":39108,
 			"uri":"lair_catFainted.bin"
 		}
 	]
