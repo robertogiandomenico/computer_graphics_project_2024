@@ -42,15 +42,15 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":817,
+			"count":915,
 			"max":[
 				0.9510565996170044,
-				1.4704190492630005,
+				1.4710301160812378,
 				1.000000238418579
 			],
 			"min":[
 				-0.9510565996170044,
-				-0.00037858530413359404,
+				-0.00025245221331715584,
 				-0.9999997615814209
 			],
 			"type":"VEC3"
@@ -58,51 +58,51 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":817,
+			"count":915,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":817,
+			"count":915,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":1830,
+			"count":2118,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":9804,
+			"byteLength":10980,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":9804,
-			"byteOffset":9804,
+			"byteLength":10980,
+			"byteOffset":10980,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":6536,
-			"byteOffset":19608,
+			"byteLength":7320,
+			"byteOffset":21960,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3660,
-			"byteOffset":26144,
+			"byteLength":4236,
+			"byteOffset":29280,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":29804,
+			"byteLength":33516,
 			"uri":"livingroom_table.bin"
 		}
 	]
