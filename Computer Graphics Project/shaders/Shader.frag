@@ -128,7 +128,7 @@ void main() {
     }
 
     // Add emissive color
-    vec3 emissive = eubo.emissiveColor * Albedo;
+    vec3 emissive = eubo.emissiveColor * Albedo * Albedo;
     result += emissive;
     
     

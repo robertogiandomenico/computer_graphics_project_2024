@@ -130,8 +130,8 @@ protected:
 
 	bool DEBUG = false;						// Used to display bounding boxes for debugging
 	bool OVERLAY = false;					// Used to display the overlay
-	int gameState = GAME_STATE_START_SCREEN;
 	bool FIRST_PERSON = false;				// Used to switch between first and third person view
+	int gameState = GAME_STATE_START_SCREEN;
 	bool gameOver = false;
 
 	public:
@@ -1288,6 +1288,7 @@ protected:
 
 			gubo.lightOn = glm::vec4(1, 1, 0, 1);
 
+			FIRST_PERSON = false;
 			OVERLAY = false;
 			DEBUG = false;
 
@@ -1591,8 +1592,8 @@ protected:
 
 
 
-		// Placing cat
-		placeEntity(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.f), glm::vec3(0.0f), ViewPrj, DS_cat, currentImage, DEBUG, 16);
+		// Placing ghost cat
+		placeEntity(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.f), glm::vec3(3.0f), ViewPrj, DS_cat, currentImage, DEBUG, 16);
 		catBox = BoundingBox("cat", catPosition, catDimensions);
 
 		// House
@@ -1665,7 +1666,7 @@ protected:
 			removeCollectible(UBO_potion2, gubo, ViewPrj, DS_potion2, currentImage, 5);
 		}
 		if (!collectiblesMap["bone"]) {
-			placeEntity(UBO_bone, gubo, collectiblesRandomPosition[6], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(0.5f), ViewPrj, DS_bone, currentImage, DEBUG, 6);
+			placeEntity(UBO_bone, gubo, collectiblesRandomPosition[6], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(0.3f), ViewPrj, DS_bone, currentImage, DEBUG, 6);
 		} else {
 			removeCollectible(UBO_bone, gubo, ViewPrj, DS_bone, currentImage, 6);
 		}
