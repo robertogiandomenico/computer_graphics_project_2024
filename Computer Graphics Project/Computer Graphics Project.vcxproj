@@ -30,6 +30,7 @@
   <ItemGroup>
     <None Include="shaders\BoundingBox.frag" />
     <None Include="shaders\BoundingBox.vert" />
+    <None Include="shaders\DRN.frag" />
     <None Include="shaders\Overlay.frag" />
     <None Include="shaders\Overlay.vert" />
     <None Include="shaders\Shader.frag" />

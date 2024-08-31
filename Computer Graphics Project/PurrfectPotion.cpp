@@ -114,7 +114,7 @@ protected:
 
 	// Cat initial position
 	glm::vec3 catPosition;
-	glm::vec3 catDimensions = glm::vec3(1.2f, 1.2f, 0.2f);
+	glm::vec3 catDimensions = glm::vec3(1.4f, 1.2f, 0.2f);
 	// Cat initial orientation
 	float catYaw;
 
@@ -155,13 +155,13 @@ protected:
 		}
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward, DSL_boundingBox;
+	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward, DSL_boundingBox, DSL_DRN;
 
 	// Vertex formats
 	VertexDescriptor VD, VD_skyBox, VD_overlay, VD_tangent, VD_boundingBox;
 
 	// Pipelines [Shader couples]
-	Pipeline P, P_skyBox, P_steam, P_overlay, P_ward, P_boundingBox;
+	Pipeline P, P_skyBox, P_steam, P_overlay, P_ward, P_boundingBox, P_DRN;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	// Please note that Model objects depends on the corresponding vertex structure
@@ -207,7 +207,8 @@ protected:
 	std::vector<DescriptorSet> DS_boundingBox;
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_knightDiffuse, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_catDiffuse, T_catDiffuseGhost, T_catSpec, T_catNorm;
+	Texture T_textures, T_eye, T_closet, T_feather, T_knightDiffuse, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3],
+			T_scroll, T_collectibles[COLLECTIBLES_NUM], T_catDiffuse, T_catDiffuseGhost, T_catSpec, T_catNorm, T_wall[3], T_floor[3];
 
 	// C++ storage for uniform variables
 	UniformBufferObject // Bathroom
@@ -321,6 +322,15 @@ protected:
 				{5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
 		});
 
+		DSL_DRN.init(this, {
+				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+				{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+				{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+				{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+				{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+				{5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+		});
+
 		// Vertex descriptors
 		VD.init(this, {
 			// this array contains the bindings
@@ -416,6 +426,9 @@ protected:
 
 		P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_ward });
 		P_ward.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+
+		P_DRN.init(this, &VD, "shaders/ShaderVert.spv", "shaders/DRNFrag.spv", { &DSL_DRN });
+		P_DRN.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
 
@@ -537,14 +550,22 @@ protected:
 		T_steam.init(this,		"textures/lair/steam.png");
 		T_fire.init(this,		"textures/lair/fire.png");
 
+		T_wall[0].init(this,	"textures/wall/wall_diffuse.jpg");
+		T_wall[1].init(this,	"textures/wall/wall_normal.jpg");
+		T_wall[2].init(this,	"textures/wall/wall_roughness.jpg");
+
+		T_floor[0].init(this,	"textures/floor/floor_diffuse.jpg");
+		T_floor[1].init(this,	"textures/floor/floor_normal.jpg");
+		T_floor[2].init(this,	"textures/floor/floor_roughness.jpg");
+
 		T_knightDiffuse.init(this,	"textures/knight/knight_diffuse.png");
 		T_knightSpec.init(this,		"textures/knight/knight_metallic.png");
 		T_knightNorm.init(this,		"textures/knight/knight_normal.png");
 
-		T_catDiffuse.init(this,	"textures/cat/cat_diffuse.png");
+		T_catDiffuse.init(this,		 "textures/cat/cat_diffuse.png");
 		T_catDiffuseGhost.init(this, "textures/cat/cat_diffuse_ghost.png");
-		T_catSpec.init(this,	"textures/cat/hairSpec.jpg");
-		T_catNorm.init(this,	"textures/cat/hairNorm.jpg");
+		T_catSpec.init(this,		 "textures/cat/hairSpec.jpg");
+		T_catNorm.init(this,		 "textures/cat/hairNorm.jpg");
 
 		T_skyBox.init(this,		"textures/sky_Texture.jpg");
 
@@ -578,6 +599,7 @@ protected:
 		P_boundingBox.create();
 		P_overlay.create();
 		P_ward.create();
+		P_DRN.create();
 
 		DS_skyBox.init(this, &DSL_skyBox, {
 						{0, UNIFORM, sizeof(SkyBoxUniformBufferObject), nullptr},
@@ -796,18 +818,22 @@ protected:
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 
-		DS_floor.init(this, &DSL, {
+		DS_floor.init(this, &DSL_DRN, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
+					{1, TEXTURE, 0, &T_floor[0]},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
-		DS_walls.init(this, &DSL, {
+					{3, UNIFORM, sizeof(glm::vec3), nullptr},
+					{4, TEXTURE, 0, &T_floor[1]},
+					{5, TEXTURE, 0, &T_floor[2]}
+		});
+		DS_walls.init(this, &DSL_DRN, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
+					{1, TEXTURE, 0, &T_wall[0]},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+					{3, UNIFORM, sizeof(glm::vec3), nullptr},
+					{4, TEXTURE, 0, &T_wall[1]},
+					{5, TEXTURE, 0, &T_wall[2]}
+		});
 		
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			DS_boundingBox.push_back(DescriptorSet());
@@ -853,6 +879,7 @@ protected:
 		P_boundingBox.cleanup();
 		P_overlay.cleanup();
 		P_ward.cleanup();
+		P_DRN.cleanup();
 
 		// Cleanup datasets
 		DS_bathtub.cleanup();
@@ -943,6 +970,11 @@ protected:
 		T_skyBox.cleanup();
 
 		for (int i = 0; i < 3; i++) {
+			T_wall[i].cleanup();
+			T_floor[i].cleanup();
+		}
+
+		for (int i = 0; i < 3; i++) {
 			T_screens[i].cleanup();
 		}
 
@@ -1026,14 +1058,16 @@ protected:
 		DSL_boundingBox.cleanup();
 		DSL_overlay.cleanup();
 		DSL_ward.cleanup();
+		DSL_DRN.cleanup();
 
-		// Destroies the pipelines
+		// Destroy the pipelines
 		P.destroy();
 		P_skyBox.destroy();
 		P_steam.destroy();
 		P_boundingBox.destroy();
 		P_overlay.destroy();
 		P_ward.destroy();
+		P_DRN.destroy();
 	}
 
 	// Here it is the creation of the command buffer:
@@ -1178,11 +1212,12 @@ protected:
 		M_cat.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
 
-		DS_floor.bind(commandBuffer, P, 0, currentImage);
+		P_DRN.bind(commandBuffer);
+		DS_floor.bind(commandBuffer, P_DRN, 0, currentImage);
 		M_floor.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_floor.indices.size()), 1, 0, 0, 0);
-
-		DS_walls.bind(commandBuffer, P, 0, currentImage);
+		
+		DS_walls.bind(commandBuffer, P_DRN, 0, currentImage);
 		M_walls.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_walls.indices.size()), 1, 0, 0, 0);
 		
@@ -1290,6 +1325,7 @@ protected:
 			FIRST_PERSON = false;
 			OVERLAY = false;
 			DEBUG = false;
+			gameOver = false;
 
 			lightOn = glm::vec4(1, 1, 0, 1);	// Turn off all spot lights
 
@@ -1314,7 +1350,6 @@ protected:
 
 			if (start) {	// Setting the variables ready to start the game
 				OVERLAY = true;
-				gameOver = false;
 
 				UBO_screens[0].visible = UBO_screens[1].visible = UBO_screens[2].visible = 0.f;
 
@@ -1371,6 +1406,11 @@ protected:
 				camDist = 3.0f;
 				camYaw = catYaw + glm::radians(90.0f);
 				lastPressTime = totalElapsedTime;
+			}
+
+			// Press K to switch between 1st and 3rd person view
+			if (glfwGetKey(window, GLFW_KEY_K)) {
+				gameState = GAME_STATE_START_SCREEN;
 			}
       
 			// Press V to switch between 1st and 3rd person view
@@ -1521,7 +1561,7 @@ protected:
 		gubo.lightPos[1] = glm::vec3(-8.f, 2.0f, -8.f);						// position: witch lair
 		gubo.lightColor[1] = glm::vec4(glm::vec3(0.4f, 0.f, 0.8f), 2.0f);	// color: purple
 
-		gubo.lightPos[2] = glm::vec3(-6.0f, 1.3f, -8.3f);						// position: witch lair - cauldron
+		gubo.lightPos[2] = glm::vec3(-6.0f, 1.3f, -8.3f);						// position: witch lair - cauldron potion
 		gubo.lightColor[2] = glm::vec4(glm::vec3(0.02f, 0.07f, 0.02f), 2.0f);	// color: green
 		gubo.lightPos[3] = glm::vec3(-6.0f, 0.2f, -8.3f);						// position: witch lair - cauldron fire
 		gubo.lightColor[3] = glm::vec4(glm::vec3(0.14f, 0.08f, 0.f), 2.0f);		// color: orange
@@ -1542,8 +1582,9 @@ protected:
 		gubo.lightPos[8] = glm::vec3(-6.0f, 1.5f, -8.3f);					// position: witch lair - cauldron
 		gubo.lightColor[8] = glm::vec4(glm::vec3(0.1f, 0.1f, 1.0f), 20.0f);	// color: blue
 		gubo.lightDir[8] = glm::vec3(0, 1, 0);								// light from above
-		gubo.cosIn = glm::cos(glm::radians(35.0f));							// cos of the inner angle of the spot light
-		gubo.cosOut = glm::cos(glm::radians(45.0f));						// cos of the outer angle of the spot light
+
+		gubo.cosIn = glm::cos(glm::radians(25.0f));							// cos of the inner angle of the spot light
+		gubo.cosOut = glm::cos(glm::radians(55.0f));						// cos of the outer angle of the spot light
 		
 		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
 			gubo.lightPos[i + 9] = collectiblesRandomPosition[i] + glm::vec3(0.f, 0.5f, 0.f);
@@ -1553,12 +1594,14 @@ protected:
 
 		gubo.eyePos = camPos; // Camera position
 		
+
+		gubo.lightOn = lightOn;
 		if (gameOver) {
-			gubo.lightOn = glm::vec4(1, 1, 1, 1);
+			//gubo.lightOn = glm::vec4(1, 1, 1, 1);
 			gubo.gameOver = true;
 		}
 		else {
-			gubo.lightOn = lightOn;
+			//gubo.lightOn = lightOn;
 			gubo.gameOver = false;
 		}
 

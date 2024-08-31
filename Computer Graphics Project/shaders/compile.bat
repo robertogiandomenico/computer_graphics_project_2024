@@ -15,3 +15,5 @@ glslc Overlay.vert -o OverlayVert.spv
 
 glslc WardShader.frag -o WardFrag.spv
 glslc TanShader.vert -o TanVert.spv
+
+glslc DRN.frag -o DRNFrag.spv

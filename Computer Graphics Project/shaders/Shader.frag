@@ -23,7 +23,7 @@ layout(binding = 2) uniform GlobalUniformBufferObject {
     bool gameOver;                              // Game over flag
 } gubo;
 
-// New uniform for emissive color
+// Uniform for emissive color
 layout(binding = 3) uniform EmissiveUniformBufferObject {
     vec3 emissiveColor;  // Emissive color of the object
 } eubo;
