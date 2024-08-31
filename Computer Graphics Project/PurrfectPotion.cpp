@@ -12,6 +12,7 @@
 
 #define LIGHTS_NUM 16
 #define COLLECTIBLES_NUM 7
+#define LIGHT_TYPES 5
 
 // The uniform buffer objects data structures
 // Remember to use the correct alignas(...) value
@@ -33,9 +34,10 @@ struct GlobalUniformBufferObject {
 	alignas(16) glm::vec3 lightPos[LIGHTS_NUM];				 // Position of the lights
 	alignas(16) glm::vec4 lightColor[LIGHTS_NUM];			 // Color of the lights
 	alignas(16) glm::vec3 eyePos;							 // Position of the camera/eye
-	alignas(16) glm::vec4 lightOn;							 // Lights on/off flag (point, direct, spot, ambient component)
+	alignas(16) glm::vec4 lightOn;					 // Lights on/off flag (point, direct, spot, ambient component)
 	alignas(4) float cosIn;									 // Spot light inner cone angle
 	alignas(4) float cosOut;								 // Spot light outer cone angle
+	alignas(4) bool gameOver;								 // Game over flag
 };
 
 struct SkyBoxUniformBufferObject {
@@ -99,7 +101,7 @@ protected:
 
 	// Other application parameters
 	glm::vec3 camPos;
-	float camYaw ;
+	float camYaw;
 	float camPitch;
 	float camRoll;
 	float camDist;
@@ -122,7 +124,7 @@ protected:
 	// Timer setup
 	const float GAME_DURATION = 180.0f;		// 3 minutes = 180 seconds
 	float totalElapsedTime = 0.0f;			// in seconds
-	float timeLeft = GAME_DURATION;	
+	float timeLeft = GAME_DURATION;
 	int lastDisplayedTime = static_cast<int>(GAME_DURATION);
 
 	float minimumPressDelay = 0.08f;
@@ -133,6 +135,7 @@ protected:
 	bool FIRST_PERSON = false;				// Used to switch between first and third person view
 	int gameState = GAME_STATE_START_SCREEN;
 	bool gameOver = false;
+	glm::vec4 lightOn = glm::vec4(1, 1, 0, 1);	// Initially all types of light are on, except spot
 
 	public:
 		std::map<std::string, bool> collectiblesMap;
@@ -1276,9 +1279,6 @@ protected:
 		glm::vec3 cameraForward;
 		glm::vec3 cameraRight;
 
-		GlobalUniformBufferObject gubo = {};
-		gubo.lightOn = glm::vec4(1, 1, 0, 1);
-
 		if (gameState == GAME_STATE_START_SCREEN || gameState == GAME_STATE_GAME_WIN || gameState == GAME_STATE_GAME_LOSE) {
 
 			camPos = glm::vec3(-5.7f, 3.5f, -1.7f);
@@ -1292,6 +1292,9 @@ protected:
 			FIRST_PERSON = false;
 			OVERLAY = false;
 			DEBUG = false;
+
+			// Turn off all spot lights
+			lightOn = glm::vec4(1, 1, 0, 1);
 
 			if (gameState == GAME_STATE_START_SCREEN) {
 				UBO_screens[0].visible = 1.f;
@@ -1334,6 +1337,8 @@ protected:
 				if (collectiblesBBs.size() == 0) {
 					fillBBList(&collectiblesBBs, collectiblesRandomPosition);
 				}
+
+				lightOn = glm::vec4(1, 1, 1, 1);
 			}
 
 			// Update screens overlay
@@ -1382,7 +1387,7 @@ protected:
 				if (!debounce) {
 					debounce = true;
 					curDebounce = GLFW_KEY_1;
-					gubo.lightOn.x = 1 - gubo.lightOn.x;
+					lightOn.x = 1 - lightOn.x;
 				}
 			}
 			else if ((curDebounce == GLFW_KEY_1) && debounce) {
@@ -1395,7 +1400,7 @@ protected:
 				if (!debounce) {
 					debounce = true;
 					curDebounce = GLFW_KEY_2;
-					gubo.lightOn.y = 1 - gubo.lightOn.y;
+					lightOn.y = 1 - lightOn.y;
 				}
 			}
 			else if ((curDebounce == GLFW_KEY_2) && debounce) {
@@ -1408,7 +1413,7 @@ protected:
 				if (!debounce) {
 					debounce = true;
 					curDebounce = GLFW_KEY_3;
-					gubo.lightOn.z = 1 - gubo.lightOn.z;
+					lightOn.z = 1 - lightOn.z;
 				}
 			}
 			else if ((curDebounce == GLFW_KEY_3) && debounce) {
@@ -1421,7 +1426,7 @@ protected:
 				if (!debounce) {
 					debounce = true;
 					curDebounce = GLFW_KEY_4;
-					gubo.lightOn.w = 1 - gubo.lightOn.w;
+					lightOn.w = 1 - lightOn.w;
 				}
 			}
 			else if ((curDebounce == GLFW_KEY_4) && debounce) {
@@ -1472,14 +1477,6 @@ protected:
 				camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
 				glm::vec4(0, 0, camDist, 1));
 			}
-			
-			gubo.lightOn = glm::vec4(1.0f);		// to delete in case this one under becomes valid
-			/*if (gameOver) {
-			gubo.lightOn = glm::vec4(1, 1, 1, 1);
-			}
-			else {
-			gubo.lightOn = glm::vec4(1, 1, 0, 1);
-			}*/
 
 			// Check if game is over because time has run out
 			if (totalElapsedTime >= GAME_DURATION) {
@@ -1521,7 +1518,7 @@ protected:
 			collectibleRotationAngle -= 2* PI;
 		}
 
-
+		GlobalUniformBufferObject gubo = {};
 		// Set light properties
 		gubo.lightPos[0] = glm::vec3(6.0f, 2.0f, 8.0f);			// position: kitchen
 		gubo.lightColor[0] = glm::vec4(glm::vec3(1.4f), 2.0f);	// color: white
@@ -1560,6 +1557,15 @@ protected:
 		}
 
 		gubo.eyePos = camPos; // Camera position
+		
+		if (gameOver) {
+			gubo.lightOn = glm::vec4(1, 1, 1, 1);
+			gubo.gameOver = true;
+		}
+		else {
+			gubo.lightOn = lightOn;
+			gubo.gameOver = false;
+		}
 
 		// Sky Box UBO update
 		SkyBoxUniformBufferObject sbubo{};

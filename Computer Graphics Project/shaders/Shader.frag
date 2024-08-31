@@ -20,6 +20,7 @@ layout(binding = 2) uniform GlobalUniformBufferObject {
     vec4 lightOn;                               // Lights on/off flags (point, direct, spot, ambient component)
     float cosIn;                                // Spot light inner cone angle
 	float cosOut;                               // Spot light outer cone angle
+    bool gameOver;                              // Game over flag
 } gubo;
 
 // New uniform for emissive color
@@ -113,11 +114,13 @@ void main() {
 
     result += BRDF(Albedo, Norm, EyeDir, LD) * LC * gubo.lightOn.y;
 
-    // Add the cauldron spot light
-    LD = spot_light_dir(fragPos, 8);
-    LC = spot_light_color(fragPos, 8);
+    if (gubo.gameOver) {
+        // Add the cauldron spot light
+        LD = spot_light_dir(fragPos, 8);
+        LC = spot_light_color(fragPos, 8);
 
-    result += BRDF(Albedo, Norm, EyeDir, LD) * LC * gubo.lightOn.z;
+        result += BRDF(Albedo, Norm, EyeDir, LD) * LC * gubo.lightOn.z;
+    }
 
     // Add the collectibles spot lights
     for (int i=0; i < COLLECTIBLES_NUM; i++) {
