@@ -12,7 +12,6 @@
 
 #define LIGHTS_NUM 16
 #define COLLECTIBLES_NUM 7
-#define LIGHT_TYPES 5
 
 // The uniform buffer objects data structures
 // Remember to use the correct alignas(...) value
@@ -30,26 +29,26 @@ struct UniformBufferObject {
 };
 
 struct GlobalUniformBufferObject {
-	alignas(16) glm::vec3 lightDir[LIGHTS_NUM];				 // Direction of the lights
-	alignas(16) glm::vec3 lightPos[LIGHTS_NUM];				 // Position of the lights
-	alignas(16) glm::vec4 lightColor[LIGHTS_NUM];			 // Color of the lights
-	alignas(16) glm::vec3 eyePos;							 // Position of the camera/eye
-	alignas(16) glm::vec4 lightOn;					 // Lights on/off flag (point, direct, spot, ambient component)
-	alignas(4) float cosIn;									 // Spot light inner cone angle
-	alignas(4) float cosOut;								 // Spot light outer cone angle
-	alignas(4) bool gameOver;								 // Game over flag
+	alignas(16) glm::vec3 lightDir[LIGHTS_NUM];			// Direction of the lights
+	alignas(16) glm::vec3 lightPos[LIGHTS_NUM];			// Position of the lights
+	alignas(16) glm::vec4 lightColor[LIGHTS_NUM];		// Color of the lights
+	alignas(16) glm::vec3 eyePos;						// Position of the camera/eye
+	alignas(16) glm::vec4 lightOn;						// Lights on/off flag (point, direct, spot, ambient component)
+	alignas(4) float cosIn;								// Spot light inner cone angle
+	alignas(4) float cosOut;							// Spot light outer cone angle
+	alignas(4) bool gameOver;							// Game over flag
 };
 
 struct SkyBoxUniformBufferObject {
-	alignas(16) glm::mat4 mvpMat;				// Field for MVP matrix
-	alignas(4) float time;						// Field for time
+	alignas(16) glm::mat4 mvpMat;		// Field for MVP matrix
+	alignas(4) float time;				// Field for time
 };
 
 struct SteamUniformBufferObject {
 	alignas(16) glm::mat4 mvpMat;
 	alignas(16) glm::mat4 mMat;
 	alignas(16) glm::mat4 nMat;
-	alignas(4) float time;						// Time variable for animation
+	alignas(4) float time;				// Time variable for animation
 	alignas(4) float speed;
 };
 
@@ -96,7 +95,7 @@ std::string collectiblesNames[COLLECTIBLES_NUM] = {
 class PurrfectPotion : public BaseProject {
 protected:
 
-	// Current aspect ratio (used by the callback that resized the window)
+	// Current aspect ratio (used by the callback that resizes the window)
 	float Ar;
 
 	// Other application parameters
@@ -108,7 +107,7 @@ protected:
 	glm::vec3 CamTargetDelta = glm::vec3(0.0f);
 	//const glm::vec3 Cam1stPos = glm::vec3(0.49061f, 2.07f, 2.7445f);
 	float Yaw = 0.0f;
-	// Rotation angle for the cube
+	// Rotation angle for the ollectibles
 	float collectibleRotationAngle = 0.0f;
 	// Rotation speed in radians per second
 	const float collectibleRotationSpeed = glm::radians(45.0f);  // 45 degrees per second
@@ -156,82 +155,81 @@ protected:
 		}
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward;
+	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward, DSL_boundingBox;
 
 	// Vertex formats
-	VertexDescriptor VD, VD_skyBox, VD_overlay, VD_tangent;
+	VertexDescriptor VD, VD_skyBox, VD_overlay, VD_tangent, VD_boundingBox;
 
 	// Pipelines [Shader couples]
-	Pipeline P, P_skyBox, P_steam, P_overlay, P_ward;
+	Pipeline P, P_skyBox, P_steam, P_overlay, P_ward, P_boundingBox;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	// Please note that Model objects depends on the corresponding vertex structure
+	
 	// Models
-	// Bathroom
-	Model<Vertex> M_bathtub, M_bidet, M_sink, M_toilet;
-	// Bedroom
-	Model<Vertex> M_bed, M_closet, M_nighttable;
-	// Collectibles
-	Model<Vertex> M_bone, M_crystal, M_eye, M_feather, M_leaf, M_potion1, M_potion2;
-	// Kitchen
-	Model<Vertex> M_chair, M_fridge, M_kitchen, M_kitchentable;
-	// Lair
-	Model<Vertex> M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web, M_catFainted;
-	// Living room
-	Model<Vertex> M_sofa, M_table, M_tv, M_cat;
+	Model<Vertex>   // Bathroom
+					M_bathtub, M_bidet, M_sink, M_toilet,
+					// Bedroom
+					M_bed, M_closet, M_nighttable,
+					// Collectibles
+					M_bone, M_crystal, M_eye, M_feather, M_leaf, M_potion1, M_potion2, 
+					// Kitchen		  
+					M_chair, M_fridge, M_kitchen, M_kitchentable,
+					// Lair
+					M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web, M_catFainted,
+					// Living room
+					M_sofa, M_table, M_tv,
+					// Other
+					M_cat, M_floor, M_walls;
 	// Other
 	Model<VertexTan> M_knight;
-	Model<Vertex> M_floor, M_walls;
 	Model<skyBoxVertex> M_skyBox;
 	Model<VertexOverlay> M_timer[5], M_screens[3], M_scroll, M_collectibles[COLLECTIBLES_NUM];
+	std::vector<Model<VertexBoundingBox>> M_boundingBox;
 
 	// Descriptor sets
-	// Bathroom
-	DescriptorSet DS_bathtub, DS_bidet, DS_sink, DS_toilet;
-	// Bedroom
-	DescriptorSet DS_bed, DS_closet, DS_nighttable;
-	// Collectibles
-	DescriptorSet DS_bone, DS_crystal, DS_eye, DS_feather, DS_leaf, DS_potion1, DS_potion2;
-	// Kitchen
-	DescriptorSet DS_chair, DS_fridge, DS_kitchen, DS_kitchentable;
-	// Lair
-	DescriptorSet DS_cauldron, DS_stonechair, DS_chest, DS_shelf1, DS_shelf2, DS_stonetable, DS_steam, DS_fire, DS_web, DS_catFainted;
-	// Living room
-	DescriptorSet DS_sofa, DS_table, DS_tv, DS_knight;
-	// Other
-	DescriptorSet DS_cat, DS_floor, DS_walls;
+	DescriptorSet   // Bathroom
+					DS_bathtub, DS_bidet, DS_sink, DS_toilet,
+					// Bedroom
+					DS_bed, DS_closet, DS_nighttable,
+					// Collectibles
+					DS_bone, DS_crystal, DS_eye, DS_feather, DS_leaf, DS_potion1, DS_potion2,
+					// Kitchen
+					DS_chair, DS_fridge, DS_kitchen, DS_kitchentable,
+				    // Lair
+					DS_cauldron, DS_stonechair, DS_chest, DS_shelf1, DS_shelf2, DS_stonetable, DS_steam, DS_fire, DS_web, DS_catFainted,
+					// Living room
+					DS_sofa, DS_table, DS_tv, DS_knight,
+					// Other
+					DS_cat, DS_floor, DS_walls,
+					DS_skyBox, DS_timer[5], DS_screens[3], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
-	DescriptorSet DS_skyBox, DS_timer[5], DS_screens[3], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
+	std::vector<DescriptorSet> DS_boundingBox;
 
 	// Textures
 	Texture T_textures, T_eye, T_closet, T_feather, T_knightDiffuse, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3], T_scroll, T_collectibles[COLLECTIBLES_NUM], T_catDiffuse, T_catDiffuseGhost, T_catSpec, T_catNorm;
 
 	// C++ storage for uniform variables
-	// Bathroom
-	UniformBufferObject UBO_bathtub, UBO_bidet, UBO_sink, UBO_toilet;
-	// Bedroom
-	UniformBufferObject UBO_bed, UBO_closet, UBO_nightTable;
-	// Collectibles
-	UniformBufferObject UBO_bone, UBO_crystal, UBO_eye, UBO_feather, UBO_leaf, UBO_potion1, UBO_potion2;
-	// Kitchen
-	UniformBufferObject UBO_chair, UBO_fridge, UBO_kitchen, UBO_kitchenTable;
-	// Lair
-	UniformBufferObject UBO_cauldron, UBO_stoneChair, UBO_chest, UBO_shelf1, UBO_shelf2, UBO_stoneTable, UBO_web, UBO_catFainted;
-	// Living room
-	UniformBufferObject UBO_sofa, UBO_table, UBO_tv, UBO_knight;
-	// Other
-	UniformBufferObject UBO_cat, UBO_floor, UBO_walls;
+	UniformBufferObject // Bathroom
+						UBO_bathtub, UBO_bidet, UBO_sink, UBO_toilet,
+						// Bedroom
+						UBO_bed, UBO_closet, UBO_nightTable,
+						// Collectibles
+						UBO_bone, UBO_crystal, UBO_eye, UBO_feather, UBO_leaf, UBO_potion1, UBO_potion2,
+						// Kitchen
+						UBO_chair, UBO_fridge, UBO_kitchen, UBO_kitchenTable,
+						// Lair
+						UBO_cauldron, UBO_stoneChair, UBO_chest, UBO_shelf1, UBO_shelf2, UBO_stoneTable, UBO_web, UBO_catFainted,
+						// Living room
+						UBO_sofa, UBO_table, UBO_tv, UBO_knight,
+						// Other
+						UBO_cat, UBO_floor, UBO_walls;
+
+	std::vector<BoundingBoxUniformBlock> UBO_boundingBox;
 	SteamUniformBufferObject UBO_steam, UBO_fire;
 	OverlayUniformBlock UBO_timer[5], UBO_screens[3], UBO_scroll, UBO_collectibles[COLLECTIBLES_NUM];
 
 	// to display the bounding boxes for debugging
-	Pipeline P_boundingBox;
-	DescriptorSetLayout DSL_boundingBox;
-	VertexDescriptor VD_boundingBox;
-	std::vector<Model<VertexBoundingBox>> M_boundingBox;
-	std::vector<DescriptorSet> DS_boundingBox;
-	std::vector<BoundingBoxUniformBlock> UBO_boundingBox;
-
 	std::vector<BoundingBox> furnitureBBs;
 	BoundingBox catBox = BoundingBox("cat", catPosition, catDimensions);
 
@@ -396,179 +394,179 @@ protected:
 					  sizeof(glm::vec2), UV}
 		});
 			
-			// Pipelines [Shader couples]
-			// The second parameter is the pointer to the vertex definition
-			// Third and fourth parameters are respectively the vertex and fragment shaders
-			// The last array, is a vector of pointer to the layouts of the sets that will
-			// be used in this pipeline. The first element will be set 0, and so on..
-			P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL });
-			P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
+		// Pipelines [Shader couples]
+		// The second parameter is the pointer to the vertex definition
+		// Third and fourth parameters are respectively the vertex and fragment shaders
+		// The last array, is a vector of pointer to the layouts of the sets that will
+		// be used in this pipeline. The first element will be set 0, and so on..
+		P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL });
+		P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
 
-			P_skyBox.init(this, &VD_skyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSL_skyBox });
-			P_skyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
+		P_skyBox.init(this, &VD_skyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSL_skyBox });
+		P_skyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
-			P_steam.init(this, &VD, "shaders/SteamVert.spv", "shaders/SteamFrag.spv", { &DSL_steam });
-			P_steam.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
+		P_steam.init(this, &VD, "shaders/SteamVert.spv", "shaders/SteamFrag.spv", { &DSL_steam });
+		P_steam.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
 
-			P_boundingBox.init(this, &VD_boundingBox, "shaders/BoundingBoxVert.spv", "shaders/BoundingBoxFrag.spv", { &DSL_boundingBox });
-			P_boundingBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_LINE, VK_CULL_MODE_BACK_BIT, false);
+		P_boundingBox.init(this, &VD_boundingBox, "shaders/BoundingBoxVert.spv", "shaders/BoundingBoxFrag.spv", { &DSL_boundingBox });
+		P_boundingBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_LINE, VK_CULL_MODE_BACK_BIT, false);
 
-			P_overlay.init(this, &VD_overlay, "shaders/OverlayVert.spv", "shaders/OverlayFrag.spv", { &DSL_overlay });
-			P_overlay.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
+		P_overlay.init(this, &VD_overlay, "shaders/OverlayVert.spv", "shaders/OverlayFrag.spv", { &DSL_overlay });
+		P_overlay.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
 
-			P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_ward });
-			P_ward.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+		P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_ward });
+		P_ward.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
-			// Models, textures and Descriptors (values assigned to the uniforms)
+		// Models, textures and Descriptors (values assigned to the uniforms)
 
-			// Create models
-			// The second parameter is the pointer to the vertex definition for this model
-			// The third parameter is the file name
-			// The last is a constant specifying the file type: currently only OBJ or GLTF
-			M_bathtub.init(this,	&VD, "models/bathroom/bathroom_bathtub.gltf", GLTF);
-			M_bidet.init(this,		&VD, "models/bathroom/bathroom_bidet.gltf", GLTF);
-			M_sink.init(this,		&VD, "models/bathroom/bathroom_sink.gltf", GLTF);
-			M_toilet.init(this,		&VD, "models/bathroom/bathroom_toilet.gltf", GLTF);
+		// Create models
+		// The second parameter is the pointer to the vertex definition for this model
+		// The third parameter is the file name
+		// The last is a constant specifying the file type: currently only OBJ or GLTF
+		M_bathtub.init(this,	&VD, "models/bathroom/bathroom_bathtub.gltf", GLTF);
+		M_bidet.init(this,		&VD, "models/bathroom/bathroom_bidet.gltf", GLTF);
+		M_sink.init(this,		&VD, "models/bathroom/bathroom_sink.gltf", GLTF);
+		M_toilet.init(this,		&VD, "models/bathroom/bathroom_toilet.gltf", GLTF);
 
-			M_bed.init(this,		&VD, "models/bedroom/bedroom_bed.gltf", GLTF);
-			M_closet.init(this,		&VD, "models/bedroom/bedroom_closet.gltf", GLTF);
-			M_nighttable.init(this, &VD, "models/bedroom/bedroom_night_table.gltf", GLTF);
+		M_bed.init(this,		&VD, "models/bedroom/bedroom_bed.gltf", GLTF);
+		M_closet.init(this,		&VD, "models/bedroom/bedroom_closet.gltf", GLTF);
+		M_nighttable.init(this, &VD, "models/bedroom/bedroom_night_table.gltf", GLTF);
 
-			M_bone.init(this,		&VD, "models/collectibles/coll_bone.gltf", GLTF);
-			M_crystal.init(this,	&VD, "models/collectibles/coll_crystal.gltf", GLTF);
-			M_eye.init(this,		&VD, "models/collectibles/coll_eye.gltf", GLTF);
-			M_feather.init(this,	&VD, "models/collectibles/coll_feather.gltf", GLTF);
-			M_leaf.init(this,		&VD, "models/collectibles/coll_leaf.gltf", GLTF);
-			M_potion1.init(this,	&VD, "models/collectibles/coll_potion1.gltf", GLTF);
-			M_potion2.init(this,	&VD, "models/collectibles/coll_potion2.gltf", GLTF);
+		M_bone.init(this,		&VD, "models/collectibles/coll_bone.gltf", GLTF);
+		M_crystal.init(this,	&VD, "models/collectibles/coll_crystal.gltf", GLTF);
+		M_eye.init(this,		&VD, "models/collectibles/coll_eye.gltf", GLTF);
+		M_feather.init(this,	&VD, "models/collectibles/coll_feather.gltf", GLTF);
+		M_leaf.init(this,		&VD, "models/collectibles/coll_leaf.gltf", GLTF);
+		M_potion1.init(this,	&VD, "models/collectibles/coll_potion1.gltf", GLTF);
+		M_potion2.init(this,	&VD, "models/collectibles/coll_potion2.gltf", GLTF);
 
-			M_chair.init(this,		&VD, "models/kitchen/kitchen_chair.gltf", GLTF);
-			M_fridge.init(this,		&VD, "models/kitchen/kitchen_fridge.gltf", GLTF);
-			M_kitchen.init(this,	&VD, "models/kitchen/kitchen_kitchen.gltf", GLTF);
-			M_kitchentable.init(this,&VD, "models/kitchen/kitchen_table.gltf", GLTF);
+		M_chair.init(this,		&VD, "models/kitchen/kitchen_chair.gltf", GLTF);
+		M_fridge.init(this,		&VD, "models/kitchen/kitchen_fridge.gltf", GLTF);
+		M_kitchen.init(this,	&VD, "models/kitchen/kitchen_kitchen.gltf", GLTF);
+		M_kitchentable.init(this,&VD, "models/kitchen/kitchen_table.gltf", GLTF);
 
-			M_cauldron.init(this,	&VD, "models/lair/lair_cauldron.gltf", GLTF);
-			M_stonechair.init(this, &VD, "models/lair/lair_chair.gltf", GLTF);
-			M_chest.init(this,		&VD, "models/lair/lair_chest.gltf", GLTF);
-			M_shelf1.init(this,		&VD, "models/lair/lair_shelf1.gltf", GLTF);
-			M_shelf2.init(this,		&VD, "models/lair/lair_shelf2.gltf", GLTF);
-			M_stonetable.init(this, &VD, "models/lair/lair_table.gltf", GLTF);
-			M_web.init(this,		&VD, "models/lair/lair_web.gltf", GLTF);
-			M_steam.init(this,		&VD, "models/lair/lair_steamPlane.gltf", GLTF);
-			M_fire.init(this,		&VD, "models/lair/lair_firePlane.gltf", GLTF);
-			M_catFainted.init(this, &VD, "models/lair/lair_catFainted.gltf", GLTF);
+		M_cauldron.init(this,	&VD, "models/lair/lair_cauldron.gltf", GLTF);
+		M_stonechair.init(this, &VD, "models/lair/lair_chair.gltf", GLTF);
+		M_chest.init(this,		&VD, "models/lair/lair_chest.gltf", GLTF);
+		M_shelf1.init(this,		&VD, "models/lair/lair_shelf1.gltf", GLTF);
+		M_shelf2.init(this,		&VD, "models/lair/lair_shelf2.gltf", GLTF);
+		M_stonetable.init(this, &VD, "models/lair/lair_table.gltf", GLTF);
+		M_web.init(this,		&VD, "models/lair/lair_web.gltf", GLTF);
+		M_steam.init(this,		&VD, "models/lair/lair_steamPlane.gltf", GLTF);
+		M_fire.init(this,		&VD, "models/lair/lair_firePlane.gltf", GLTF);
+		M_catFainted.init(this, &VD, "models/lair/lair_catFainted.gltf", GLTF);
 
-			M_sofa.init(this,		&VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
-			M_table.init(this,		&VD, "models/livingroom/livingroom_table.gltf", GLTF);
-			M_tv.init(this,			&VD, "models/livingroom/livingroom_tv.gltf", GLTF);
-			M_knight.init(this,		&VD_tangent, "models/livingroom/livingroom_knight.gltf", GLTF);
+		M_sofa.init(this,		&VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
+		M_table.init(this,		&VD, "models/livingroom/livingroom_table.gltf", GLTF);
+		M_tv.init(this,			&VD, "models/livingroom/livingroom_tv.gltf", GLTF);
+		M_knight.init(this,		&VD_tangent, "models/livingroom/livingroom_knight.gltf", GLTF);
 
-			M_cat.init(this,		&VD, "models/other/cat.gltf", GLTF);
-			M_floor.init(this,		&VD, "models/other/floor.gltf", GLTF);
-			M_walls.init(this,		&VD, "models/other/walls.gltf", GLTF);
+		M_cat.init(this,		&VD, "models/other/cat.gltf", GLTF);
+		M_floor.init(this,		&VD, "models/other/floor.gltf", GLTF);
+		M_walls.init(this,		&VD, "models/other/walls.gltf", GLTF);
 
-			M_skyBox.init(this,		&VD_skyBox, "models/sky/SkyBoxCube.obj", OBJ);
+		M_skyBox.init(this,		&VD_skyBox, "models/sky/SkyBoxCube.obj", OBJ);
 
-			for (int i = 0; i < collectiblesBBs.size(); i++) {
-				M_boundingBox.push_back(Model<VertexBoundingBox>());
-				createBBModel(M_boundingBox[i].vertices, M_boundingBox[i].indices, &collectiblesBBs[i]);
-				M_boundingBox[i].initMesh(this, &VD_boundingBox);
-			}
-
-			for (int i = 0; i < furnitureBBs.size(); i++) {
-				M_boundingBox.push_back(Model<VertexBoundingBox>());
-				createBBModel(M_boundingBox[i + COLLECTIBLES_NUM].vertices, M_boundingBox[i + COLLECTIBLES_NUM].indices, &furnitureBBs[i]);
-				M_boundingBox[i + COLLECTIBLES_NUM].initMesh(this, &VD_boundingBox);
-			}
-
+		for (int i = 0; i < collectiblesBBs.size(); i++) {
 			M_boundingBox.push_back(Model<VertexBoundingBox>());
-			createBBModel(M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].vertices, M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].indices, &catBox);
-			M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].initMesh(this, &VD_boundingBox);
+			createBBModel(M_boundingBox[i].vertices, M_boundingBox[i].indices, &collectiblesBBs[i]);
+			M_boundingBox[i].initMesh(this, &VD_boundingBox);
+		}
+
+		for (int i = 0; i < furnitureBBs.size(); i++) {
+			M_boundingBox.push_back(Model<VertexBoundingBox>());
+			createBBModel(M_boundingBox[i + COLLECTIBLES_NUM].vertices, M_boundingBox[i + COLLECTIBLES_NUM].indices, &furnitureBBs[i]);
+			M_boundingBox[i + COLLECTIBLES_NUM].initMesh(this, &VD_boundingBox);
+		}
+
+		M_boundingBox.push_back(Model<VertexBoundingBox>());
+		createBBModel(M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].vertices, M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].indices, &catBox);
+		M_boundingBox[COLLECTIBLES_NUM + furnitureBBs.size()].initMesh(this, &VD_boundingBox);
 
 
-			// Create HUD screens
-			glm::vec2 anchor = glm::vec2(-1.0f, -1.0f);
-			float w = 2.f;
-			float h = 2.f;
-			for (int i = 0; i < 3; i++) {
-				M_screens[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
-										  {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
-				M_screens[i].indices = { 0, 1, 2,    1, 2, 3 };
-				M_screens[i].initMesh(this, &VD_overlay);
-			}
+		// Create HUD screens
+		glm::vec2 anchor = glm::vec2(-1.0f, -1.0f);
+		float w = 2.f;
+		float h = 2.f;
+		for (int i = 0; i < 3; i++) {
+			M_screens[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
+									  {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
+			M_screens[i].indices = { 0, 1, 2,    1, 2, 3 };
+			M_screens[i].initMesh(this, &VD_overlay);
+		}
 
-			// Create HUD timer
-			anchor = glm::vec2(0.8f, -0.95f);
-			w = 0.15f;						// Respect the aspect ratio since it is a square pic
-			h = w * Ar;
-			for (int i = 0; i < 5; i++) {
-				M_timer[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
-										{{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
-				M_timer[i].indices = { 0, 1, 2,    1, 2, 3 };
-				M_timer[i].initMesh(this, &VD_overlay);
-			}
+		// Create HUD timer
+		anchor = glm::vec2(0.8f, -0.95f);
+		w = 0.15f;						// Respect the aspect ratio since it is a square pic
+		h = w * Ar;
+		for (int i = 0; i < 5; i++) {
+			M_timer[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
+									{{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
+			M_timer[i].indices = { 0, 1, 2,    1, 2, 3 };
+			M_timer[i].initMesh(this, &VD_overlay);
+		}
 
-			// Create HUD scroll
-			anchor = glm::vec2(-1.005f, -0.9f);
-			w = 0.2f;
-			h = 1.8f;
-			M_scroll.vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
-								  {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
-			M_scroll.indices = { 0, 1, 2,    1, 2, 3 };
-			M_scroll.initMesh(this, &VD_overlay);
+		// Create HUD scroll
+		anchor = glm::vec2(-1.005f, -0.9f);
+		w = 0.2f;
+		h = 1.8f;
+		M_scroll.vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
+							  {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
+		M_scroll.indices = { 0, 1, 2,    1, 2, 3 };
+		M_scroll.initMesh(this, &VD_overlay);
 
-			// Create HUD collectibles
-			anchor = glm::vec2(-1.01f, -0.92f);
-			w = 0.15f;
-			h = w * Ar;
-			for (int i = 0; i < COLLECTIBLES_NUM; i++) {
-				anchor = anchor + (glm::vec2(0.f, 0.2f));
+		// Create HUD collectibles
+		anchor = glm::vec2(-1.01f, -0.92f);
+		w = 0.15f;
+		h = w * Ar;
+		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
+			anchor = anchor + (glm::vec2(0.f, 0.2f));
 
-				M_collectibles[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
-											   {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
-				M_collectibles[i].indices = { 0, 1, 2,    1, 2, 3 };
-				M_collectibles[i].initMesh(this, &VD_overlay);
-			}
+			M_collectibles[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
+										   {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
+			M_collectibles[i].indices = { 0, 1, 2,    1, 2, 3 };
+			M_collectibles[i].initMesh(this, &VD_overlay);
+		}
 
-			// Create the textures
-			// The second parameter is the file name
-			T_textures.init(this,	"textures/palette.png");
-			T_closet.init(this,		"textures/closet.png");
-			T_eye.init(this,		"textures/collectibles/eye_diffuse.jpg");
-			T_feather.init(this,	"textures/collectibles/feather_diffuse.jpg");
-			T_steam.init(this,		"textures/lair/steam.png");
-			T_fire.init(this,		"textures/lair/fire.png");
+		// Create the textures
+		// The second parameter is the file name
+		T_textures.init(this,	"textures/palette.png");
+		T_closet.init(this,		"textures/closet.png");
+		T_eye.init(this,		"textures/collectibles/eye_diffuse.jpg");
+		T_feather.init(this,	"textures/collectibles/feather_diffuse.jpg");
+		T_steam.init(this,		"textures/lair/steam.png");
+		T_fire.init(this,		"textures/lair/fire.png");
 
-			T_knightDiffuse.init(this,	"textures/knight/knight_diffuse.png");
-			T_knightSpec.init(this,		"textures/knight/knight_metallic.png");
-			T_knightNorm.init(this,		"textures/knight/knight_normal.png");
+		T_knightDiffuse.init(this,	"textures/knight/knight_diffuse.png");
+		T_knightSpec.init(this,		"textures/knight/knight_metallic.png");
+		T_knightNorm.init(this,		"textures/knight/knight_normal.png");
 
-			T_catDiffuse.init(this,	"textures/cat/cat_diffuse.png");
-			T_catDiffuseGhost.init(this, "textures/cat/cat_diffuse_ghost.png");
-			T_catSpec.init(this,	"textures/cat/hairSpec.jpg");
-			T_catNorm.init(this,	"textures/cat/hairNorm.jpg");
+		T_catDiffuse.init(this,	"textures/cat/cat_diffuse.png");
+		T_catDiffuseGhost.init(this, "textures/cat/cat_diffuse_ghost.png");
+		T_catSpec.init(this,	"textures/cat/hairSpec.jpg");
+		T_catNorm.init(this,	"textures/cat/hairNorm.jpg");
 
-			T_skyBox.init(this,		"textures/sky_Texture.jpg");
+		T_skyBox.init(this,		"textures/sky_Texture.jpg");
 
-			T_timer[0].init(this,	"textures/HUD/timer_100.png");
-			T_timer[1].init(this,	"textures/HUD/timer_75.png");
-			T_timer[2].init(this,	"textures/HUD/timer_50.png");
-			T_timer[3].init(this,	"textures/HUD/timer_25.png");
-			T_timer[4].init(this,	"textures/HUD/timer_0.png");
+		T_timer[0].init(this,	"textures/HUD/timer_100.png");
+		T_timer[1].init(this,	"textures/HUD/timer_75.png");
+		T_timer[2].init(this,	"textures/HUD/timer_50.png");
+		T_timer[3].init(this,	"textures/HUD/timer_25.png");
+		T_timer[4].init(this,	"textures/HUD/timer_0.png");
 
-			T_screens[0].init(this, "textures/screens/start_screen.png");
-			T_screens[1].init(this, "textures/screens/win_screen.png");
-			T_screens[2].init(this, "textures/screens/lose_screen.png");
+		T_screens[0].init(this, "textures/screens/start_screen.png");
+		T_screens[1].init(this, "textures/screens/win_screen.png");
+		T_screens[2].init(this, "textures/screens/lose_screen.png");
 
-			T_scroll.init(this, "textures/HUD/scroll.png");
+		T_scroll.init(this, "textures/HUD/scroll.png");
 
-			T_collectibles[collectiblesHUD["crystal"]].init(this,	"textures/HUD/coll_crystal.png");
-			T_collectibles[collectiblesHUD["eye"]].init(this,		"textures/HUD/coll_eye.png");
-			T_collectibles[collectiblesHUD["feather"]].init(this,	"textures/HUD/coll_feather.png");
-			T_collectibles[collectiblesHUD["leaf"]].init(this,		"textures/HUD/coll_leaf.png");
-			T_collectibles[collectiblesHUD["potion1"]].init(this,	"textures/HUD/coll_potion1.png");
-			T_collectibles[collectiblesHUD["potion2"]].init(this,	"textures/HUD/coll_potion2.png");
-			T_collectibles[collectiblesHUD["bone"]].init(this,		"textures/HUD/coll_bone.png");
+		T_collectibles[collectiblesHUD["crystal"]].init(this,	"textures/HUD/coll_crystal.png");
+		T_collectibles[collectiblesHUD["eye"]].init(this,		"textures/HUD/coll_eye.png");
+		T_collectibles[collectiblesHUD["feather"]].init(this,	"textures/HUD/coll_feather.png");
+		T_collectibles[collectiblesHUD["leaf"]].init(this,		"textures/HUD/coll_leaf.png");
+		T_collectibles[collectiblesHUD["potion1"]].init(this,	"textures/HUD/coll_potion1.png");
+		T_collectibles[collectiblesHUD["potion2"]].init(this,	"textures/HUD/coll_potion2.png");
+		T_collectibles[collectiblesHUD["bone"]].init(this,		"textures/HUD/coll_bone.png");
 	}
 
 	// Here you create your pipelines and Descriptor Sets!
@@ -1293,8 +1291,7 @@ protected:
 			OVERLAY = false;
 			DEBUG = false;
 
-			// Turn off all spot lights
-			lightOn = glm::vec4(1, 1, 0, 1);
+			lightOn = glm::vec4(1, 1, 0, 1);	// Turn off all spot lights
 
 			if (gameState == GAME_STATE_START_SCREEN) {
 				UBO_screens[0].visible = 1.f;
@@ -1480,8 +1477,6 @@ protected:
 
 			// Check if game is over because time has run out
 			if (totalElapsedTime >= GAME_DURATION) {
-				// game over logic goes here
-				// for now it just closes the window
 				gameState = GAME_STATE_GAME_LOSE;
 			}
 			else if (static_cast<int>(timeLeft) != lastDisplayedTime) {
@@ -1576,7 +1571,7 @@ protected:
 		// Steam UBO update
 		SteamUniformBufferObject subo = {};
 		World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 1.7f, 0)) *		// Steam plane position - over the cauldron
-				glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));						// Steam plane rotation - always face the camera
+				glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Steam plane rotation - always face the camera
 		subo.mvpMat = ViewPrj * World;
 		subo.mMat = World;
 		subo.nMat = glm::transpose(glm::inverse(World));
@@ -1585,8 +1580,8 @@ protected:
 		DS_steam.map(currentImage, &subo, sizeof(subo), 0);
 
 		// Fire UBO update
-		World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 0.3f, 0.1f)) *				// Fire plane position - under the cauldron
-				glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));								// Fire plane rotation - always face the camera
+		World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 0.3f, 0.1f)) *	// Fire plane position - under the cauldron
+				glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Fire plane rotation - always face the camera
 		subo.mvpMat = ViewPrj * World;
 		subo.mMat = World;
 		subo.nMat = glm::transpose(glm::inverse(World));
@@ -1649,7 +1644,6 @@ protected:
 		}
 
 
-
 		// Placing ghost cat
 		placeEntity(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.f), glm::vec3(3.0f), ViewPrj, DS_cat, currentImage, DEBUG, 16);
 		catBox = BoundingBox("cat", catPosition, catDimensions);
@@ -1690,7 +1684,6 @@ protected:
 		placeEntity(UBO_toilet, gubo, toilet.pos, toilet.rot, toilet.scale, glm::vec3(0.0f), ViewPrj, DS_toilet, currentImage, false);
 		placeEntity(UBO_bidet, gubo, bidet.pos, bidet.rot, bidet.scale, glm::vec3(0.0f), ViewPrj, DS_bidet, currentImage, false);
 		placeEntity(UBO_sink, gubo, sink.pos, sink.rot, sink.scale, glm::vec3(0.0f), ViewPrj, DS_sink, currentImage, false);
-
 
 		// Collectibles
 		if (!collectiblesMap["crystal"]) {
@@ -1754,7 +1747,6 @@ protected:
 			if (catBox.intersects(furnitureBBs[j])) {
 				if (furnitureBBs[j].getName() == "cauldron") {
 					if (gameOver) {
-						// win logic goes here
 						gameState = GAME_STATE_GAME_WIN;
 					} else {
 						break;
