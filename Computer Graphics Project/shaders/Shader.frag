@@ -136,7 +136,7 @@ void main() {
     
     
     // Add ambient light
-    ambient = 0.003 * Albedo;
+    ambient = 0.05 * Albedo;
     result += ambient * gubo.lightOn.w;
 
     outColor = vec4(result, alpha);

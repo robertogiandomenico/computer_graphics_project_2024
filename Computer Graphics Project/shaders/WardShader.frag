@@ -115,7 +115,7 @@ void main() {
 	finalColor += eubo.emissiveColor * albedo;
 	
     // Add ambient light
-	vec3 ambient = 0.5 * albedo;
+	vec3 ambient = 0.3 * albedo;
     finalColor += ambient * gubo.lightOn.w;
 	
 	outColor = vec4(finalColor, 1.0f);
