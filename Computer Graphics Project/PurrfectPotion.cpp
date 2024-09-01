@@ -10,8 +10,6 @@
 #include "Utils.hpp"
 #include "World.hpp"
 
-#define M_PI		3.14159265358979323846	/* pi */
-#define M_PI_2		1.57079632679489661923	/* pi/2 */
 #define LIGHTS_NUM 16
 #define COLLECTIBLES_NUM 7
 
@@ -1305,7 +1303,7 @@ protected:
 		glm::mat4 Mv;
 
 		// Parameters for camera movement and rotation
-		const float ROT_SPEED = glm::radians(100.0f);
+		const float ROT_SPEED = glm::radians(120.0f);
 		const float MOVE_SPEED = 10.0f;
 
 		totalElapsedTime += deltaT;
@@ -1565,8 +1563,8 @@ protected:
 
 		// Update rotation angle of the collectibles
 		collectibleRotationAngle += collectibleRotationSpeed * deltaT;
-		if (collectibleRotationAngle >= 2 * PI) {
-			collectibleRotationAngle -= 2* PI;
+		if (collectibleRotationAngle >= 2 * M_PI) {
+			collectibleRotationAngle -= 2 * M_PI;
 		}
 
 		GlobalUniformBufferObject gubo = {};
