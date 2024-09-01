@@ -15,17 +15,17 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"armorposed",
+			"name":"knight2",
 			"translation":[
-				-1.796810269355774,
+				-1.9497150182724,
 				0,
-				7.518232822418213
+				7.586164474487305
 			]
 		}
 	],
 	"meshes":[
 		{
-			"name":"Roundcube.001",
+			"name":"Cube.001",
 			"primitives":[
 				{
 					"attributes":{
@@ -43,79 +43,79 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":2381,
+			"count":1668,
 			"max":[
-				0.3686586320400238,
-				2.893867015838623,
-				0.6848990321159363
+				0.27763625979423523,
+				2.5575461387634277,
+				1.0564278364181519
 			],
 			"min":[
-				-0.757976233959198,
-				-0.0007727656047791243,
-				-0.7009580135345459
+				-0.4532763957977295,
+				0.0014144342858344316,
+				-1.0564278364181519
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":2381,
+			"count":1668,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":2381,
+			"count":1668,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5126,
-			"count":2381,
+			"count":1668,
 			"type":"VEC4"
 		},
 		{
 			"bufferView":4,
 			"componentType":5123,
-			"count":3780,
+			"count":2520,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":28572,
+			"byteLength":20016,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":28572,
-			"byteOffset":28572,
+			"byteLength":20016,
+			"byteOffset":20016,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":19048,
-			"byteOffset":57144,
+			"byteLength":13344,
+			"byteOffset":40032,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":38096,
-			"byteOffset":76192,
+			"byteLength":26688,
+			"byteOffset":53376,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":7560,
-			"byteOffset":114288,
+			"byteLength":5040,
+			"byteOffset":80064,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":121848,
+			"byteLength":85104,
 			"uri":"livingroom_knight.bin"
 		}
 	]

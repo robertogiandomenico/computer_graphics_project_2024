@@ -85,7 +85,7 @@ void main() {
 	vec3 specCol = texture(spet, fragUV).rgb;
 
     // Metallic Factor
-    float metallic = 1.0;
+    float metallic = 0.5;
 
     // Adjust Diffuse and Specular Based on Metallic
     // For non-metallic (metallic = 0.0): Md = albedo, Ms = vec3(0.04)
