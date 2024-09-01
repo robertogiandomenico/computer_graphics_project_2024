@@ -4,9 +4,10 @@
 #define LIGHTS_NUM 16
 #define COLLECTIBLES_NUM 7
 
-layout(location = 0) in vec2 fragUV;
+layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec3 fragNorm;
-layout(location = 2) in vec3 fragPos;
+layout(location = 2) in vec4 fragTan;
+layout(location = 3) in vec2 fragUV;
 
 layout(location = 0) out vec4 outColor;
 
@@ -86,12 +87,12 @@ vec3 spot_light_color(vec3 fragPos, int i) {
 vec3 BRDF(vec3 Albedo, vec3 Norm, vec3 EyeDir, vec3 LightDir, float Roughness) {
     // Compute diffuse component
     vec3 Diffuse = Albedo * max(dot(Norm, LightDir), 0.0f);
-    
+
     // Compute specular component
     vec3 halfwayDir = normalize(LightDir + EyeDir);
     float n_h = dot(Norm, halfwayDir);
-    float specPower = (1.0 - Roughness) * 128.0f; // Higher roughness leads to a wider specular highlight
-    vec3 Specular = vec3(pow(n_h, specPower));
+    float specPower = mix(32.0f, 128.0f, 1.0 - Roughness); // Dynamic specular power based on roughness
+    vec3 Specular = vec3(pow(max(n_h, 0.0f), specPower));
 
     return Diffuse + Specular;
 }
@@ -101,11 +102,19 @@ void main() {
     vec4 texColor = texture(texSampler, fragUV);
     vec3 Albedo = texColor.rgb;
     float alpha = texColor.a;
-    vec3 sampledNorm = texture(normalMap, fragUV).rgb * 2.0 - 1.0;
     float Roughness = texture(roughnessMap, fragUV).r;
 
-    // Transform the sampled normal to the correct space
-    vec3 Norm = normalize(sampledNorm);
+    // Sample the normal map
+    vec3 normalMapSample = texture(normalMap, fragUV).rgb;
+    vec3 normalMapNormal = normalize(normalMapSample * 2.0 - 1.0);      // Convert from [0,1] range to [-1,1] range
+
+	vec3 N = normalize(fragNorm);
+	vec3 Tan = normalize(fragTan.xyz - N * dot(fragTan.xyz, N));
+	vec3 Bitan = cross(N, Tan) * fragTan.w;
+
+    mat3 TBN = mat3(Tan, Bitan, N);
+	vec3 Norm = normalize(TBN * normalMapNormal);
+
     vec3 EyeDir = normalize(gubo.eyePos - fragPos);
     
     vec3 LD;

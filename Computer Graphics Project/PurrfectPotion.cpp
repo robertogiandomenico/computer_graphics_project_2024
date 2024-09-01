@@ -114,7 +114,7 @@ protected:
 
 	// Cat initial position
 	glm::vec3 catPosition;
-	glm::vec3 catDimensions = glm::vec3(1.4f, 1.2f, 0.2f);
+	glm::vec3 catDimensions = glm::vec3(1.2f, 1.2f, 0.3f);
 	// Cat initial orientation
 	float catYaw;
 
@@ -180,9 +180,9 @@ protected:
 					// Living room
 					M_sofa, M_table, M_tv,
 					// Other
-					M_cat, M_floor, M_walls;
+					M_cat;
 	// Other
-	Model<VertexTan> M_knight;
+	Model<VertexTan> M_knight, M_floor, M_walls;
 	Model<skyBoxVertex> M_skyBox;
 	Model<VertexOverlay> M_timer[5], M_screens[3], M_scroll, M_collectibles[COLLECTIBLES_NUM];
 	std::vector<Model<VertexBoundingBox>> M_boundingBox;
@@ -208,7 +208,7 @@ protected:
 
 	// Textures
 	Texture T_textures, T_eye, T_closet, T_feather, T_knightDiffuse, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3],
-			T_scroll, T_collectibles[COLLECTIBLES_NUM], T_catDiffuse, T_catDiffuseGhost, T_catSpec, T_catNorm, T_wall[3], T_floor[3];
+			T_scroll, T_collectibles[COLLECTIBLES_NUM], T_catDiffuseGhost, T_cat[3], T_wall[3], T_floor[3];
 
 	// C++ storage for uniform variables
 	UniformBufferObject // Bathroom
@@ -427,7 +427,7 @@ protected:
 		P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_ward });
 		P_ward.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
-		P_DRN.init(this, &VD, "shaders/ShaderVert.spv", "shaders/DRNFrag.spv", { &DSL_DRN });
+		P_DRN.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/DRNFrag.spv", { &DSL_DRN });
 		P_DRN.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
@@ -472,11 +472,12 @@ protected:
 		M_sofa.init(this,		&VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
 		M_table.init(this,		&VD, "models/livingroom/livingroom_table.gltf", GLTF);
 		M_tv.init(this,			&VD, "models/livingroom/livingroom_tv.gltf", GLTF);
-		M_knight.init(this,		&VD_tangent, "models/livingroom/livingroom_knight.gltf", GLTF);
 
 		M_cat.init(this,		&VD, "models/other/cat.gltf", GLTF);
-		M_floor.init(this,		&VD, "models/other/floor.gltf", GLTF);
-		M_walls.init(this,		&VD, "models/other/walls.gltf", GLTF);
+
+		M_knight.init(this,		&VD_tangent, "models/livingroom/livingroom_knight.gltf", GLTF);
+		M_floor.init(this,		&VD_tangent, "models/other/floor.gltf", GLTF);
+		M_walls.init(this,		&VD_tangent, "models/other/walls.gltf", GLTF);
 
 		M_skyBox.init(this,		&VD_skyBox, "models/sky/SkyBoxCube.obj", OBJ);
 
@@ -562,10 +563,10 @@ protected:
 		T_knightSpec.init(this,		"textures/knight/knight_metallic.png");
 		T_knightNorm.init(this,		"textures/knight/knight_normal.png");
 
-		T_catDiffuse.init(this,		 "textures/cat/cat_diffuse.png");
-		T_catDiffuseGhost.init(this, "textures/cat/cat_diffuse_ghost.png");
-		T_catSpec.init(this,		 "textures/cat/hairSpec.jpg");
-		T_catNorm.init(this,		 "textures/cat/hairNorm.jpg");
+		T_catDiffuseGhost.init(this,"textures/cat/cat_diffuse_ghost.png");
+		T_cat[0].init(this,			"textures/cat/cat_diffuse.png");
+		T_cat[1].init(this,			"textures/cat/cat_normal.jpg");
+		T_cat[2].init(this,			"textures/cat/cat_roughness.jpg");
 
 		T_skyBox.init(this,		"textures/sky_Texture.jpg");
 
@@ -813,7 +814,7 @@ protected:
 			});
 		DS_catFainted.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_catDiffuse},
+					{1, TEXTURE, 0, &T_cat[0]},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
@@ -962,16 +963,14 @@ protected:
 		T_knightSpec.cleanup();
 		T_knightNorm.cleanup();
 
-		T_catDiffuse.cleanup();
 		T_catDiffuseGhost.cleanup();
-		T_catSpec.cleanup();
-		T_catNorm.cleanup();
 
 		T_skyBox.cleanup();
 
 		for (int i = 0; i < 3; i++) {
 			T_wall[i].cleanup();
 			T_floor[i].cleanup();
+			T_cat[i].cleanup();
 		}
 
 		for (int i = 0; i < 3; i++) {
@@ -1583,8 +1582,8 @@ protected:
 		gubo.lightColor[8] = glm::vec4(glm::vec3(0.1f, 0.1f, 1.0f), 20.0f);	// color: blue
 		gubo.lightDir[8] = glm::vec3(0, 1, 0);								// light from above
 
-		gubo.cosIn = glm::cos(glm::radians(25.0f));							// cos of the inner angle of the spot light
-		gubo.cosOut = glm::cos(glm::radians(55.0f));						// cos of the outer angle of the spot light
+		gubo.cosIn = glm::cos(glm::radians(35.0f));							// cos of the inner angle of the spot light
+		gubo.cosOut = glm::cos(glm::radians(45.0f));						// cos of the outer angle of the spot light
 		
 		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
 			gubo.lightPos[i + 9] = collectiblesRandomPosition[i] + glm::vec3(0.f, 0.5f, 0.f);
