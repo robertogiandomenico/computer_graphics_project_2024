@@ -21,6 +21,7 @@ layout(binding = 2) uniform GlobalUniformBufferObject {
     vec4 lightOn;					// Lights on/off flags (point, direct, spot, ambient component)
     float cosIn;					// Spot light inner cone angle
 	float cosOut;					// Spot light outer cone angle
+    bool gameOver;                  // Game over flag
 } gubo;
 
 // New uniform for emissive color
@@ -73,13 +74,11 @@ void main() {
 	// Sample the normal map
     vec3 normalMapSample = texture(norm, fragUV).rgb;
 
-	// Convert from [0,1] range to [-1,1] range
-    vec3 normalMapNormal = normalize(normalMapSample * 2.0 - 1.0);
-
 	vec3 Norm = normalize(fragNorm);
 	vec3 Tan = normalize(fragTan.xyz - Norm * dot(fragTan.xyz, Norm));
 	vec3 Bitan = cross(Norm, Tan) * fragTan.w;
-	vec3 N = normalize(normalMapNormal * Tan + normalMapNormal * Bitan + normalMapNormal * fragNorm);
+    mat3 tbn = mat3(Tan, Bitan, Norm);
+	vec3 N = normalize(tbn * (normalMapSample * 2.0 - 1.0));
 
     // Sample Textures
 	vec3 albedo  = texture(tex,  fragUV).rgb;

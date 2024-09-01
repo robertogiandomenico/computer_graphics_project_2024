@@ -106,14 +106,12 @@ void main() {
 
     // Sample the normal map
     vec3 normalMapSample = texture(normalMap, fragUV).rgb;
-    vec3 normalMapNormal = normalize(normalMapSample * 2.0 - 1.0);      // Convert from [0,1] range to [-1,1] range
 
 	vec3 N = normalize(fragNorm);
 	vec3 Tan = normalize(fragTan.xyz - N * dot(fragTan.xyz, N));
 	vec3 Bitan = cross(N, Tan) * fragTan.w;
-
-    mat3 TBN = mat3(Tan, Bitan, N);
-	vec3 Norm = normalize(TBN * normalMapNormal);
+    mat3 tbn = mat3(Tan, Bitan, N);
+	vec3 Norm = normalize(tbn * (normalMapSample * 2.0 - 1.0));
 
     vec3 EyeDir = normalize(gubo.eyePos - fragPos);
     
