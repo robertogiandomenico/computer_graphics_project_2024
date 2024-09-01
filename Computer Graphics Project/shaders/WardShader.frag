@@ -81,8 +81,18 @@ void main() {
 	vec3 Bitan = cross(Norm, Tan) * fragTan.w;
 	vec3 N = normalize(normalMapNormal * Tan + normalMapNormal * Bitan + normalMapNormal * fragNorm);
 
+    // Sample Textures
 	vec3 albedo  = texture(tex,  fragUV).rgb;
 	vec3 specCol = texture(spet, fragUV).rgb;
+
+    // Metallic Factor
+    float metallic = 1.0;
+
+    // Adjust Diffuse and Specular Based on Metallic
+    // For non-metallic (metallic = 0.0): Md = albedo, Ms = vec3(0.04)
+    // For metallic (metallic = 1.0): Md = vec3(0.0), Ms = specCol
+    vec3 Md = mix(albedo * (1.0 - metallic), vec3(0.0), metallic);
+    vec3 Ms = mix(vec3(0.04), specCol, metallic);
 
 	vec3 finalColor = vec3(0.0f);
 
@@ -106,7 +116,7 @@ void main() {
             attenuation = 1.0 / (0.1 + 0.1 * distance + 0.01 * distance * distance) * gubo.lightOn.x;   // standard attenuation formula
         }
 
-        vec3 DiffSpec = BRDF(V, N, L, Tan, Bitan, albedo, specCol, 0.1f, 0.1f);
+        vec3 DiffSpec = BRDF(V, N, L, Tan, Bitan, Md, Ms, 0.1f, 0.1f);
         
         finalColor += DiffSpec * gubo.lightColor[i].rgb * attenuation;
     }
