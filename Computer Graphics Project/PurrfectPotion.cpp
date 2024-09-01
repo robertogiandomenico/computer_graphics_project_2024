@@ -180,9 +180,9 @@ protected:
 					// Living room
 					M_sofa, M_table, M_tv,
 					// Other
-					M_cat, M_floor, M_walls;
+					M_cat;
 	// Other
-	Model<VertexTan> M_knight;
+	Model<VertexTan> M_knight, M_floor, M_walls;
 	Model<skyBoxVertex> M_skyBox;
 	Model<VertexOverlay> M_timer[5], M_screens[3], M_scroll, M_collectibles[COLLECTIBLES_NUM];
 	std::vector<Model<VertexBoundingBox>> M_boundingBox;
@@ -427,7 +427,7 @@ protected:
 		P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_ward });
 		P_ward.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
-		P_DRN.init(this, &VD, "shaders/ShaderVert.spv", "shaders/DRNFrag.spv", { &DSL_DRN });
+		P_DRN.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/DRNFrag.spv", { &DSL_DRN });
 		P_DRN.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
@@ -472,11 +472,12 @@ protected:
 		M_sofa.init(this,		&VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
 		M_table.init(this,		&VD, "models/livingroom/livingroom_table.gltf", GLTF);
 		M_tv.init(this,			&VD, "models/livingroom/livingroom_tv.gltf", GLTF);
-		M_knight.init(this,		&VD_tangent, "models/livingroom/livingroom_knight.gltf", GLTF);
 
 		M_cat.init(this,		&VD, "models/other/cat.gltf", GLTF);
-		M_floor.init(this,		&VD, "models/other/floor.gltf", GLTF);
-		M_walls.init(this,		&VD, "models/other/walls.gltf", GLTF);
+
+		M_knight.init(this,		&VD_tangent, "models/livingroom/livingroom_knight.gltf", GLTF);
+		M_floor.init(this,		&VD_tangent, "models/other/floor.gltf", GLTF);
+		M_walls.init(this,		&VD_tangent, "models/other/walls.gltf", GLTF);
 
 		M_skyBox.init(this,		&VD_skyBox, "models/sky/SkyBoxCube.obj", OBJ);
 
@@ -1583,8 +1584,8 @@ protected:
 		gubo.lightColor[8] = glm::vec4(glm::vec3(0.1f, 0.1f, 1.0f), 20.0f);	// color: blue
 		gubo.lightDir[8] = glm::vec3(0, 1, 0);								// light from above
 
-		gubo.cosIn = glm::cos(glm::radians(25.0f));							// cos of the inner angle of the spot light
-		gubo.cosOut = glm::cos(glm::radians(55.0f));						// cos of the outer angle of the spot light
+		gubo.cosIn = glm::cos(glm::radians(35.0f));							// cos of the inner angle of the spot light
+		gubo.cosOut = glm::cos(glm::radians(45.0f));						// cos of the outer angle of the spot light
 		
 		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
 			gubo.lightPos[i + 9] = collectiblesRandomPosition[i] + glm::vec3(0.f, 0.5f, 0.f);
