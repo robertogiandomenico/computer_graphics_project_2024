@@ -114,7 +114,7 @@ protected:
 
 	// Cat initial position
 	glm::vec3 catPosition;
-	glm::vec3 catDimensions = glm::vec3(1.4f, 1.2f, 0.2f);
+	glm::vec3 catDimensions = glm::vec3(1.2f, 1.2f, 0.3f);
 	// Cat initial orientation
 	float catYaw;
 
