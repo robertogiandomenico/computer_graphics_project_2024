@@ -208,7 +208,7 @@ protected:
 
 	// Textures
 	Texture T_textures, T_eye, T_closet, T_feather, T_knightDiffuse, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3],
-			T_scroll, T_collectibles[COLLECTIBLES_NUM], T_catDiffuse, T_catDiffuseGhost, T_catSpec, T_catNorm, T_wall[3], T_floor[3];
+			T_scroll, T_collectibles[COLLECTIBLES_NUM], T_catDiffuseGhost, T_cat[3], T_wall[3], T_floor[3];
 
 	// C++ storage for uniform variables
 	UniformBufferObject // Bathroom
@@ -563,10 +563,10 @@ protected:
 		T_knightSpec.init(this,		"textures/knight/knight_metallic.png");
 		T_knightNorm.init(this,		"textures/knight/knight_normal.png");
 
-		T_catDiffuse.init(this,		 "textures/cat/cat_diffuse.png");
-		T_catDiffuseGhost.init(this, "textures/cat/cat_diffuse_ghost.png");
-		T_catSpec.init(this,		 "textures/cat/hairSpec.jpg");
-		T_catNorm.init(this,		 "textures/cat/hairNorm.jpg");
+		T_catDiffuseGhost.init(this,"textures/cat/cat_diffuse_ghost.png");
+		T_cat[0].init(this,			"textures/cat/cat_diffuse.png");
+		T_cat[1].init(this,			"textures/cat/cat_normal.jpg");
+		T_cat[2].init(this,			"textures/cat/cat_roughness.jpg");
 
 		T_skyBox.init(this,		"textures/sky_Texture.jpg");
 
@@ -814,7 +814,7 @@ protected:
 			});
 		DS_catFainted.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_catDiffuse},
+					{1, TEXTURE, 0, &T_cat[0]},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
@@ -963,16 +963,14 @@ protected:
 		T_knightSpec.cleanup();
 		T_knightNorm.cleanup();
 
-		T_catDiffuse.cleanup();
 		T_catDiffuseGhost.cleanup();
-		T_catSpec.cleanup();
-		T_catNorm.cleanup();
 
 		T_skyBox.cleanup();
 
 		for (int i = 0; i < 3; i++) {
 			T_wall[i].cleanup();
 			T_floor[i].cleanup();
+			T_cat[i].cleanup();
 		}
 
 		for (int i = 0; i < 3; i++) {

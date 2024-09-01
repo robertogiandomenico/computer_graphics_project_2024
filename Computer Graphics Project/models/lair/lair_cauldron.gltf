@@ -42,15 +42,15 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":1404,
+			"count":1810,
 			"max":[
-				0.5816447734832764,
+				0.5877179503440857,
 				0.7545174360275269,
 				0.5638306140899658
 			],
 			"min":[
 				-0.6046165823936462,
-				-0.0004607588052749634,
+				-0.0007295683026313782,
 				-0.5659950971603394
 			],
 			"type":"VEC3"
@@ -58,51 +58,51 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":1404,
+			"count":1810,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":1404,
+			"count":1810,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":2115,
+			"count":2709,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":16848,
+			"byteLength":21720,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":16848,
-			"byteOffset":16848,
+			"byteLength":21720,
+			"byteOffset":21720,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":11232,
-			"byteOffset":33696,
+			"byteLength":14480,
+			"byteOffset":43440,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4230,
-			"byteOffset":44928,
+			"byteLength":5418,
+			"byteOffset":57920,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":49160,
+			"byteLength":63340,
 			"uri":"lair_cauldron.bin"
 		}
 	]

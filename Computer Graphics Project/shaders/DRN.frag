@@ -91,8 +91,8 @@ vec3 BRDF(vec3 Albedo, vec3 Norm, vec3 EyeDir, vec3 LightDir, float Roughness) {
     // Compute specular component
     vec3 halfwayDir = normalize(LightDir + EyeDir);
     float n_h = dot(Norm, halfwayDir);
-    float specPower = (1.0 - Roughness) * 128.0f; // Higher roughness leads to a wider specular highlight
-    vec3 Specular = vec3(pow(n_h, specPower));
+    float specPower = mix(32.0f, 128.0f, 1.0 - Roughness); // Dynamic specular power based on roughness
+    vec3 Specular = vec3(pow(max(n_h, 0.0f), specPower));
 
     return Diffuse + Specular;
 }
