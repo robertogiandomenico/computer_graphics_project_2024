@@ -10,6 +10,8 @@
 #include "Utils.hpp"
 #include "World.hpp"
 
+#define M_PI		3.14159265358979323846	/* pi */
+#define M_PI_2		1.57079632679489661923	/* pi/2 */
 #define LIGHTS_NUM 16
 #define COLLECTIBLES_NUM 7
 
@@ -1303,7 +1305,7 @@ protected:
 		glm::mat4 Mv;
 
 		// Parameters for camera movement and rotation
-		const float ROT_SPEED = glm::radians(90.0f);
+		const float ROT_SPEED = glm::radians(100.0f);
 		const float MOVE_SPEED = 10.0f;
 
 		totalElapsedTime += deltaT;
@@ -1470,16 +1472,24 @@ protected:
 				curDebounce = 0;
 			}
 
-			// Limit the distance from the cat and the pitch to avoid gimbal lock
-			camDist = glm::clamp(camDist, -1.0f, 4.0f);
-			camPitch = glm::clamp(camPitch, FIRST_PERSON ? glm::radians(-13.0f) : glm::radians(-18.0f), glm::radians(5.0f));
-			// camRoll = glm::clamp(camRoll, glm::radians(-10.0f), glm::radians(10.0f));
-
 			// Update camera yaw, pitch, and roll
 			camYaw += ROT_SPEED * deltaT * r.y;
 			camPitch -= ROT_SPEED * deltaT * r.x;
 			camRoll -= ROT_SPEED * deltaT * r.z;
 			camDist -= MOVE_SPEED * deltaT * m.y;
+
+			// Limit the distance from the cat and the pitch to avoid gimbal lock
+			camDist = glm::clamp(camDist, 1.5f, 5.0f);
+
+			float minPitch = 0.0f;
+			float maxPitch = M_PI_2 - 0.1f;
+			camPitch = glm::clamp(camPitch, minPitch, maxPitch);
+
+			float minRoll = -M_PI_2;
+			float maxRoll = M_PI_2;
+			camRoll = glm::clamp(camRoll, minRoll, maxRoll);
+
+			// camYaw = glm::clamp(camYaw, -M_PI, M_PI);
 
 			// Redefine camera forward and right vectors
 			cameraForward = glm::normalize(glm::vec3(sin(camYaw), 0.0f, cos(camYaw)));
@@ -1497,7 +1507,7 @@ protected:
 			}
       
 			if (FIRST_PERSON) {
-				// First person camera
+				// First person camera position
 				glm::vec3 ux = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(1, 0, 0, 1);
 				glm::vec3 uz = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(0, 0, -1, 1);
 
@@ -1507,11 +1517,11 @@ protected:
 
 				camPos.y += 0.9f;
 			} else {
-				// Third person camera
+				// Third person camera position
 				glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
-				glm::vec4(CamTargetDelta, 1));
+									  glm::vec4(CamTargetDelta, 1));
 				camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
-				glm::vec4(0, 0, camDist, 1));
+									 glm::vec4(0, 0, camDist, 1));
 			}
 
 			// Check if game is over because time has run out
@@ -1532,7 +1542,7 @@ protected:
 		// Parameters
 		// Camera FOV-y, Near Plane and Far Plane
 		// Set up the view and projection matrices
-		const float FOVy = FIRST_PERSON ? glm::radians(25.0f) : glm::radians(45.0f);
+		const float FOVy = FIRST_PERSON ? glm::radians(25.0f) : glm::radians(60.0f);
 		const float nearPlane = 0.1f;
 		const float farPlane = 100.0f;
 
@@ -1540,11 +1550,18 @@ protected:
 		M[1][1] *= -1;
 
 		// View matrix for camera following the cat
-		Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
-			 glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
-			 glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
-			 glm::translate(glm::mat4(1.0f), -camPos);
-		ViewPrj = M * Mv;
+		if (FIRST_PERSON) {
+			Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
+				 glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
+				 glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
+				 glm::translate(glm::mat4(1.0f), -camPos);
+			ViewPrj = M * Mv;
+		}
+		else {
+			Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
+				 glm::lookAt(camPos, catPosition, glm::vec3(0, 1, 0));
+			ViewPrj = M * Mv;
+		}
 
 		// Update rotation angle of the collectibles
 		collectibleRotationAngle += collectibleRotationSpeed * deltaT;
