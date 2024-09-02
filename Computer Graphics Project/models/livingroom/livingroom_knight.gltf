@@ -15,7 +15,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"knight2",
+			"name":"Knight",
 			"translation":[
 				-1.9497150182724,
 				0,
@@ -25,7 +25,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube.001",
+			"name":"Knight",
 			"primitives":[
 				{
 					"attributes":{
@@ -43,79 +43,79 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":1668,
+			"count":2086,
 			"max":[
-				0.27763625979423523,
+				0.4485107958316803,
 				2.5575461387634277,
-				1.0564278364181519
+				1.24595046043396
 			],
 			"min":[
-				-0.4532763957977295,
+				-1.4809168577194214,
 				0.0014144342858344316,
-				-1.0564278364181519
+				-1.3694767951965332
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":1668,
+			"count":2086,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":1668,
+			"count":2086,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5126,
-			"count":1668,
+			"count":2086,
 			"type":"VEC4"
 		},
 		{
 			"bufferView":4,
 			"componentType":5123,
-			"count":2520,
+			"count":3018,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":20016,
+			"byteLength":25032,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":20016,
-			"byteOffset":20016,
+			"byteLength":25032,
+			"byteOffset":25032,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":13344,
-			"byteOffset":40032,
+			"byteLength":16688,
+			"byteOffset":50064,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":26688,
-			"byteOffset":53376,
+			"byteLength":33376,
+			"byteOffset":66752,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":5040,
-			"byteOffset":80064,
+			"byteLength":6036,
+			"byteOffset":100128,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":85104,
+			"byteLength":106164,
 			"uri":"livingroom_knight.bin"
 		}
 	]

@@ -1363,6 +1363,7 @@ protected:
 				catYaw = 0.0f;
 
 				totalElapsedTime = 0.0f;
+				lastPressTime = 0.0f;
 				gameState = GAME_STATE_PLAY;
 
 				if (collectiblesBBs.size() == 0) {
