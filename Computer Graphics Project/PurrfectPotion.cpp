@@ -176,13 +176,13 @@ protected:
 					// Kitchen		  
 					M_chair, M_fridge, M_kitchen, M_kitchentable,
 					// Lair
-					M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web, M_catFainted,
+					M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web,
 					// Living room
 					M_sofa, M_table, M_tv,
 					// Other
 					M_cat;
 	// Other
-	Model<VertexTan> M_knight, M_floor, M_walls;
+	Model<VertexTan> M_knight, M_floor, M_walls, M_catFainted;
 	Model<skyBoxVertex> M_skyBox;
 	Model<VertexOverlay> M_timer[5], M_screens[3], M_scroll, M_collectibles[COLLECTIBLES_NUM];
 	std::vector<Model<VertexBoundingBox>> M_boundingBox;
@@ -467,7 +467,6 @@ protected:
 		M_web.init(this,		&VD, "models/lair/lair_web.gltf", GLTF);
 		M_steam.init(this,		&VD, "models/lair/lair_steamPlane.gltf", GLTF);
 		M_fire.init(this,		&VD, "models/lair/lair_firePlane.gltf", GLTF);
-		M_catFainted.init(this, &VD, "models/lair/lair_catFainted.gltf", GLTF);
 
 		M_sofa.init(this,		&VD, "models/livingroom/livingroom_sofa.gltf", GLTF);
 		M_table.init(this,		&VD, "models/livingroom/livingroom_table.gltf", GLTF);
@@ -475,6 +474,7 @@ protected:
 
 		M_cat.init(this,		&VD, "models/other/cat.gltf", GLTF);
 
+		M_catFainted.init(this, &VD_tangent, "models/lair/lair_catFainted.gltf", GLTF);
 		M_knight.init(this,		&VD_tangent, "models/livingroom/livingroom_knight.gltf", GLTF);
 		M_floor.init(this,		&VD_tangent, "models/other/floor.gltf", GLTF);
 		M_walls.init(this,		&VD_tangent, "models/other/walls.gltf", GLTF);
@@ -560,13 +560,13 @@ protected:
 		T_floor[2].init(this,	"textures/floor/floor_roughness.jpg");
 
 		T_knightDiffuse.init(this,	"textures/knight/knight_diffuse.png");
-		T_knightSpec.init(this,		"textures/knight/knight_metallic.png");
-		T_knightNorm.init(this,		"textures/knight/knight_normal.png");
+		T_knightSpec.init(this,		"textures/knight/knight_metallic.jpg");
+		T_knightNorm.init(this, "textures/knight/knight_normal.jpg");
 
 		T_catDiffuseGhost.init(this,"textures/cat/cat_diffuse_ghost.png");
 		T_cat[0].init(this,			"textures/cat/cat_diffuse.png");
 		T_cat[1].init(this,			"textures/cat/cat_normal.jpg");
-		T_cat[2].init(this,			"textures/cat/cat_roughness.jpg");
+		T_cat[2].init(this,			"textures/cat/cat_roughness1.jpg");
 
 		T_skyBox.init(this,		"textures/sky_Texture.jpg");
 
@@ -812,11 +812,13 @@ protected:
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
-		DS_catFainted.init(this, &DSL, {
+		DS_catFainted.init(this, &DSL_DRN, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_cat[0]},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					{3, UNIFORM, sizeof(glm::vec3), nullptr},
+					{4, TEXTURE, 0, &T_cat[1]},
+					{5, TEXTURE, 0, &T_cat[2]}
 			});
 
 		DS_floor.init(this, &DSL_DRN, {
@@ -826,7 +828,7 @@ protected:
 					{3, UNIFORM, sizeof(glm::vec3), nullptr},
 					{4, TEXTURE, 0, &T_floor[1]},
 					{5, TEXTURE, 0, &T_floor[2]}
-		});
+			});
 		DS_walls.init(this, &DSL_DRN, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_wall[0]},
@@ -834,7 +836,7 @@ protected:
 					{3, UNIFORM, sizeof(glm::vec3), nullptr},
 					{4, TEXTURE, 0, &T_wall[1]},
 					{5, TEXTURE, 0, &T_wall[2]}
-		});
+			});
 		
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			DS_boundingBox.push_back(DescriptorSet());
@@ -1191,10 +1193,6 @@ protected:
 		M_web.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_web.indices.size()), 1, 0, 0, 0);
 
-		DS_catFainted.bind(commandBuffer, P, 0, currentImage);
-		M_catFainted.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_catFainted.indices.size()), 1, 0, 0, 0);
-
 		DS_sofa.bind(commandBuffer, P, 0, currentImage);
 		M_sofa.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_sofa.indices.size()), 1, 0, 0, 0);
@@ -1212,6 +1210,10 @@ protected:
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
 
 		P_DRN.bind(commandBuffer);
+		DS_catFainted.bind(commandBuffer, P_DRN, 0, currentImage);
+		M_catFainted.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_catFainted.indices.size()), 1, 0, 0, 0);
+
 		DS_floor.bind(commandBuffer, P_DRN, 0, currentImage);
 		M_floor.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_floor.indices.size()), 1, 0, 0, 0);
