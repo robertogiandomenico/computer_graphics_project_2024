@@ -1303,8 +1303,8 @@ protected:
 		glm::mat4 Mv;
 
 		// Parameters for camera movement and rotation
-		const float ROT_SPEED = glm::radians(120.0f);
-		const float MOVE_SPEED = 10.0f;
+		float ROT_SPEED = glm::radians(150.0f);
+		float MOVE_SPEED = 6.0f;
 
 		totalElapsedTime += deltaT;
 
@@ -1313,8 +1313,8 @@ protected:
 
 		if (gameState == GAME_STATE_START_SCREEN || gameState == GAME_STATE_GAME_WIN || gameState == GAME_STATE_GAME_LOSE) {
 
-			camPos = glm::vec3(-5.7f, 3.5f, -1.7f);
-			camYaw = glm::radians(30.0f);
+			camPos = glm::vec3(-5.5f, 2.6f, -2.8f);
+			camYaw = glm::radians(40.0f);
 			camPitch = glm::radians(-20.0f);
 			camRoll = 0.0f;
 
@@ -1418,6 +1418,12 @@ protected:
 				lastPressTime = totalElapsedTime;
 			}
 
+			// Press SHIFT key to sprint
+			if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
+				MOVE_SPEED = 12.0f;
+				ROT_SPEED = glm::radians(200.0f);
+			}
+
 			// Turn on/off point lights
 			if (glfwGetKey(window, GLFW_KEY_1)) {
 				if (!debounce) {
@@ -1478,7 +1484,7 @@ protected:
 			camDist -= MOVE_SPEED * deltaT * m.y;
 
 			// Limit the distance from the cat and the pitch to avoid gimbal lock
-			camDist = glm::clamp(camDist, 1.5f, 5.0f);
+			camDist = glm::clamp(camDist, 1.5f, 4.0f);
 
 			float minPitch = glm::radians(-20.0f);
 			float maxPitch = M_PI_2 - 0.1f;
@@ -1550,14 +1556,13 @@ protected:
 		M[1][1] *= -1;
 
 		// View matrix for camera following the cat
-		if (FIRST_PERSON) {
+		if (FIRST_PERSON || gameState != GAME_STATE_PLAY) {
 			Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
 				 glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
 				 glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
 				 glm::translate(glm::mat4(1.0f), -camPos);
 			ViewPrj = M * Mv;
-		}
-		else {
+		} else if(!FIRST_PERSON && gameState == GAME_STATE_PLAY) {
 			Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
 				 glm::lookAt(camPos, catPosition, glm::vec3(0, 1, 0));
 			ViewPrj = M * Mv;
@@ -1588,8 +1593,8 @@ protected:
 		gubo.lightPos[5] = glm::vec3(-7.0f, 2.0f, 7.f);						// position: living room
 		gubo.lightColor[5] = glm::vec4(glm::vec3(0.2f, 1.0f, 0.2f), 2.0f);	// color: green
 
-		gubo.lightPos[6] = glm::vec3(0.f, 2.0f, -8.f);						// position: bathroom
-		gubo.lightColor[6] = glm::vec4(glm::vec3(0.06f, 0.03f, 0.f), 2.0f);	// color: orange
+		gubo.lightPos[6] = glm::vec3(0.f, 2.5f, -8.f);						// position: bathroom
+		gubo.lightColor[6] = glm::vec4(glm::vec3(0.50f, 0.25f, 0.f), 2.0f);	// color: orange
 
 		gubo.lightPos[7] = glm::vec3(0.0f, 0.0f, 0.0f);						// position: null
 		gubo.lightDir[7] = glm::vec3(-0.5, 1.0, 0.5);						// (sun) light from outside
