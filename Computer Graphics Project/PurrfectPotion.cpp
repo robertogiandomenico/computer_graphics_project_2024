@@ -428,7 +428,7 @@ protected:
 		P_ward.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
 		P_DRN.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/DRNFrag.spv", { &DSL_DRN });
-		P_DRN.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+		P_DRN.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
 
@@ -1471,7 +1471,8 @@ protected:
 			}
 
 			// Update camera yaw, pitch, and roll
-			camYaw += ROT_SPEED * deltaT * r.y;
+			int yawFactor = FIRST_PERSON ? -1 : 1;
+			camYaw += ROT_SPEED * deltaT * r.y * yawFactor;
 			camPitch -= ROT_SPEED * deltaT * r.x;
 			camRoll -= ROT_SPEED * deltaT * r.z;
 			camDist -= MOVE_SPEED * deltaT * m.y;
@@ -1479,7 +1480,7 @@ protected:
 			// Limit the distance from the cat and the pitch to avoid gimbal lock
 			camDist = glm::clamp(camDist, 1.5f, 5.0f);
 
-			float minPitch = 0.0f;
+			float minPitch = glm::radians(-20.0f);
 			float maxPitch = M_PI_2 - 0.1f;
 			camPitch = glm::clamp(camPitch, minPitch, maxPitch);
 
@@ -1513,6 +1514,7 @@ protected:
 				// camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;	// uncomment to enable R and F keys
 				camPos = camPos + MOVE_SPEED * m.z * uz * deltaT;
 
+				camPos.x -= 0.5f;
 				camPos.y += 0.9f;
 			} else {
 				// Third person camera position
