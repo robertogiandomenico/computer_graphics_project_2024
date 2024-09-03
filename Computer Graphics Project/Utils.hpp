@@ -10,7 +10,8 @@
 #define GAME_STATE_GAME_WIN 2
 #define GAME_STATE_GAME_LOSE 3
 
-#define PI 3.14159265359
+#define M_PI		3.14159265358979323846	/* pi */
+#define M_PI_2		1.57079632679489661923	/* pi/2 */
 
 glm::vec3 generateRandomPosition(int squareSide) {
 	glm::vec3 randomPosition;

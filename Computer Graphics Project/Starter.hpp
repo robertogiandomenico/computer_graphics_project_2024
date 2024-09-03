@@ -1821,41 +1821,41 @@ std::cout << "Starting createInstance()\n"  << std::flush;
 		}
 
 		if(glfwGetKey(window, GLFW_KEY_LEFT)) {
-			r.y = -0.6f;
+			r.y = -1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_RIGHT)) {
-			r.y = 0.6f;
+			r.y = 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_UP)) {
-			r.x = -0.6f;
+			r.x = -1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_DOWN)) {
-			r.x = 0.6f;
+			r.x = 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_Q)) {
-			r.z = 0.6f;
+			r.z = 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_E)) {
-			r.z = -0.6f;
+			r.z = -1.0f;
 		}
 
 		if(glfwGetKey(window, GLFW_KEY_A)) {
-			m.x = -0.6f;
+			m.x = -1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_D)) {
-			m.x = 0.6f;
+			m.x = 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_S)) {
-			m.z = -0.6f;
+			m.z = -1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_W)) {
-			m.z = 0.6f;
+			m.z = 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_R)) {
-			m.y = 0.6f;
+			m.y = 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_F)) {
-			m.y = -0.6f;
+			m.y = -1.0f;
 		}
 		
 		fire = glfwGetKey(window, GLFW_KEY_SPACE) | glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;

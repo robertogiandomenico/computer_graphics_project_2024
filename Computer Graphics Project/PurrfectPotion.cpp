@@ -428,7 +428,7 @@ protected:
 		P_ward.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
 		P_DRN.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/DRNFrag.spv", { &DSL_DRN });
-		P_DRN.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+		P_DRN.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
 
@@ -1305,8 +1305,8 @@ protected:
 		glm::mat4 Mv;
 
 		// Parameters for camera movement and rotation
-		const float ROT_SPEED = glm::radians(90.0f);
-		const float MOVE_SPEED = 10.0f;
+		float ROT_SPEED = glm::radians(150.0f);
+		float MOVE_SPEED = 6.0f;
 
 		totalElapsedTime += deltaT;
 
@@ -1315,8 +1315,8 @@ protected:
 
 		if (gameState == GAME_STATE_START_SCREEN || gameState == GAME_STATE_GAME_WIN || gameState == GAME_STATE_GAME_LOSE) {
 
-			camPos = glm::vec3(-5.7f, 3.5f, -1.7f);
-			camYaw = glm::radians(30.0f);
+			camPos = glm::vec3(-5.5f, 2.6f, -2.8f);
+			camYaw = glm::radians(40.0f);
 			camPitch = glm::radians(-20.0f);
 			camRoll = 0.0f;
 
@@ -1421,6 +1421,12 @@ protected:
 				lastPressTime = totalElapsedTime;
 			}
 
+			// Press SHIFT key to sprint
+			if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
+				MOVE_SPEED = 12.0f;
+				ROT_SPEED = glm::radians(200.0f);
+			}
+
 			// Turn on/off point lights
 			if (glfwGetKey(window, GLFW_KEY_1)) {
 				if (!debounce) {
@@ -1473,16 +1479,25 @@ protected:
 				curDebounce = 0;
 			}
 
-			// Limit the distance from the cat and the pitch to avoid gimbal lock
-			camDist = glm::clamp(camDist, -1.0f, 4.0f);
-			camPitch = glm::clamp(camPitch, FIRST_PERSON ? glm::radians(-13.0f) : glm::radians(-18.0f), glm::radians(5.0f));
-			// camRoll = glm::clamp(camRoll, glm::radians(-10.0f), glm::radians(10.0f));
-
 			// Update camera yaw, pitch, and roll
-			camYaw += ROT_SPEED * deltaT * r.y;
+			int yawFactor = FIRST_PERSON ? -1 : 1;
+			camYaw += ROT_SPEED * deltaT * r.y * yawFactor;
 			camPitch -= ROT_SPEED * deltaT * r.x;
 			camRoll -= ROT_SPEED * deltaT * r.z;
 			camDist -= MOVE_SPEED * deltaT * m.y;
+
+			// Limit the distance from the cat and the pitch to avoid gimbal lock
+			camDist = glm::clamp(camDist, 1.5f, 4.0f);
+
+			float minPitch = glm::radians(-20.0f);
+			float maxPitch = M_PI_2 - 0.1f;
+			camPitch = glm::clamp(camPitch, minPitch, maxPitch);
+
+			float minRoll = -M_PI_2;
+			float maxRoll = M_PI_2;
+			camRoll = glm::clamp(camRoll, minRoll, maxRoll);
+
+			// camYaw = glm::clamp(camYaw, -M_PI, M_PI);
 
 			// Redefine camera forward and right vectors
 			cameraForward = glm::normalize(glm::vec3(sin(camYaw), 0.0f, cos(camYaw)));
@@ -1500,7 +1515,7 @@ protected:
 			}
       
 			if (FIRST_PERSON) {
-				// First person camera
+				// First person camera position
 				glm::vec3 ux = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(1, 0, 0, 1);
 				glm::vec3 uz = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(0, 0, -1, 1);
 
@@ -1508,13 +1523,14 @@ protected:
 				// camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;	// uncomment to enable R and F keys
 				camPos = camPos + MOVE_SPEED * m.z * uz * deltaT;
 
+				camPos.x -= 0.5f;
 				camPos.y += 0.9f;
 			} else {
-				// Third person camera
+				// Third person camera position
 				glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
-				glm::vec4(CamTargetDelta, 1));
+									  glm::vec4(CamTargetDelta, 1));
 				camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
-				glm::vec4(0, 0, camDist, 1));
+									 glm::vec4(0, 0, camDist, 1));
 			}
 
 			// Check if game is over because time has run out
@@ -1535,7 +1551,7 @@ protected:
 		// Parameters
 		// Camera FOV-y, Near Plane and Far Plane
 		// Set up the view and projection matrices
-		const float FOVy = FIRST_PERSON ? glm::radians(25.0f) : glm::radians(45.0f);
+		const float FOVy = FIRST_PERSON ? glm::radians(25.0f) : glm::radians(60.0f);
 		const float nearPlane = 0.1f;
 		const float farPlane = 100.0f;
 
@@ -1543,16 +1559,22 @@ protected:
 		M[1][1] *= -1;
 
 		// View matrix for camera following the cat
-		Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
-			 glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
-			 glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
-			 glm::translate(glm::mat4(1.0f), -camPos);
-		ViewPrj = M * Mv;
+		if (FIRST_PERSON || gameState != GAME_STATE_PLAY) {
+			Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
+				 glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
+				 glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
+				 glm::translate(glm::mat4(1.0f), -camPos);
+			ViewPrj = M * Mv;
+		} else if(!FIRST_PERSON && gameState == GAME_STATE_PLAY) {
+			Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
+				 glm::lookAt(camPos, catPosition, glm::vec3(0, 1, 0));
+			ViewPrj = M * Mv;
+		}
 
 		// Update rotation angle of the collectibles
 		collectibleRotationAngle += collectibleRotationSpeed * deltaT;
-		if (collectibleRotationAngle >= 2 * PI) {
-			collectibleRotationAngle -= 2* PI;
+		if (collectibleRotationAngle >= 2 * M_PI) {
+			collectibleRotationAngle -= 2 * M_PI;
 		}
 
 		GlobalUniformBufferObject gubo = {};
@@ -1574,8 +1596,8 @@ protected:
 		gubo.lightPos[5] = glm::vec3(-7.0f, 2.0f, 7.f);						// position: living room
 		gubo.lightColor[5] = glm::vec4(glm::vec3(0.2f, 1.0f, 0.2f), 2.0f);	// color: green
 
-		gubo.lightPos[6] = glm::vec3(0.f, 2.0f, -8.f);						// position: bathroom
-		gubo.lightColor[6] = glm::vec4(glm::vec3(0.06f, 0.03f, 0.f), 2.0f);	// color: orange
+		gubo.lightPos[6] = glm::vec3(0.f, 2.5f, -8.f);						// position: bathroom
+		gubo.lightColor[6] = glm::vec4(glm::vec3(0.50f, 0.25f, 0.f), 2.0f);	// color: orange
 
 		gubo.lightPos[7] = glm::vec3(0.0f, 0.0f, 0.0f);						// position: null
 		gubo.lightDir[7] = glm::vec3(-0.5, 1.0, 0.5);						// (sun) light from outside
