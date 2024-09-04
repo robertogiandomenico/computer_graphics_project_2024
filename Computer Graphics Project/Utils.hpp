@@ -93,13 +93,13 @@ std::string collectiblesNames[COLLECTIBLES_NUM] = {
 	"bone"
 };
 
-glm::vec3 generateRandomPosition(int squareSide) {
+glm::vec3 generateRandomPosition(float squareSide) {
 	glm::vec3 randomPosition;
 
 	randomPosition = glm::vec3(
-		-squareSide + rand() % (squareSide * 2 + 1),
+		-squareSide + fmod(rand(), squareSide * 2 + 1),
 		0.4f,
-		-squareSide + rand() % (squareSide * 2 + 1)
+		-squareSide + fmod(rand(), squareSide * 2 + 1)
 	);
 
 	return randomPosition;

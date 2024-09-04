@@ -207,7 +207,7 @@ public:
 			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
 			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
 			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-			{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}			// New binding for emissive color
+			{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}			// Binding for emissive color
 			});
 
 		DSL_skyBox.init(this, {
@@ -1341,7 +1341,7 @@ public:
 				// Cat rotation based on the movement vector
 				float targetYaw = atan2(m.z, m.x);
 				targetYaw += glm::radians(-180.0f);
-				catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);	// 6.0 is the damping factor
+				catYaw = glm::mix(catYaw, targetYaw + fmod(camYaw, glm::radians(360.0f)), deltaT * 6.0f);	// 6.0 is the damping factor
 			}
 
 			if (FIRST_PERSON) {
