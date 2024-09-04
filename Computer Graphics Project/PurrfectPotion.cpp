@@ -85,23 +85,23 @@ public:
 
 	// Models
 	Model<Vertex>   // Bathroom
-		M_bathtub, M_bidet, M_sink, M_toilet,
-		// Bedroom
-		M_bed, M_closet, M_nighttable,
-		// Collectibles
-		M_bone, M_crystal, M_eye, M_feather, M_leaf, M_potion1, M_potion2,
-		// Kitchen		  
-		M_chair, M_fridge, M_kitchen, M_kitchentable,
-		// Lair
-		M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web,
-		// Living room
-		M_sofa, M_table, M_tv,
-		// Other
-		M_cat;
+					M_bathtub, M_bidet, M_sink, M_toilet,
+					// Bedroom
+					M_bed, M_closet, M_nighttable,
+					// Collectibles
+					M_bone, M_crystal, M_eye, M_feather, M_leaf, M_potion1, M_potion2,
+					// Kitchen		  
+					M_chair, M_fridge, M_kitchen, M_kitchentable,
+					// Lair
+					M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web,
+					// Living room
+					M_sofa, M_table, M_tv,
+					// Other
+					M_cat;
 	// Other
 	Model<VertexTan> M_knight, M_floor, M_walls, M_catFainted;
 	Model<skyBoxVertex> M_skyBox;
-	Model<VertexOverlay> M_timer[5], M_screens[3], M_scroll, M_collectibles[COLLECTIBLES_NUM];
+	Model<VertexOverlay> M_timer[5], M_screens[4], M_scroll, M_collectibles[COLLECTIBLES_NUM];
 	std::vector<Model<VertexBoundingBox>> M_boundingBox;
 
 	// Descriptor sets
@@ -119,33 +119,33 @@ public:
 					DS_sofa, DS_table, DS_tv, DS_knight,
 					// Other
 					DS_cat, DS_floor, DS_walls,
-					DS_skyBox, DS_timer[5], DS_screens[3], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
+					DS_skyBox, DS_timer[5], DS_screens[4], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	std::vector<DescriptorSet> DS_boundingBox;
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_knight[3], T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3], T_scroll, T_collectibles[COLLECTIBLES_NUM],
+	Texture T_textures, T_eye, T_closet, T_feather, T_knight[3], T_skyBox, T_steam, T_fire, T_timer[5], T_screens[4], T_scroll, T_collectibles[COLLECTIBLES_NUM],
 			T_catDiffuseGhost, T_cat[3], T_wall[3], T_floor[3];
 
 	// C++ storage for uniform variables
 	UniformBufferObject // Bathroom
-		UBO_bathtub, UBO_bidet, UBO_sink, UBO_toilet,
-		// Bedroom
-		UBO_bed, UBO_closet, UBO_nightTable,
-		// Collectibles
-		UBO_bone, UBO_crystal, UBO_eye, UBO_feather, UBO_leaf, UBO_potion1, UBO_potion2,
-		// Kitchen
-		UBO_chair, UBO_fridge, UBO_kitchen, UBO_kitchenTable,
-		// Lair
-		UBO_cauldron, UBO_stoneChair, UBO_chest, UBO_shelf1, UBO_shelf2, UBO_stoneTable, UBO_web, UBO_catFainted,
-		// Living room
-		UBO_sofa, UBO_table, UBO_tv, UBO_knight,
-		// Other
-		UBO_cat, UBO_floor, UBO_walls;
+						UBO_bathtub, UBO_bidet, UBO_sink, UBO_toilet,
+						// Bedroom
+						UBO_bed, UBO_closet, UBO_nightTable,
+						// Collectibles
+						UBO_bone, UBO_crystal, UBO_eye, UBO_feather, UBO_leaf, UBO_potion1, UBO_potion2,
+						// Kitchen
+						UBO_chair, UBO_fridge, UBO_kitchen, UBO_kitchenTable,
+						// Lair
+						UBO_cauldron, UBO_stoneChair, UBO_chest, UBO_shelf1, UBO_shelf2, UBO_stoneTable, UBO_web, UBO_catFainted,
+						// Living room
+						UBO_sofa, UBO_table, UBO_tv, UBO_knight,
+						// Other
+						UBO_cat, UBO_floor, UBO_walls;
 
 	std::vector<UniformBufferObject> UBO_boundingBox;
 	SteamUniformBufferObject UBO_steam, UBO_fire;
-	OverlayUniformBlock UBO_timer[5], UBO_screens[3], UBO_scroll, UBO_collectibles[COLLECTIBLES_NUM];
+	OverlayUniformBlock UBO_timer[5], UBO_screens[4], UBO_scroll, UBO_collectibles[COLLECTIBLES_NUM];
 
 	// to display the bounding boxes for debugging
 	std::vector<BoundingBox> furnitureBBs;
@@ -327,7 +327,7 @@ public:
 		// The last array, is a vector of pointer to the layouts of the sets that will
 		// be used in this pipeline. The first element will be set 0, and so on..
 		P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL });
-		P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
+		P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, true);
 
 		P_skyBox.init(this, &VD_skyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSL_skyBox });
 		P_skyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
@@ -419,7 +419,7 @@ public:
 		glm::vec2 anchor = glm::vec2(-1.0f, -1.0f);
 		float w = 2.f;
 		float h = 2.f;
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 4; i++) {
 			M_screens[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
 									  {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
 			M_screens[i].indices = { 0, 1, 2,    1, 2, 3 };
@@ -469,20 +469,20 @@ public:
 		T_fire.init(this,		"textures/lair/fire.png");
 
 		T_wall[0].init(this,	"textures/wall/wall_diffuse.jpg");
-		T_wall[1].init(this,	"textures/wall/wall_normal.jpg");
+		T_wall[1].init(this,	"textures/wall/wall_normal.jpg", VK_FORMAT_R8G8B8A8_UNORM);
 		T_wall[2].init(this,	"textures/wall/wall_roughness.jpg");
 
 		T_floor[0].init(this,	"textures/floor/floor_diffuse.jpg");
-		T_floor[1].init(this,	"textures/floor/floor_normal.jpg");
+		T_floor[1].init(this,	"textures/floor/floor_normal.jpg", VK_FORMAT_R8G8B8A8_UNORM);
 		T_floor[2].init(this,	"textures/floor/floor_roughness.jpg");
 
 		T_knight[0].init(this, "textures/knight/knight_diffuse.png");
 		T_knight[1].init(this, "textures/knight/knight_metallic.png");
-		T_knight[2].init(this, "textures/knight/knight_normal.png");
+		T_knight[2].init(this, "textures/knight/knight_normal.png", VK_FORMAT_R8G8B8A8_UNORM);
 
 		T_catDiffuseGhost.init(this,"textures/cat/cat_diffuse_ghost.png");
 		T_cat[0].init(this,			"textures/cat/cat_diffuse.png");
-		T_cat[1].init(this,			"textures/cat/cat_normal.jpg");
+		T_cat[1].init(this,			"textures/cat/cat_normal.jpg", VK_FORMAT_R8G8B8A8_UNORM);
 		T_cat[2].init(this,			"textures/cat/cat_roughness1.jpg");
 
 		T_skyBox.init(this,		"textures/sky_Texture.jpg");
@@ -496,6 +496,7 @@ public:
 		T_screens[0].init(this, "textures/screens/start_screen.png");
 		T_screens[1].init(this, "textures/screens/win_screen.png");
 		T_screens[2].init(this, "textures/screens/lose_screen.png");
+		T_screens[3].init(this, "textures/screens/instruction_screen.png");
 
 		T_scroll.init(this, "textures/HUD/scroll.png");
 
@@ -762,7 +763,7 @@ public:
 				});
 		}
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 4; i++) {
 			DS_screens[i].init(this, &DSL_overlay, {
 					{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
 					{1, TEXTURE, 0, &T_screens[i]}
@@ -850,7 +851,7 @@ public:
 			DS_boundingBox[i].cleanup();
 		}
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 4; i++) {
 			DS_screens[i].cleanup();
 		}
 
@@ -889,7 +890,7 @@ public:
 			T_knight[i].cleanup();
 		}
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 4; i++) {
 			T_screens[i].cleanup();
 		}
 
@@ -952,7 +953,7 @@ public:
 			M_boundingBox[i].cleanup();
 		}
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 4; i++) {
 			M_screens[i].cleanup();
 		}
 
@@ -990,6 +991,37 @@ public:
 	// with their buffers and textures
 
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
+
+		P_DRN.bind(commandBuffer);
+		DS_catFainted.bind(commandBuffer, P_DRN, 0, currentImage);
+		M_catFainted.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_catFainted.indices.size()), 1, 0, 0, 0);
+
+		DS_floor.bind(commandBuffer, P_DRN, 0, currentImage);
+		M_floor.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_floor.indices.size()), 1, 0, 0, 0);
+
+		DS_walls.bind(commandBuffer, P_DRN, 0, currentImage);
+		M_walls.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_walls.indices.size()), 1, 0, 0, 0);
+
+		P_ward.bind(commandBuffer);
+		DS_knight.bind(commandBuffer, P_ward, 0, currentImage);
+		M_knight.bind(commandBuffer);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_knight.indices.size()), 1, 0, 0, 0);
+
+		P_skyBox.bind(commandBuffer);
+		M_skyBox.bind(commandBuffer);
+		DS_skyBox.bind(commandBuffer, P_skyBox, 0, currentImage);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_skyBox.indices.size()), 1, 0, 0, 0);
+
+		P_boundingBox.bind(commandBuffer);
+		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
+			M_boundingBox[i].bind(commandBuffer);
+			DS_boundingBox[i].bind(commandBuffer, P_boundingBox, 0, currentImage);
+			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_boundingBox[i].indices.size()), 1, 0, 0, 0);
+		}
+
 		// binds the pipeline
 		P.bind(commandBuffer);
 		// For a pipeline object, this command binds the corresponing pipeline to the command buffer passed in its parameter
@@ -1123,29 +1155,6 @@ public:
 		M_cat.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
 
-		P_DRN.bind(commandBuffer);
-		DS_catFainted.bind(commandBuffer, P_DRN, 0, currentImage);
-		M_catFainted.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_catFainted.indices.size()), 1, 0, 0, 0);
-
-		DS_floor.bind(commandBuffer, P_DRN, 0, currentImage);
-		M_floor.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_floor.indices.size()), 1, 0, 0, 0);
-
-		DS_walls.bind(commandBuffer, P_DRN, 0, currentImage);
-		M_walls.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_walls.indices.size()), 1, 0, 0, 0);
-
-		P_ward.bind(commandBuffer);
-		DS_knight.bind(commandBuffer, P_ward, 0, currentImage);
-		M_knight.bind(commandBuffer);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_knight.indices.size()), 1, 0, 0, 0);
-
-		P_skyBox.bind(commandBuffer);
-		M_skyBox.bind(commandBuffer);
-		DS_skyBox.bind(commandBuffer, P_skyBox, 0, currentImage);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_skyBox.indices.size()), 1, 0, 0, 0);
-
 		P_steam.bind(commandBuffer);
 		M_steam.bind(commandBuffer);
 		DS_steam.bind(commandBuffer, P_steam, 0, currentImage);
@@ -1155,15 +1164,8 @@ public:
 		DS_fire.bind(commandBuffer, P_steam, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_fire.indices.size()), 1, 0, 0, 0);
 
-		P_boundingBox.bind(commandBuffer);
-		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
-			M_boundingBox[i].bind(commandBuffer);
-			DS_boundingBox[i].bind(commandBuffer, P_boundingBox, 0, currentImage);
-			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_boundingBox[i].indices.size()), 1, 0, 0, 0);
-		}
-
 		P_overlay.bind(commandBuffer);
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 4; i++) {
 			M_screens[i].bind(commandBuffer);
 			DS_screens[i].bind(commandBuffer, P_overlay, 0, currentImage);
 			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_screens[i].indices.size()), 1, 0, 0, 0);
@@ -1192,6 +1194,7 @@ public:
 	void updateUniformBuffer(uint32_t currentImage) {
 		static bool debounce = false;
 		static int curDebounce = 0;
+		static bool showInstruction = false;
 
 		// Standard procedure to quit when the ESC key is pressed
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
@@ -1244,15 +1247,15 @@ public:
 
 			lightOn = glm::vec4(1, 1, 0, 1);	// Turn off all spot lights
 
-			if (gameState == GAME_STATE_START_SCREEN) {
+			if (gameState == GAME_STATE_START_SCREEN && !showInstruction) {
 				UBO_screens[0].visible = 1.f;
-				UBO_screens[1].visible = UBO_screens[2].visible = 0.f;
+				UBO_screens[1].visible = UBO_screens[2].visible = UBO_screens[3].visible = 0.f;
 			} else if (gameState == GAME_STATE_GAME_WIN) {
 				UBO_screens[1].visible = 1.f;
-				UBO_screens[0].visible = UBO_screens[2].visible = 0.f;
+				UBO_screens[0].visible = UBO_screens[2].visible = UBO_screens[3].visible = 0.f;
 			} else if (gameState == GAME_STATE_GAME_LOSE) {
 				UBO_screens[2].visible = 1.f;
-				UBO_screens[0].visible = UBO_screens[1].visible = 0.f;
+				UBO_screens[0].visible = UBO_screens[1].visible = UBO_screens[3].visible = 0.f;
 			}
 
 			// Set all the elements to not_collected
@@ -1264,7 +1267,7 @@ public:
 			if (start) {	// Setting the variables ready to start the game
 				OVERLAY = true;
 
-				UBO_screens[0].visible = UBO_screens[1].visible = UBO_screens[2].visible = 0.f;
+				UBO_screens[0].visible = UBO_screens[1].visible = UBO_screens[2].visible = UBO_screens[3].visible = 0.f;
 
 				camPos = glm::vec3(0.0f, 1.5f, 7.0f);
 				camYaw = glm::radians(90.0f);
@@ -1291,14 +1294,14 @@ public:
 			}
 
 			// Update screens overlay
-			for (int i = 0; i < 3; i++) {
+			for (int i = 0; i < 4; i++) {
 				DS_screens[i].map(currentImage, &UBO_screens[i], sizeof(UBO_screens[i]), 0);
 			}
-		}
-		else if (gameState == GAME_STATE_PLAY) {	//******************************* GAME PLAY ****************************************
+
+		} else if (gameState == GAME_STATE_PLAY) {	//******************************* GAME PLAY ****************************************
 
 			// Update DS screens overlay to make them disappear
-			for (int i = 0; i < 3; i++) {
+			for (int i = 0; i < 4; i++) {
 				DS_screens[i].map(currentImage, &UBO_screens[i], sizeof(UBO_screens[i]), 0);
 			}
 
@@ -1370,6 +1373,18 @@ public:
 			}
 
 		}					//******************************************** END GAME PLAY **********************************************
+		
+		
+		// Press I to show instruction screen
+		if (glfwGetKey(window, GLFW_KEY_I) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+			UBO_screens[3].visible = 1.0f - UBO_screens[3].visible;
+			
+			UBO_screens[0].visible = UBO_screens[1].visible = UBO_screens[2].visible = 0.f;
+
+			lastPressTime = totalElapsedTime;
+			showInstruction = !showInstruction;
+			OVERLAY = (gameState == GAME_STATE_PLAY) ? !OVERLAY : false;
+		}
 
 		// Limit the cat's movement to the house
 		catPosition.x = glm::clamp(catPosition.x, -11.8f, 11.8f);
@@ -1482,20 +1497,16 @@ public:
 			if (timeLeft >= GAME_DURATION * 3 / 4) {
 				UBO_timer[0].visible = 1.f;
 				UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
-			}
-			else if (timeLeft >= GAME_DURATION / 2) {
+			} else if (timeLeft >= GAME_DURATION / 2) {
 				UBO_timer[1].visible = 1.f;
 				UBO_timer[0].visible = UBO_timer[2].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
-			}
-			else if (timeLeft >= GAME_DURATION / 4) {
+			} else if (timeLeft >= GAME_DURATION / 4) {
 				UBO_timer[2].visible = 1.f;
 				UBO_timer[0].visible = UBO_timer[1].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
-			}
-			else if (timeLeft > 0) {
+			} else if (timeLeft > 3.0f) {
 				UBO_timer[3].visible = 1.f;
 				UBO_timer[0].visible = UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[4].visible = 0.f;
-			}
-			else {
+			} else {
 				UBO_timer[4].visible = 1.f;
 				UBO_timer[0].visible = UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[3].visible = 0.f;
 			}
