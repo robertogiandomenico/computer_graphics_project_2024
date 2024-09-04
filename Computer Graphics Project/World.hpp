@@ -1,5 +1,4 @@
-#ifndef WORLD_HPP
-#define WORLD_HPP
+#pragma once
 
 #include <glm/glm.hpp>
 
@@ -97,6 +96,3 @@ inline Transform bidet = {
 inline Transform sink = {
      glm::vec3(-3.4f, 0.0f, -7.f), glm::vec3(0.0f), glm::vec3(1.0f)
 };
-
-
-#endif

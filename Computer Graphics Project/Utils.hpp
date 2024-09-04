@@ -1,5 +1,4 @@
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#pragma once
 
 #include <glm/glm.hpp>
 #include <string>
@@ -104,5 +103,3 @@ glm::vec3 generateRandomPosition(float squareSide) {
 
 	return randomPosition;
 }
-
-#endif
