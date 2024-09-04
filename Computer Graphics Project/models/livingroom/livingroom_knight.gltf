@@ -43,7 +43,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":2086,
+			"count":2130,
 			"max":[
 				0.4485107958316803,
 				2.5575461387634277,
@@ -59,19 +59,19 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":2086,
+			"count":2130,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":2086,
+			"count":2130,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5126,
-			"count":2086,
+			"count":2130,
 			"type":"VEC4"
 		},
 		{
@@ -84,38 +84,38 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":25032,
+			"byteLength":25560,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":25032,
-			"byteOffset":25032,
+			"byteLength":25560,
+			"byteOffset":25560,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":16688,
-			"byteOffset":50064,
+			"byteLength":17040,
+			"byteOffset":51120,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":33376,
-			"byteOffset":66752,
+			"byteLength":34080,
+			"byteOffset":68160,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":6036,
-			"byteOffset":100128,
+			"byteOffset":102240,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":106164,
+			"byteLength":108276,
 			"uri":"livingroom_knight.bin"
 		}
 	]

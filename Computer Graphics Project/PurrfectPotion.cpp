@@ -126,7 +126,7 @@ protected:
 	float timeLeft = GAME_DURATION;
 	int lastDisplayedTime = static_cast<int>(GAME_DURATION);
 
-	float minimumPressDelay = 0.08f;
+	float minimumPressDelay = 0.1f;
 	float lastPressTime = 0.0f;
 
 	bool DEBUG = false;						// Used to display bounding boxes for debugging
@@ -136,23 +136,23 @@ protected:
 	bool gameOver = false;
 	glm::vec4 lightOn = glm::vec4(1, 1, 0, 1);	// Initially all types of light are on, except spot
 
-	public:
-		std::map<std::string, bool> collectiblesMap;
-		std::map<std::string, int> collectiblesHUD;
-		std::vector<BoundingBox> collectiblesBBs;
+public:
+	std::map<std::string, bool> collectiblesMap;
+	std::map<std::string, int> collectiblesHUD;
+	std::vector<BoundingBox> collectiblesBBs;
 
-		PurrfectPotion() {
+	PurrfectPotion() {
 
-			collectiblesHUD = {
-				{"crystal", 0},
-				{"eye",		1},
-				{"feather", 2},
-				{"leaf",	3},
-				{"potion1", 4},
-				{"potion2", 5},
-				{"bone",	6}
-			};
-		}
+		collectiblesHUD = {
+			{"crystal", 0},
+			{"eye",		1},
+			{"feather", 2},
+			{"leaf",	3},
+			{"potion1", 4},
+			{"potion2", 5},
+			{"bone",	6}
+		};
+	}
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward, DSL_boundingBox, DSL_DRN;
@@ -165,22 +165,22 @@ protected:
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	// Please note that Model objects depends on the corresponding vertex structure
-	
+
 	// Models
 	Model<Vertex>   // Bathroom
-					M_bathtub, M_bidet, M_sink, M_toilet,
-					// Bedroom
-					M_bed, M_closet, M_nighttable,
-					// Collectibles
-					M_bone, M_crystal, M_eye, M_feather, M_leaf, M_potion1, M_potion2, 
-					// Kitchen		  
-					M_chair, M_fridge, M_kitchen, M_kitchentable,
-					// Lair
-					M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web,
-					// Living room
-					M_sofa, M_table, M_tv,
-					// Other
-					M_cat;
+		M_bathtub, M_bidet, M_sink, M_toilet,
+		// Bedroom
+		M_bed, M_closet, M_nighttable,
+		// Collectibles
+		M_bone, M_crystal, M_eye, M_feather, M_leaf, M_potion1, M_potion2,
+		// Kitchen		  
+		M_chair, M_fridge, M_kitchen, M_kitchentable,
+		// Lair
+		M_cauldron, M_stonechair, M_chest, M_shelf1, M_shelf2, M_stonetable, M_steam, M_fire, M_web,
+		// Living room
+		M_sofa, M_table, M_tv,
+		// Other
+		M_cat;
 	// Other
 	Model<VertexTan> M_knight, M_floor, M_walls, M_catFainted;
 	Model<skyBoxVertex> M_skyBox;
@@ -196,7 +196,7 @@ protected:
 					DS_bone, DS_crystal, DS_eye, DS_feather, DS_leaf, DS_potion1, DS_potion2,
 					// Kitchen
 					DS_chair, DS_fridge, DS_kitchen, DS_kitchentable,
-				    // Lair
+					// Lair
 					DS_cauldron, DS_stonechair, DS_chest, DS_shelf1, DS_shelf2, DS_stonetable, DS_steam, DS_fire, DS_web, DS_catFainted,
 					// Living room
 					DS_sofa, DS_table, DS_tv, DS_knight,
@@ -207,24 +207,24 @@ protected:
 	std::vector<DescriptorSet> DS_boundingBox;
 
 	// Textures
-	Texture T_textures, T_eye, T_closet, T_feather, T_knightDiffuse, T_knightSpec, T_knightNorm, T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3],
-			T_scroll, T_collectibles[COLLECTIBLES_NUM], T_catDiffuseGhost, T_cat[3], T_wall[3], T_floor[3];
+	Texture T_textures, T_eye, T_closet, T_feather, T_knight[3], T_skyBox, T_steam, T_fire, T_timer[5], T_screens[3], T_scroll, T_collectibles[COLLECTIBLES_NUM],
+			T_catDiffuseGhost, T_cat[3], T_wall[3], T_floor[3];
 
 	// C++ storage for uniform variables
 	UniformBufferObject // Bathroom
-						UBO_bathtub, UBO_bidet, UBO_sink, UBO_toilet,
-						// Bedroom
-						UBO_bed, UBO_closet, UBO_nightTable,
-						// Collectibles
-						UBO_bone, UBO_crystal, UBO_eye, UBO_feather, UBO_leaf, UBO_potion1, UBO_potion2,
-						// Kitchen
-						UBO_chair, UBO_fridge, UBO_kitchen, UBO_kitchenTable,
-						// Lair
-						UBO_cauldron, UBO_stoneChair, UBO_chest, UBO_shelf1, UBO_shelf2, UBO_stoneTable, UBO_web, UBO_catFainted,
-						// Living room
-						UBO_sofa, UBO_table, UBO_tv, UBO_knight,
-						// Other
-						UBO_cat, UBO_floor, UBO_walls;
+		UBO_bathtub, UBO_bidet, UBO_sink, UBO_toilet,
+		// Bedroom
+		UBO_bed, UBO_closet, UBO_nightTable,
+		// Collectibles
+		UBO_bone, UBO_crystal, UBO_eye, UBO_feather, UBO_leaf, UBO_potion1, UBO_potion2,
+		// Kitchen
+		UBO_chair, UBO_fridge, UBO_kitchen, UBO_kitchenTable,
+		// Lair
+		UBO_cauldron, UBO_stoneChair, UBO_chest, UBO_shelf1, UBO_shelf2, UBO_stoneTable, UBO_web, UBO_catFainted,
+		// Living room
+		UBO_sofa, UBO_table, UBO_tv, UBO_knight,
+		// Other
+		UBO_cat, UBO_floor, UBO_walls;
 
 	std::vector<BoundingBoxUniformBlock> UBO_boundingBox;
 	SteamUniformBufferObject UBO_steam, UBO_fire;
@@ -291,27 +291,27 @@ protected:
 			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
 			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
 			{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}			// New binding for emissive color
-		});
+			});
 
 		DSL_skyBox.init(this, {
 			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},			// Uniform buffer for MVP matrix
 			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},	// Combined image sampler for skybox texture
 			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}			// Uniform buffer for time
-		});
+			});
 
 		DSL_steam.init(this, {
 			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},				// Steam UBO binding
 			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}	// Steam texture binding
-		});
+			});
 
 		DSL_boundingBox.init(this, {
 				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
-		});
+			});
 
 		DSL_overlay.init(this, {
 				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
 				{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
-		});
+			});
 
 		DSL_ward.init(this, {
 				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
@@ -320,7 +320,7 @@ protected:
 				{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
 				{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
 				{5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
-		});
+			});
 
 		DSL_DRN.init(this, {
 				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
@@ -329,7 +329,7 @@ protected:
 				{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
 				{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
 				{5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
-		});
+			});
 
 		// Vertex descriptors
 		VD.init(this, {
@@ -366,44 +366,44 @@ protected:
 					   sizeof(glm::vec2), UV},
 				{0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm),
 					   sizeof(glm::vec3), NORMAL}
-		});
+			});
 
 		VD_skyBox.init(this, {
-			{0, sizeof(skyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}
+				{0, sizeof(skyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}
 			}, {
 				{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(skyBoxVertex, pos),
-					   sizeof(glm::vec3), POSITION}
-		});
+					sizeof(glm::vec3), POSITION}
+			});
 
 		VD_boundingBox.init(this, {
-			{0, sizeof(VertexBoundingBox), VK_VERTEX_INPUT_RATE_VERTEX}
+				{0, sizeof(VertexBoundingBox), VK_VERTEX_INPUT_RATE_VERTEX}
 			}, {
 				{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexBoundingBox, pos),
-					   sizeof(glm::vec3), POSITION}
-		});
+					sizeof(glm::vec3), POSITION}
+			});
 
 		VD_overlay.init(this, {
-			{0, sizeof(VertexOverlay), VK_VERTEX_INPUT_RATE_VERTEX}
+				{0, sizeof(VertexOverlay), VK_VERTEX_INPUT_RATE_VERTEX}
 			}, {
-			   {0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, pos),
-				   	  sizeof(glm::vec2), OTHER},
-			   {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, UV),
-					  sizeof(glm::vec2), UV}
-		});
+				{0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, pos),
+					sizeof(glm::vec2), OTHER},
+				{0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, UV),
+					sizeof(glm::vec2), UV}
+			});
 
 		VD_tangent.init(this, {
-			{0, sizeof(VertexTan), VK_VERTEX_INPUT_RATE_VERTEX}
+				{0, sizeof(VertexTan), VK_VERTEX_INPUT_RATE_VERTEX}
 			}, {
-			   {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexTan, pos),
-				   	  sizeof(glm::vec3), POSITION},
-			   {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexTan, normal),
-					  sizeof(glm::vec3), NORMAL},
-			   {0, 2, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VertexTan, tangent),
-					  sizeof(glm::vec3), TANGENT},
-			   {0, 3, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexTan, texCoord),
-					  sizeof(glm::vec2), UV}
-		});
-			
+				{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexTan, pos),
+					sizeof(glm::vec3), POSITION},
+				{0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexTan, normal),
+					sizeof(glm::vec3), NORMAL},
+				{0, 2, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VertexTan, tangent),
+					sizeof(glm::vec3), TANGENT},
+				{0, 3, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexTan, texCoord),
+					sizeof(glm::vec2), UV}
+			});
+
 		// Pipelines [Shader couples]
 		// The second parameter is the pointer to the vertex definition
 		// Third and fourth parameters are respectively the vertex and fragment shaders
@@ -453,9 +453,9 @@ protected:
 		M_potion1.init(this,	&VD, "models/collectibles/coll_potion1.gltf", GLTF);
 		M_potion2.init(this,	&VD, "models/collectibles/coll_potion2.gltf", GLTF);
 
-		M_chair.init(this,		&VD, "models/kitchen/kitchen_chair.gltf", GLTF);
-		M_fridge.init(this,		&VD, "models/kitchen/kitchen_fridge.gltf", GLTF);
-		M_kitchen.init(this,	&VD, "models/kitchen/kitchen_kitchen.gltf", GLTF);
+		M_chair.init(this,		 &VD, "models/kitchen/kitchen_chair.gltf", GLTF);
+		M_fridge.init(this,		 &VD, "models/kitchen/kitchen_fridge.gltf", GLTF);
+		M_kitchen.init(this,	 &VD, "models/kitchen/kitchen_kitchen.gltf", GLTF);
 		M_kitchentable.init(this,&VD, "models/kitchen/kitchen_table.gltf", GLTF);
 
 		M_cauldron.init(this,	&VD, "models/lair/lair_cauldron.gltf", GLTF);
@@ -559,9 +559,9 @@ protected:
 		T_floor[1].init(this,	"textures/floor/floor_normal.jpg");
 		T_floor[2].init(this,	"textures/floor/floor_roughness.jpg");
 
-		T_knightDiffuse.init(this,	"textures/knight/knight_diffuse.png");
-		T_knightSpec.init(this,		"textures/knight/knight_metallic.png");
-		T_knightNorm.init(this, "textures/knight/knight_normal.png");
+		T_knight[0].init(this, "textures/knight/knight_diffuse.png");
+		T_knight[1].init(this, "textures/knight/knight_metallic.png");
+		T_knight[2].init(this, "textures/knight/knight_normal.png");
 
 		T_catDiffuseGhost.init(this,"textures/cat/cat_diffuse_ghost.png");
 		T_cat[0].init(this,			"textures/cat/cat_diffuse.png");
@@ -799,11 +799,11 @@ protected:
 			});
 		DS_knight.init(this, &DSL_ward, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_knightDiffuse},
+					{1, TEXTURE, 0, &T_knight[0]},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
 					{3, UNIFORM, sizeof(glm::vec3), nullptr},
-					{4, TEXTURE, 0, &T_knightSpec},
-					{5, TEXTURE, 0, &T_knightNorm}
+					{4, TEXTURE, 0, &T_knight[1]},
+					{5, TEXTURE, 0, &T_knight[2]}
 			});
 
 		DS_cat.init(this, &DSL, {
@@ -837,7 +837,7 @@ protected:
 					{4, TEXTURE, 0, &T_wall[1]},
 					{5, TEXTURE, 0, &T_wall[2]}
 			});
-		
+
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			DS_boundingBox.push_back(DescriptorSet());
 			DS_boundingBox[i].init(this, &DSL_boundingBox, {
@@ -961,10 +961,6 @@ protected:
 		T_steam.cleanup();
 		T_fire.cleanup();
 
-		T_knightDiffuse.cleanup();
-		T_knightSpec.cleanup();
-		T_knightNorm.cleanup();
-
 		T_catDiffuseGhost.cleanup();
 
 		T_skyBox.cleanup();
@@ -973,6 +969,7 @@ protected:
 			T_wall[i].cleanup();
 			T_floor[i].cleanup();
 			T_cat[i].cleanup();
+			T_knight[i].cleanup();
 		}
 
 		for (int i = 0; i < 3; i++) {
@@ -1041,7 +1038,7 @@ protected:
 		for (int i = 0; i < 3; i++) {
 			M_screens[i].cleanup();
 		}
-		
+
 		for (int i = 0; i < 5; i++) {
 			M_timer[i].cleanup();
 		}
@@ -1217,11 +1214,11 @@ protected:
 		DS_floor.bind(commandBuffer, P_DRN, 0, currentImage);
 		M_floor.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_floor.indices.size()), 1, 0, 0, 0);
-		
+
 		DS_walls.bind(commandBuffer, P_DRN, 0, currentImage);
 		M_walls.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_walls.indices.size()), 1, 0, 0, 0);
-		
+
 		P_ward.bind(commandBuffer);
 		DS_knight.bind(commandBuffer, P_ward, 0, currentImage);
 		M_knight.bind(commandBuffer);
@@ -1299,7 +1296,7 @@ protected:
 		// to motion (with right stick of the gamepad, or Arrow keys + QE keys on the keyboard, or mouse)
 		// If fills the last boolean variable with true if fire has been pressed:
 		//          SPACE on the keyboard, A or B button on the Gamepad, Right mouse button
-		
+
 		glm::mat4 World;
 		glm::mat4 ViewPrj;
 		glm::mat4 Mv;
@@ -1366,13 +1363,14 @@ protected:
 
 				totalElapsedTime = 0.0f;
 				lastPressTime = 0.0f;
-				gameState = GAME_STATE_PLAY;
 
 				if (collectiblesBBs.size() == 0) {
 					fillBBList(&collectiblesBBs, collectiblesRandomPosition);
 				}
 
 				lightOn = glm::vec4(1, 1, 1, 1);
+
+				gameState = GAME_STATE_PLAY;
 			}
 
 			// Update screens overlay
@@ -1386,98 +1384,10 @@ protected:
 			for (int i = 0; i < 3; i++) {
 				DS_screens[i].map(currentImage, &UBO_screens[i], sizeof(UBO_screens[i]), 0);
 			}
-			
+
 			timeLeft = GAME_DURATION - totalElapsedTime;
 
-			// Press P to toggle debug mode
-			if (glfwGetKey(window, GLFW_KEY_P) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
-				DEBUG = !DEBUG;
-				lastPressTime = totalElapsedTime;
-			}
-
-			// Press O to toggle overlay
-			if (glfwGetKey(window, GLFW_KEY_O) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
-				OVERLAY = !OVERLAY;
-				lastPressTime = totalElapsedTime;
-			}
-
-			// Press L to reset the camera view
-			if (glfwGetKey(window, GLFW_KEY_L) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
-				camRoll = 0.0f;
-				camPitch = glm::radians(-10.0f);
-				camDist = 3.0f;
-				camYaw = catYaw + glm::radians(90.0f);
-				lastPressTime = totalElapsedTime;
-			}
-
-			// Press K to switch between 1st and 3rd person view
-			if (glfwGetKey(window, GLFW_KEY_K)) {
-				gameState = GAME_STATE_START_SCREEN;
-			}
-      
-			// Press V to switch between 1st and 3rd person view
-			if (glfwGetKey(window, GLFW_KEY_V) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
-				FIRST_PERSON = !FIRST_PERSON;
-				lastPressTime = totalElapsedTime;
-			}
-
-			// Press SHIFT key to sprint
-			if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
-				MOVE_SPEED = 12.0f;
-				ROT_SPEED = glm::radians(200.0f);
-			}
-
-			// Turn on/off point lights
-			if (glfwGetKey(window, GLFW_KEY_1)) {
-				if (!debounce) {
-					debounce = true;
-					curDebounce = GLFW_KEY_1;
-					lightOn.x = 1 - lightOn.x;
-				}
-			}
-			else if ((curDebounce == GLFW_KEY_1) && debounce) {
-				debounce = false;
-				curDebounce = 0;
-			}
-
-			// Turn on/off directional lights
-			if (glfwGetKey(window, GLFW_KEY_2)) {
-				if (!debounce) {
-					debounce = true;
-					curDebounce = GLFW_KEY_2;
-					lightOn.y = 1 - lightOn.y;
-				}
-			}
-			else if ((curDebounce == GLFW_KEY_2) && debounce) {
-				debounce = false;
-				curDebounce = 0;
-			}
-
-			// Turn on/off spot lights
-			if (glfwGetKey(window, GLFW_KEY_3)) {
-				if (!debounce) {
-					debounce = true;
-					curDebounce = GLFW_KEY_3;
-					lightOn.z = 1 - lightOn.z;
-				}
-			}
-			else if ((curDebounce == GLFW_KEY_3) && debounce) {
-				debounce = false;
-				curDebounce = 0;
-			}
-
-			// Turn on/off ambient lights
-			if (glfwGetKey(window, GLFW_KEY_4)) {
-				if (!debounce) {
-					debounce = true;
-					curDebounce = GLFW_KEY_4;
-					lightOn.w = 1 - lightOn.w;
-				}
-			}
-			else if ((curDebounce == GLFW_KEY_4) && debounce) {
-				debounce = false;
-				curDebounce = 0;
-			}
+			checkPressedButton(&MOVE_SPEED, &ROT_SPEED, &debounce, &curDebounce);
 
 			// Update camera yaw, pitch, and roll
 			int yawFactor = FIRST_PERSON ? -1 : 1;
@@ -1513,7 +1423,7 @@ protected:
 				targetYaw += glm::radians(-180.0f);
 				catYaw = glm::mix(catYaw, targetYaw + camYaw, deltaT * 6.0f);	// 6.0 is the damping factor
 			}
-      
+
 			if (FIRST_PERSON) {
 				// First person camera position
 				glm::vec3 ux = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(1, 0, 0, 1);
@@ -1528,9 +1438,9 @@ protected:
 			} else {
 				// Third person camera position
 				glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
-									  glm::vec4(CamTargetDelta, 1));
+					glm::vec4(CamTargetDelta, 1));
 				camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
-									 glm::vec4(0, 0, camDist, 1));
+					glm::vec4(0, 0, camDist, 1));
 			}
 
 			// Check if game is over because time has run out
@@ -1561,13 +1471,13 @@ protected:
 		// View matrix for camera following the cat
 		if (FIRST_PERSON || gameState != GAME_STATE_PLAY) {
 			Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
-				 glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
-				 glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
-				 glm::translate(glm::mat4(1.0f), -camPos);
+				glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
+				glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
+				glm::translate(glm::mat4(1.0f), -camPos);
 			ViewPrj = M * Mv;
-		} else if(!FIRST_PERSON && gameState == GAME_STATE_PLAY) {
+		} else if (!FIRST_PERSON && gameState == GAME_STATE_PLAY) {
 			Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
-				 glm::lookAt(camPos, catPosition, glm::vec3(0, 1, 0));
+				glm::lookAt(camPos, catPosition, glm::vec3(0, 1, 0));
 			ViewPrj = M * Mv;
 		}
 
@@ -1609,7 +1519,7 @@ protected:
 
 		gubo.cosIn = glm::cos(glm::radians(35.0f));							// cos of the inner angle of the spot light
 		gubo.cosOut = glm::cos(glm::radians(45.0f));						// cos of the outer angle of the spot light
-		
+
 		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
 			gubo.lightPos[i + 9] = collectiblesRandomPosition[i] + glm::vec3(0.f, 0.5f, 0.f);
 			gubo.lightDir[i + 9] = glm::vec3(0, 1, 0);
@@ -1617,14 +1527,13 @@ protected:
 		}
 
 		gubo.eyePos = camPos; // Camera position
-		
+
 
 		gubo.lightOn = lightOn;
 		if (gameOver) {
 			//gubo.lightOn = glm::vec4(1, 1, 1, 1);
 			gubo.gameOver = true;
-		}
-		else {
+		} else {
 			//gubo.lightOn = lightOn;
 			gubo.gameOver = false;
 		}
@@ -1638,7 +1547,7 @@ protected:
 		// Steam UBO update
 		SteamUniformBufferObject subo = {};
 		World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 1.7f, 0)) *		// Steam plane position - over the cauldron
-				glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Steam plane rotation - always face the camera
+			glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Steam plane rotation - always face the camera
 		subo.mvpMat = ViewPrj * World;
 		subo.mMat = World;
 		subo.nMat = glm::transpose(glm::inverse(World));
@@ -1648,7 +1557,7 @@ protected:
 
 		// Fire UBO update
 		World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 0.3f, 0.1f)) *	// Fire plane position - under the cauldron
-				glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Fire plane rotation - always face the camera
+			glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Fire plane rotation - always face the camera
 		subo.mvpMat = ViewPrj * World;
 		subo.mMat = World;
 		subo.nMat = glm::transpose(glm::inverse(World));
@@ -1829,7 +1738,7 @@ protected:
 	}
 
 	void placeEntity(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
-					glm::vec3 emissiveColor, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id = 0) {
+		glm::vec3 emissiveColor, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id = 0) {
 
 		glm::mat4 World = glm::translate(glm::mat4(1), position) *
 			glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *
@@ -1845,7 +1754,7 @@ protected:
 		ds.map(currentImage, &ubo, sizeof(ubo), 0);
 
 		ds.map(currentImage, &gubo, sizeof(gubo), 2);
-	
+
 		// the .map() method of a DataSet object, requires the current image of the swap chain as first parameter
 		// the second parameter is the pointer to the C++ data structure to transfer to the GPU
 		// the third parameter is its size
@@ -1873,19 +1782,121 @@ protected:
 		collectiblesBBs[id].erase();
 	}
 
+	void checkPressedButton(float* MOVE_SPEED, float* ROT_SPEED, bool* debounce, int* curDebounce) {
+		// Press P to toggle debug mode
+		if (glfwGetKey(window, GLFW_KEY_P) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+			DEBUG = !DEBUG;
+			lastPressTime = totalElapsedTime;
+		}
+
+		// Press O to toggle overlay
+		if (glfwGetKey(window, GLFW_KEY_O) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+			OVERLAY = !OVERLAY;
+			lastPressTime = totalElapsedTime;
+		}
+
+		// Press L to reset the camera view
+		if (glfwGetKey(window, GLFW_KEY_L) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+			camRoll = 0.0f;
+			camPitch = glm::radians(-10.0f);
+			camDist = 3.0f;
+			camYaw = catYaw + glm::radians(90.0f);
+			lastPressTime = totalElapsedTime;
+		}
+
+		// Press K to switch between 1st and 3rd person view
+		if (glfwGetKey(window, GLFW_KEY_K)) {
+			gameState = GAME_STATE_START_SCREEN;
+		}
+
+		// Press V to switch between 1st and 3rd person view
+		if (glfwGetKey(window, GLFW_KEY_V) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+			FIRST_PERSON = !FIRST_PERSON;
+			lastPressTime = totalElapsedTime;
+		}
+
+		// Press SHIFT key to sprint
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
+			*MOVE_SPEED = 12.0f;
+			*ROT_SPEED = glm::radians(200.0f);
+		}
+
+		// Press N to reach win screen
+		if (glfwGetKey(window, GLFW_KEY_N)) {
+			gameState = GAME_STATE_GAME_WIN;
+		}
+
+		// Press M to reach lose screen
+		if (glfwGetKey(window, GLFW_KEY_M)) {
+			gameState = GAME_STATE_GAME_LOSE;
+		}
+
+		// Turn on/off point lights
+		if (glfwGetKey(window, GLFW_KEY_1)) {
+			if (!*debounce) {
+				*debounce = true;
+				*curDebounce = GLFW_KEY_1;
+				lightOn.x = 1 - lightOn.x;
+			}
+		}
+		else if ((*curDebounce == GLFW_KEY_1) && *debounce) {
+			*debounce = false;
+			*curDebounce = 0;
+		}
+
+		// Turn on/off directional lights
+		if (glfwGetKey(window, GLFW_KEY_2)) {
+			if (!*debounce) {
+				*debounce = true;
+				*curDebounce = GLFW_KEY_2;
+				lightOn.y = 1 - lightOn.y;
+			}
+		}
+		else if ((*curDebounce == GLFW_KEY_2) && *debounce) {
+			*debounce = false;
+			*curDebounce = 0;
+		}
+
+		// Turn on/off spot lights
+		if (glfwGetKey(window, GLFW_KEY_3)) {
+			if (!*debounce) {
+				*debounce = true;
+				*curDebounce = GLFW_KEY_3;
+				lightOn.z = 1 - lightOn.z;
+			}
+		}
+		else if ((*curDebounce == GLFW_KEY_3) && *debounce) {
+			*debounce = false;
+			*curDebounce = 0;
+		}
+
+		// Turn on/off ambient lights
+		if (glfwGetKey(window, GLFW_KEY_4)) {
+			if (!*debounce) {
+				*debounce = true;
+				*curDebounce = GLFW_KEY_4;
+				lightOn.w = 1 - lightOn.w;
+			}
+		}
+		else if ((*curDebounce == GLFW_KEY_4) && *debounce) {
+			*debounce = false;
+			*curDebounce = 0;
+		}
+	}
+
 };
 
 
 // This is the main: probably you do not need to touch this!
 int main() {
-    PurrfectPotion app;
+	PurrfectPotion app;
 
-    try {
-        app.run();
+	try {
+		app.run();
     } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
+		std::cerr << e.what() << std::endl;
+		return EXIT_FAILURE;
+	}
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
