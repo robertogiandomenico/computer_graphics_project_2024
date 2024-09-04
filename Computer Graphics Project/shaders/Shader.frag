@@ -12,7 +12,7 @@ layout(location = 0) out vec4 outColor;
 
 layout(binding = 1) uniform sampler2D texSampler;
 
-layout(binding = 2) uniform GlobalUniformBufferObject {
+layout(set = 1, binding = 0) uniform GlobalUniformBufferObject {
     vec3 lightDir[LIGHTS_NUM];                  // Direction of the lights
     vec3 lightPos[LIGHTS_NUM];                  // Position of the lights
     vec4 lightColor[LIGHTS_NUM];                // Color of the lights
@@ -24,7 +24,7 @@ layout(binding = 2) uniform GlobalUniformBufferObject {
 } gubo;
 
 // Uniform for emissive color
-layout(binding = 3) uniform EmissiveUniformBufferObject {
+layout(binding = 2) uniform EmissiveUniformBufferObject {
     vec3 emissiveColor;  // Emissive color of the object
 } eubo;
 

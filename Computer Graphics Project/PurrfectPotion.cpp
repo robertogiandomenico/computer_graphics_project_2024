@@ -72,7 +72,7 @@ public:
 	}
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward, DSL_boundingBox, DSL_DRN;
+	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward, DSL_boundingBox, DSL_DRN, DSL_Global;
 
 	// Vertex formats
 	VertexDescriptor VD, VD_skyBox, VD_overlay, VD_tangent, VD_boundingBox;
@@ -118,7 +118,7 @@ public:
 					// Living room
 					DS_sofa, DS_table, DS_tv, DS_knight,
 					// Other
-					DS_cat, DS_floor, DS_walls,
+					DS_cat, DS_floor, DS_walls, DS_Global,
 					DS_skyBox, DS_timer[5], DS_screens[4], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	std::vector<DescriptorSet> DS_boundingBox;
@@ -196,6 +196,10 @@ public:
 			UBO_boundingBox.push_back(UniformBufferObject());
 		}
 
+		DSL_Global.init(this, {
+				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
+			});
+
 		// Descriptor Layouts [what will be passed to the shaders]
 		DSL.init(this, {
 			// this array contains the bindings:
@@ -206,8 +210,8 @@ public:
 			//                  using the corresponding Vulkan constant
 			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
 			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
-			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-			{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}			// Binding for emissive color
+
+			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}			// Binding for emissive color
 			});
 
 		DSL_skyBox.init(this, {
@@ -233,19 +237,19 @@ public:
 		DSL_ward.init(this, {
 				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
 				{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+
 				{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-				{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-				{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
-				{5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+				{3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+				{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
 			});
 
 		DSL_DRN.init(this, {
 				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
 				{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+				
 				{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-				{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-				{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
-				{5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+				{3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+				{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
 			});
 
 		// Vertex descriptors
@@ -326,7 +330,7 @@ public:
 		// Third and fourth parameters are respectively the vertex and fragment shaders
 		// The last array, is a vector of pointer to the layouts of the sets that will
 		// be used in this pipeline. The first element will be set 0, and so on..
-		P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL });
+		P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL, &DSL_Global });
 		P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, true);
 
 		P_skyBox.init(this, &VD_skyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSL_skyBox });
@@ -341,10 +345,10 @@ public:
 		P_overlay.init(this, &VD_overlay, "shaders/OverlayVert.spv", "shaders/OverlayFrag.spv", { &DSL_overlay });
 		P_overlay.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
 
-		P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_ward });
+		P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_ward, &DSL_Global });
 		P_ward.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
-		P_DRN.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/DRNFrag.spv", { &DSL_DRN });
+		P_DRN.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/DRNFrag.spv", { &DSL_DRN, &DSL_Global });
 		P_DRN.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
@@ -520,6 +524,10 @@ public:
 		P_ward.create();
 		P_DRN.create();
 
+		DS_Global.init(this, &DSL_Global, {
+			{0, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+			});
+
 		DS_skyBox.init(this, &DSL_skyBox, {
 						{0, UNIFORM, sizeof(SkyBoxUniformBufferObject), nullptr},
 						{1, TEXTURE, 0, &T_skyBox},
@@ -536,157 +544,156 @@ public:
 			// fourth element : only for TEXTUREs, the pointer to the corresponding texture object. For uniforms, use nullptr
 						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 						{1, TEXTURE, 0, &T_textures},
-						{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-						{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+						 
+						{2, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
 			});
 		DS_closet.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_closet},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_nighttable.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 
 		DS_bathtub.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 
 		DS_bidet.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_sink.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_toilet.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 
 		DS_bone.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_crystal.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_eye.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_eye},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_feather.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_feather},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_leaf.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_potion1.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_potion2.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 
 		DS_chair.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_fridge.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_kitchen.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_kitchentable.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 
 		DS_cauldron.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_stonechair.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_chest.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_shelf1.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_shelf2.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_stonetable.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_web.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_steam.init(this, &DSL_steam, {
 					{0, UNIFORM, sizeof(SteamUniformBufferObject), nullptr},
@@ -700,60 +707,60 @@ public:
 		DS_sofa.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_table.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_tv.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_knight.init(this, &DSL_ward, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_knight[0]},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr},
-					{4, TEXTURE, 0, &T_knight[1]},
-					{5, TEXTURE, 0, &T_knight[2]}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr},
+					{3, TEXTURE, 0, &T_knight[1]},
+					{4, TEXTURE, 0, &T_knight[2]}
 			});
 
 		DS_cat.init(this, &DSL, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_catDiffuseGhost},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr}
 			});
 		DS_catFainted.init(this, &DSL_DRN, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_cat[0]},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr},
-					{4, TEXTURE, 0, &T_cat[1]},
-					{5, TEXTURE, 0, &T_cat[2]}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr},
+					{3, TEXTURE, 0, &T_cat[1]},
+					{4, TEXTURE, 0, &T_cat[2]}
 			});
 
 		DS_floor.init(this, &DSL_DRN, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_floor[0]},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr},
-					{4, TEXTURE, 0, &T_floor[1]},
-					{5, TEXTURE, 0, &T_floor[2]}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr},
+					{3, TEXTURE, 0, &T_floor[1]},
+					{4, TEXTURE, 0, &T_floor[2]}
 			});
 		DS_walls.init(this, &DSL_DRN, {
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &T_wall[0]},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr},
-					{4, TEXTURE, 0, &T_wall[1]},
-					{5, TEXTURE, 0, &T_wall[2]}
+					 
+					{2, UNIFORM, sizeof(glm::vec3), nullptr},
+					{3, TEXTURE, 0, &T_wall[1]},
+					{4, TEXTURE, 0, &T_wall[2]}
 			});
 
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
@@ -846,6 +853,7 @@ public:
 		DS_walls.cleanup();
 
 		DS_skyBox.cleanup();
+		DS_Global.cleanup();
 
 		for (int i = 0; i < COLLECTIBLES_NUM + furnitureBBs.size() + 1; i++) {
 			DS_boundingBox[i].cleanup();
@@ -975,6 +983,7 @@ public:
 		DSL_overlay.cleanup();
 		DSL_ward.cleanup();
 		DSL_DRN.cleanup();
+		DSL_Global.cleanup();
 
 		// Destroy the pipelines
 		P.destroy();
@@ -993,6 +1002,9 @@ public:
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
 
 		P_DRN.bind(commandBuffer);
+
+		DS_Global.bind(commandBuffer, P_DRN, 1, currentImage);
+
 		DS_catFainted.bind(commandBuffer, P_DRN, 0, currentImage);
 		M_catFainted.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_catFainted.indices.size()), 1, 0, 0, 0);
@@ -1006,6 +1018,9 @@ public:
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_walls.indices.size()), 1, 0, 0, 0);
 
 		P_ward.bind(commandBuffer);
+
+		DS_Global.bind(commandBuffer, P_ward, 1, currentImage);
+
 		DS_knight.bind(commandBuffer, P_ward, 0, currentImage);
 		M_knight.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_knight.indices.size()), 1, 0, 0, 0);
@@ -1026,6 +1041,9 @@ public:
 		P.bind(commandBuffer);
 		// For a pipeline object, this command binds the corresponing pipeline to the command buffer passed in its parameter
 		// binds the data set
+
+		DS_Global.bind(commandBuffer, P, 1, currentImage);
+
 		DS_bed.bind(commandBuffer, P, 0, currentImage);
 		// For a Dataset object, this command binds the corresponing dataset
 		// to the command buffer and pipeline passed in its first and second parameters.
@@ -1477,6 +1495,9 @@ public:
 		gubo.lightOn = lightOn;
 		gubo.gameOver = gameOver;
 
+
+		DS_Global.map(currentImage, &gubo, sizeof(gubo), 0);
+
 		// Sky Box UBO update
 		SkyBoxUniformBufferObject sbubo{};
 		sbubo.mvpMat = M * glm::mat4(glm::mat3(Mv));
@@ -1687,14 +1708,12 @@ public:
 
 		ds.map(currentImage, &ubo, sizeof(ubo), 0);
 
-		ds.map(currentImage, &gubo, sizeof(gubo), 2);
-
 		// the .map() method of a DataSet object, requires the current image of the swap chain as first parameter
 		// the second parameter is the pointer to the C++ data structure to transfer to the GPU
 		// the third parameter is its size
 		// the fourth parameter is the location inside the descriptor set of this uniform block
 
-		ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 3);
+		ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 2);
 	}
 
 	void removeCollectible(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, int id) {
@@ -1704,7 +1723,6 @@ public:
 		ubo.nMat = glm::transpose(glm::inverse(World));
 
 		ds.map(currentImage, &ubo, sizeof(ubo), 0);
-		ds.map(currentImage, &gubo, sizeof(gubo), 2);
 
 		// update bounding box matrices
 		UBO_boundingBox[id].mvpMat = ViewPrj * World;
