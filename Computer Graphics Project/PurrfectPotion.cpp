@@ -316,7 +316,7 @@ public:
 				{0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexTan, normal),
 					sizeof(glm::vec3), NORMAL},
 				{0, 2, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VertexTan, tangent),
-					sizeof(glm::vec3), TANGENT},
+					sizeof(glm::vec4), TANGENT},
 				{0, 3, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexTan, texCoord),
 					sizeof(glm::vec2), UV}
 			});
@@ -1195,11 +1195,25 @@ public:
 		static bool debounce = false;
 		static int curDebounce = 0;
 		static bool showInstruction = false;
+		static bool showCursor = false;
 
 		// Standard procedure to quit when the ESC key is pressed
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
+
+		if (glfwGetKey(window, GLFW_KEY_Z) && !showCursor && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_FALSE);
+			showCursor = true;
+			lastPressTime = totalElapsedTime;
+		} else if (glfwGetKey(window, GLFW_KEY_Z) && showCursor && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
+			showCursor = false;
+			lastPressTime = totalElapsedTime;
+		}
+
 
 		// Integration with the timers and the controllers
 		float deltaT;
@@ -1542,7 +1556,7 @@ public:
 
 
 		// Placing ghost cat
-		placeEntity(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), glm::vec3(1.f), glm::vec3(3.0f), ViewPrj, DS_cat, currentImage, DEBUG, 16);
+		placeEntity(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), FIRST_PERSON ? glm::vec3(0.0f) : glm::vec3(1.f), glm::vec3(3.0f), ViewPrj, DS_cat, currentImage, DEBUG, 16);
 		catBox = BoundingBox("cat", catPosition, catDimensions);
 
 		// House
@@ -1623,7 +1637,6 @@ public:
 		for (int i = 0; i < collectiblesBBs.size(); i++) {
 			if (catBox.intersects(collectiblesBBs[i])) {
 				collectiblesMap[collectiblesBBs[i].getName()] = true;
-				std::cout << "Collected " << collectiblesBBs[i].getName() << "!" << std::endl;
 
 				int collectibleIndex = collectiblesHUD[collectiblesBBs[i].getName()];
 
