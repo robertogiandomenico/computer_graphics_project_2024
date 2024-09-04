@@ -95,12 +95,13 @@ void main() {
     vec3 Albedo = texColor.rgb;
     float alpha = texColor.a;
 
-    vec3 LD;
-    vec3 LC;
-
     vec3 result = vec3(0.0); // Initialize result color
     vec3 ambient = vec3(0.0); // Initialize ambient color
 
+    vec3 LD;
+    vec3 LC;
+
+    // Add the point lights
     for (int i = 0; i < (LIGHTS_NUM - COLLECTIBLES_NUM - 2); ++i) {       
         LD = point_light_dir(fragPos, i);
         LC = point_light_color(fragPos, i);
@@ -114,8 +115,8 @@ void main() {
 
     result += BRDF(Albedo, Norm, EyeDir, LD) * LC * gubo.lightOn.y;
 
+    // Add the cauldron spot light if the game is over
     if (gubo.gameOver) {
-        // Add the cauldron spot light
         LD = spot_light_dir(fragPos, 8);
         LC = spot_light_color(fragPos, 8);
 
@@ -133,7 +134,6 @@ void main() {
     // Add emissive color
     vec3 emissive = eubo.emissiveColor * Albedo * Albedo;
     result += emissive;
-    
     
     // Add ambient light
     ambient = 0.05 * Albedo;

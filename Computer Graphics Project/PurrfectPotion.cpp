@@ -560,8 +560,8 @@ protected:
 		T_floor[2].init(this,	"textures/floor/floor_roughness.jpg");
 
 		T_knightDiffuse.init(this,	"textures/knight/knight_diffuse.png");
-		T_knightSpec.init(this,		"textures/knight/knight_metallic.jpg");
-		T_knightNorm.init(this, "textures/knight/knight_normal.jpg");
+		T_knightSpec.init(this,		"textures/knight/knight_metallic.png");
+		T_knightNorm.init(this, "textures/knight/knight_normal.png");
 
 		T_catDiffuseGhost.init(this,"textures/cat/cat_diffuse_ghost.png");
 		T_cat[0].init(this,			"textures/cat/cat_diffuse.png");

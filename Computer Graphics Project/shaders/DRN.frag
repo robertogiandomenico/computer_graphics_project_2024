@@ -117,10 +117,11 @@ void main() {
     
     vec3 LD;
     vec3 LC;
+
     vec3 result = vec3(0.0); // Initialize result color
     vec3 ambient = vec3(0.0); // Initialize ambient color
 
-    // Process point lights
+    // Add the point lights
     for (int i = 0; i < (LIGHTS_NUM - COLLECTIBLES_NUM - 2); ++i) {       
         LD = point_light_dir(fragPos, i);
         LC = point_light_color(fragPos, i);
@@ -134,7 +135,7 @@ void main() {
 
     result += BRDF(Albedo, Norm, EyeDir, LD, Roughness) * LC * gubo.lightOn.y;
 
-    // Add the spot light if the game is over
+    // Add the cauldron spot light if the game is over
     if (gubo.gameOver) {
         LD = spot_light_dir(fragPos, 8);
         LC = spot_light_color(fragPos, 8);

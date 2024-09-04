@@ -24,7 +24,7 @@ layout(binding = 2) uniform GlobalUniformBufferObject {
     bool gameOver;                  // Game over flag
 } gubo;
 
-// New uniform for emissive color
+// Uniform for emissive color
 layout(binding = 3) uniform EmissiveUniformBufferObject {
     vec3 emissiveColor;  // Emissive color of the object
 } eubo;
@@ -32,6 +32,56 @@ layout(binding = 3) uniform EmissiveUniformBufferObject {
 layout(binding = 4) uniform sampler2D spet;
 
 layout(binding = 5) uniform sampler2D norm;
+
+// Direct light
+vec3 direct_light_dir(vec3 fragPos, int i) {
+    return normalize(gubo.lightDir[i]);
+}
+
+vec3 direct_light_color(vec3 fragPos, int i) {
+	return gubo.lightColor[i].rgb;
+}
+
+// Point light
+vec3 point_light_dir(vec3 fragPos, int i) {
+    vec3 p = gubo.lightPos[i];
+	return normalize(p - fragPos);
+}
+
+vec3 point_light_color(vec3 fragPos, int i) {
+    vec3 l = gubo.lightColor[i].rgb;
+    float g = gubo.lightColor[i].a; // scaling factor
+    float beta = 2.0f;  // inverse-squared decay factor
+    vec3 p = gubo.lightPos[i];
+
+    return pow(g / length(p - fragPos), beta) * l;
+}
+
+// Spot light
+vec3 spot_light_dir(vec3 fragPos, int i) {
+	vec3 p = gubo.lightPos[i];
+	return normalize(p - fragPos);
+}
+
+vec3 spot_light_color(vec3 fragPos, int i) {
+    vec3 l = gubo.lightColor[i].rgb;
+    float g = gubo.lightColor[i].a; // scaling factor
+    float beta = 1.0f;  // inverse-linear decay factor
+    vec3 p = gubo.lightPos[i];
+    vec3 d = gubo.lightDir[i];
+    float cosin;
+    float cosout;
+
+    if (i == 8) {
+        cosin = gubo.cosIn;
+        cosout = gubo.cosOut;
+    } else {
+        cosin = gubo.cosIn + radians(10.0f);
+        cosout = gubo.cosOut + radians(10.0f);
+    }
+
+    return pow(g/length(p - fragPos), beta) * clamp((dot(normalize(p - fragPos), d) - cosout)/(cosin - cosout), 0.0, 1.0) * l;
+}
 
 vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 T, vec3 B, vec3 Md, vec3 Ms, float alphaT, float alphaB) {
 /* This BRDF should perform the Ward anisotropic specular model with the Lambert diffuse model.
@@ -70,7 +120,6 @@ Paramters:
 }
 
 void main() {
-
 	// Sample the normal map
     vec3 normalMapSample = texture(norm, fragUV).rgb;
 
@@ -80,12 +129,12 @@ void main() {
     mat3 tbn = mat3(Tan, Bitan, Norm);
 	vec3 N = normalize(tbn * (normalMapSample * 2.0 - 1.0));
 
-    // Sample Textures
+    // Sample textures
 	vec3 albedo  = texture(tex,  fragUV).rgb;
 	vec3 specCol = texture(spet, fragUV).rgb;
 
     // Metallic Factor
-    float metallic = 0.5;
+    float metallic = 1.0;
 
     // Adjust Diffuse and Specular Based on Metallic
     // For non-metallic (metallic = 0.0): Md = albedo, Ms = vec3(0.04)
@@ -93,39 +142,50 @@ void main() {
     vec3 Md = mix(albedo * (1.0 - metallic), vec3(0.0), metallic);
     vec3 Ms = mix(vec3(0.04), specCol, metallic);
 
-	vec3 finalColor = vec3(0.0f);
+    vec3 V = normalize(gubo.eyePos - fragPos);
 
-	vec3 V = normalize(gubo.eyePos - fragPos);
+	vec3 result = vec3(0.0f);   // Initialize result color
+    vec3 ambient = vec3(0.0f);  // Initialize ambient color
 
-	for (int i = 0; i < (LIGHTS_NUM - COLLECTIBLES_NUM - 1); ++i) {
-        // contribution of all lights except spot lights
-        
-        vec3 L;
-        float attenuation = 1.0;
-        
-        if (length(gubo.lightDir[i]) > 0.0) {
-            // directional light
-            L = normalize(gubo.lightDir[i]);
-            attenuation = 1.0 * gubo.lightOn.y;
-        } else {
-            // point lights
-            L = normalize(gubo.lightPos[i] - fragPos);
-            
-            float distance = length(gubo.lightPos[i] - fragPos);
-            attenuation = 1.0 / (0.1 + 0.1 * distance + 0.01 * distance * distance) * gubo.lightOn.x;   // standard attenuation formula
-        }
+    vec3 LD;
+    vec3 LC;
 
-        vec3 DiffSpec = BRDF(V, N, L, Tan, Bitan, Md, Ms, 0.1f, 0.1f);
-        
-        finalColor += DiffSpec * gubo.lightColor[i].rgb * attenuation;
+    // Add the point lights
+    for (int i = 0; i < (LIGHTS_NUM - COLLECTIBLES_NUM - 2); ++i) {   
+        LD = point_light_dir(fragPos, i);
+        LC = point_light_color(fragPos, i);
+
+        result += BRDF(V, N, LD, Tan, Bitan, Md, Ms, 0.1f, 0.1f) * LC * gubo.lightOn.x;
+    }
+    
+    // Add the directional light
+    LD = direct_light_dir(fragPos, 7);
+    LC = direct_light_color(fragPos, 7);
+
+    result += BRDF(V, N, LD, Tan, Bitan, Md, Ms, 0.1f, 0.1f) * LC * gubo.lightOn.y;
+    
+    // Add the cauldron spot light if the game is over
+    if (gubo.gameOver) {
+        LD = spot_light_dir(fragPos, 8);
+        LC = spot_light_color(fragPos, 8);
+
+        result += BRDF(V, N, LD, Tan, Bitan, Md, Ms, 0.1f, 0.1f) * LC * gubo.lightOn.z;
+    }
+
+    // Add the collectibles spot lights
+    for (int i=0; i < COLLECTIBLES_NUM; i++) {
+        LD = spot_light_dir(fragPos, i+(LIGHTS_NUM-COLLECTIBLES_NUM) );
+        LC = spot_light_color(fragPos, i+(LIGHTS_NUM-COLLECTIBLES_NUM) );
+
+        result += BRDF(V, N, LD, Tan, Bitan, Md, Ms, 0.1f, 0.1f) * LC * gubo.lightOn.z;
     }
 
     // Add emissive color
-	finalColor += eubo.emissiveColor * albedo;
+	result += eubo.emissiveColor * albedo * albedo;
 	
     // Add ambient light
-	vec3 ambient = 0.1 * albedo;
-    finalColor += ambient * gubo.lightOn.w;
+	ambient = 0.3 * albedo;
+    result += ambient * gubo.lightOn.w;
 	
-	outColor = vec4(finalColor, 1.0f);
+	outColor = vec4(result, 1.0f);
 }
