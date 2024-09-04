@@ -4,8 +4,6 @@
 
 #include "Utils.hpp"
 
-#define COLLECTIBLES_NUM 7
-
 struct BoundingBox {
 	glm::vec3 min;
 	glm::vec3 max;
@@ -51,12 +49,6 @@ struct VertexBoundingBox {
 	glm::vec3 pos;
 };
 
-struct BoundingBoxUniformBlock {
-	alignas(16) glm::mat4 mvpMat;
-	alignas(16) glm::mat4 mMat;
-	alignas(16) glm::mat4 nMat;
-};
-
 void createBBModel(std::vector<VertexBoundingBox>& vDef, std::vector<uint32_t>& vIdx, BoundingBox* bb) {
     glm::vec3 halfExtents = (bb->max - bb->min) / 2.0f;
 
@@ -97,7 +89,7 @@ void createBBModel(std::vector<VertexBoundingBox>& vDef, std::vector<uint32_t>& 
 }
 
 void drawBoundingBox(bool hasBoundingBox, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::mat4 ViewPrj,
-					BoundingBoxUniformBlock UBO_boundingBox, DescriptorSet DS_boundingBox, int currentImage) {
+					 UniformBufferObject UBO_boundingBox, DescriptorSet DS_boundingBox, int currentImage) {
 	glm::mat4 World;
 		
 	if (hasBoundingBox) {	// set hasBoundingBox to false to not display the bounding box

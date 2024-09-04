@@ -10,87 +10,6 @@
 #include "Utils.hpp"
 #include "World.hpp"
 
-#define LIGHTS_NUM 16
-#define COLLECTIBLES_NUM 7
-
-// The uniform buffer objects data structures
-// Remember to use the correct alignas(...) value
-//        float : alignas(4)
-//        vec2  : alignas(8)
-//        vec3  : alignas(16)
-//        vec4  : alignas(16)
-//        mat3  : alignas(16)
-//        mat4  : alignas(16)
-// Example:
-struct UniformBufferObject {
-	alignas(16) glm::mat4 mvpMat;
-	alignas(16) glm::mat4 mMat;
-	alignas(16) glm::mat4 nMat;
-};
-
-struct GlobalUniformBufferObject {
-	alignas(16) glm::vec3 lightDir[LIGHTS_NUM];			// Direction of the lights
-	alignas(16) glm::vec3 lightPos[LIGHTS_NUM];			// Position of the lights
-	alignas(16) glm::vec4 lightColor[LIGHTS_NUM];		// Color of the lights
-	alignas(16) glm::vec3 eyePos;						// Position of the camera/eye
-	alignas(16) glm::vec4 lightOn;						// Lights on/off flag (point, direct, spot, ambient component)
-	alignas(4) float cosIn;								// Spot light inner cone angle
-	alignas(4) float cosOut;							// Spot light outer cone angle
-	alignas(4) bool gameOver;							// Game over flag
-};
-
-struct SkyBoxUniformBufferObject {
-	alignas(16) glm::mat4 mvpMat;		// Field for MVP matrix
-	alignas(4) float time;				// Field for time
-};
-
-struct SteamUniformBufferObject {
-	alignas(16) glm::mat4 mvpMat;
-	alignas(16) glm::mat4 mMat;
-	alignas(16) glm::mat4 nMat;
-	alignas(4) float time;				// Time variable for animation
-	alignas(4) float speed;
-};
-
-struct OverlayUniformBlock {
-	alignas(4) float visible;
-};
-
-// The vertices data structures
-// Example
-struct Vertex {
-	glm::vec3 pos;
-	glm::vec2 UV;
-	glm::vec3 norm;
-};
-
-struct skyBoxVertex {
-	glm::vec3 pos;
-};
-
-struct VertexOverlay {
-	glm::vec2 pos;
-	glm::vec2 UV;
-};
-
-struct VertexTan {
-	glm::vec3 pos;
-	glm::vec3 normal;
-	glm::vec4 tangent;
-	glm::vec2 texCoord;
-};
-
-std::string collectiblesNames[COLLECTIBLES_NUM] = {
-	"crystal",
-	"eye",
-	"feather",
-	"leaf",
-	"potion1",
-	"potion2",
-	"bone"
-};
-
-
 // MAIN ! 
 class PurrfectPotion : public BaseProject {
 protected:
@@ -105,8 +24,6 @@ protected:
 	float camRoll;
 	float camDist;
 	glm::vec3 CamTargetDelta = glm::vec3(0.0f);
-	//const glm::vec3 Cam1stPos = glm::vec3(0.49061f, 2.07f, 2.7445f);
-	float Yaw = 0.0f;
 	// Rotation angle for the ollectibles
 	float collectibleRotationAngle = 0.0f;
 	// Rotation speed in radians per second
@@ -226,7 +143,7 @@ public:
 		// Other
 		UBO_cat, UBO_floor, UBO_walls;
 
-	std::vector<BoundingBoxUniformBlock> UBO_boundingBox;
+	std::vector<UniformBufferObject> UBO_boundingBox;
 	SteamUniformBufferObject UBO_steam, UBO_fire;
 	OverlayUniformBlock UBO_timer[5], UBO_screens[3], UBO_scroll, UBO_collectibles[COLLECTIBLES_NUM];
 
@@ -276,7 +193,7 @@ public:
 
 		// create ubo needed for the bounding boxes (debug)
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
-			UBO_boundingBox.push_back(BoundingBoxUniformBlock());
+			UBO_boundingBox.push_back(UniformBufferObject());
 		}
 
 		// Descriptor Layouts [what will be passed to the shaders]
@@ -841,7 +758,7 @@ public:
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			DS_boundingBox.push_back(DescriptorSet());
 			DS_boundingBox[i].init(this, &DSL_boundingBox, {
-						{0, UNIFORM, sizeof(BoundingBoxUniformBlock), nullptr},
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 				});
 		}
 
@@ -1333,11 +1250,9 @@ public:
 			} else if (gameState == GAME_STATE_GAME_WIN) {
 				UBO_screens[1].visible = 1.f;
 				UBO_screens[0].visible = UBO_screens[2].visible = 0.f;
-				emptyBBList(&collectiblesBBs);
 			} else if (gameState == GAME_STATE_GAME_LOSE) {
 				UBO_screens[2].visible = 1.f;
 				UBO_screens[0].visible = UBO_screens[1].visible = 0.f;
-				emptyBBList(&collectiblesBBs);
 			}
 
 			// Set all the elements to not_collected
@@ -1363,6 +1278,8 @@ public:
 
 				totalElapsedTime = 0.0f;
 				lastPressTime = 0.0f;
+
+				emptyBBList(&collectiblesBBs);
 
 				if (collectiblesBBs.size() == 0) {
 					fillBBList(&collectiblesBBs, collectiblesRandomPosition);
@@ -1437,10 +1354,10 @@ public:
 				camPos.y += 0.9f;
 			} else {
 				// Third person camera position
-				glm::vec3 camTarget = catPosition + glm::vec3(glm::rotate(glm::mat4(1), Yaw, glm::vec3(0, 1, 0)) *
-					glm::vec4(CamTargetDelta, 1));
-				camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), Yaw + camYaw, glm::vec3(0, 1, 0)) * glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
-					glm::vec4(0, 0, camDist, 1));
+				glm::vec3 camTarget = catPosition + CamTargetDelta;
+				camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), camYaw, glm::vec3(0, 1, 0)) * 
+											   glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
+											   glm::vec4(0, 0, camDist, 1));
 			}
 
 			// Check if game is over because time has run out
@@ -1471,13 +1388,13 @@ public:
 		// View matrix for camera following the cat
 		if (FIRST_PERSON || gameState != GAME_STATE_PLAY) {
 			Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
-				glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
-				glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
-				glm::translate(glm::mat4(1.0f), -camPos);
+				 glm::rotate(glm::mat4(1.0f), -camPitch, glm::vec3(1, 0, 0)) *
+				 glm::rotate(glm::mat4(1.0f), -camYaw, glm::vec3(0, 1, 0)) *
+				 glm::translate(glm::mat4(1.0f), -camPos);
 			ViewPrj = M * Mv;
 		} else if (!FIRST_PERSON && gameState == GAME_STATE_PLAY) {
 			Mv = glm::rotate(glm::mat4(1.0f), -camRoll, glm::vec3(0, 0, 1)) *
-				glm::lookAt(camPos, catPosition, glm::vec3(0, 1, 0));
+				 glm::lookAt(camPos, catPosition, glm::vec3(0, 1, 0));
 			ViewPrj = M * Mv;
 		}
 
@@ -1528,15 +1445,8 @@ public:
 
 		gubo.eyePos = camPos; // Camera position
 
-
 		gubo.lightOn = lightOn;
-		if (gameOver) {
-			//gubo.lightOn = glm::vec4(1, 1, 1, 1);
-			gubo.gameOver = true;
-		} else {
-			//gubo.lightOn = lightOn;
-			gubo.gameOver = false;
-		}
+		gubo.gameOver = gameOver;
 
 		// Sky Box UBO update
 		SkyBoxUniformBufferObject sbubo{};
@@ -1741,10 +1651,10 @@ public:
 		glm::vec3 emissiveColor, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id = 0) {
 
 		glm::mat4 World = glm::translate(glm::mat4(1), position) *
-			glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *
-			glm::rotate(glm::mat4(1), rotation.y, glm::vec3(0, 1, 0)) *
-			glm::rotate(glm::mat4(1), rotation.z, glm::vec3(0, 0, 1)) *
-			glm::scale(glm::mat4(1), scale);
+						  glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *
+						  glm::rotate(glm::mat4(1), rotation.y, glm::vec3(0, 1, 0)) *
+						  glm::rotate(glm::mat4(1), rotation.z, glm::vec3(0, 0, 1)) *
+						  glm::scale(glm::mat4(1), scale);
 		ubo.mvpMat = ViewPrj * World;
 		ubo.mMat = World;
 		ubo.nMat = glm::transpose(glm::inverse(World));
