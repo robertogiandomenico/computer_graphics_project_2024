@@ -18,24 +18,23 @@ protected:
 	float Ar;
 
 	// Other application parameters
+	// Camera position, orientation, distance from target
 	glm::vec3 camPos;
 	float camYaw;
 	float camPitch;
 	float camRoll;
 	float camDist;
 	glm::vec3 CamTargetDelta = glm::vec3(0.0f);
-	// Rotation angle for the ollectibles
-	float collectibleRotationAngle = 0.0f;
-	// Rotation speed in radians per second
-	const float collectibleRotationSpeed = glm::radians(45.0f);  // 45 degrees per second
+	
+	// Collectibles parameters
+	float collectibleRotationAngle = 0.0f;						 // rotation angle
+	const float collectibleRotationSpeed = glm::radians(45.0f);  // rotation speed: 45 degrees per second
+	glm::vec3 collectiblesRandomPosition[COLLECTIBLES_NUM];		 // position
 
-	// Cat initial position
+	// Cat position and orientation
 	glm::vec3 catPosition;
 	glm::vec3 catDimensions = glm::vec3(1.2f, 1.2f, 0.3f);
-	// Cat initial orientation
 	float catYaw;
-
-	glm::vec3 collectiblesRandomPosition[COLLECTIBLES_NUM];
 
 	// Timer setup
 	const float GAME_DURATION = 180.0f;		// 3 minutes = 180 seconds
@@ -46,12 +45,13 @@ protected:
 	float minimumPressDelay = 0.1f;
 	float lastPressTime = 0.0f;
 
-	bool DEBUG = false;						// Used to display bounding boxes for debugging
-	bool OVERLAY = false;					// Used to display the overlay
-	bool FIRST_PERSON = false;				// Used to switch between first and third person view
-	int gameState = GAME_STATE_START_SCREEN;
-	bool gameOver = false;
-	glm::vec4 lightOn = glm::vec4(1, 1, 0, 1);	// Initially all types of light are on, except spot
+	// Game state variables
+	bool DEBUG = false;							// to display bounding boxes for debugging
+	bool OVERLAY = false;						// to display the overlay
+	bool FIRST_PERSON = false;					// to switch between first and third person view
+	bool gameOver = false;						// to determine when all the collectibles have been collected
+	int gameState = GAME_STATE_START_SCREEN;	// initially state of the game = start screen
+	glm::vec4 lightOn = glm::vec4(1, 1, 0, 1);	// initially all types of light are on, except spot
 
 public:
 	std::map<std::string, bool> collectiblesMap;
@@ -72,7 +72,7 @@ public:
 	}
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward, DSL_boundingBox, DSL_DRN;
+	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward, DSL_boundingBox, DSL_DRN, DSL_Global;
 
 	// Vertex formats
 	VertexDescriptor VD, VD_skyBox, VD_overlay, VD_tangent, VD_boundingBox;
@@ -98,7 +98,7 @@ public:
 					M_sofa, M_table, M_tv,
 					// Other
 					M_cat;
-	// Other
+
 	Model<VertexTan> M_knight, M_floor, M_walls, M_catFainted;
 	Model<skyBoxVertex> M_skyBox;
 	Model<VertexOverlay> M_timer[5], M_screens[4], M_scroll, M_collectibles[COLLECTIBLES_NUM];
@@ -118,7 +118,7 @@ public:
 					// Living room
 					DS_sofa, DS_table, DS_tv, DS_knight,
 					// Other
-					DS_cat, DS_floor, DS_walls,
+					DS_cat, DS_floor, DS_walls, DS_global,
 					DS_skyBox, DS_timer[5], DS_screens[4], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	std::vector<DescriptorSet> DS_boundingBox;
@@ -147,13 +147,13 @@ public:
 	SteamUniformBufferObject UBO_steam, UBO_fire;
 	OverlayUniformBlock UBO_timer[5], UBO_screens[4], UBO_scroll, UBO_collectibles[COLLECTIBLES_NUM];
 
-	// to display the bounding boxes for debugging
+	// To display the bounding boxes for debugging
 	std::vector<BoundingBox> furnitureBBs;
 	BoundingBox catBox = BoundingBox("cat", catPosition, catDimensions);
 
 	// Here you set the main application parameters
 	void setWindowParameters() {
-		// window size, title and initial background
+		// Window size, title and initial background
 		windowWidth = 1200;
 		windowHeight = 800;
 		windowTitle = "Purrfect Potion";
@@ -169,7 +169,6 @@ public:
 	}
 
 	// What to do when the window changes size
-	// for now not used because windowResizable is set to GLFW_FALSE
 	void onWindowResize(int w, int h) {
 		std::cout << "Window resized to: " << w << " x " << h << "\n";
 		Ar = (float)w / (float)h;
@@ -178,155 +177,151 @@ public:
 	// Here you load and setup all your Vulkan Models and Texutures.
 	// Here you also create your Descriptor set layouts and load the shaders for the pipelines
 	void localInit() {
-
+		
+		// Create bounding boxes for collectibles and furniture
 		fillBBList(&collectiblesBBs, collectiblesRandomPosition);
 
-		furnitureBBs.push_back(BoundingBox("bathtub",	bathtub.pos, glm::vec3(3.3f, 1.4f, 1.4f)));
-		furnitureBBs.push_back(BoundingBox("closet",	closet.pos, glm::vec3(5.6f, 3.2f, 1.f)));
+		furnitureBBs.push_back(BoundingBox("bathtub",	bathtub.pos, glm::vec3(3.3f, 1.7f, 1.4f)));
+		furnitureBBs.push_back(BoundingBox("closet",	closet.pos, glm::vec3(5.6f, 6.f, 1.f)));
 		furnitureBBs.push_back(BoundingBox("bed",		bed.pos, glm::vec3(2.f, 1.2f, 4.5f)));
-		furnitureBBs.push_back(BoundingBox("nightTable",nightTable.pos, glm::vec3(0.88, 1.2f, 1.1f)));
-		furnitureBBs.push_back(BoundingBox("chest",		chest.pos, glm::vec3(1.4f, 1.5f, 0.7f)));
-		furnitureBBs.push_back(BoundingBox("sofa",		sofa.pos, glm::vec3(1.f, 1.1f, 3.f)));
-		furnitureBBs.push_back(BoundingBox("fridge",	fridge.pos, glm::vec3(1.5f, 2.7f, 1.5f)));
-		furnitureBBs.push_back(BoundingBox("kitchen",	kitchen.pos, glm::vec3(5.f, 3.3f, 1.72f)));
+		furnitureBBs.push_back(BoundingBox("nightTable",nightTable.pos, glm::vec3(0.88, 1.3f, 1.1f)));
+		furnitureBBs.push_back(BoundingBox("chest",		chest.pos, glm::vec3(1.4f, 1.4f, 0.7f)));
+		furnitureBBs.push_back(BoundingBox("sofa",		sofa.pos, glm::vec3(1.f, 1.5f, 3.f)));
+		furnitureBBs.push_back(BoundingBox("fridge",	fridge.pos, glm::vec3(1.5f, 3.5f, 1.6f)));
+		furnitureBBs.push_back(BoundingBox("kitchen",	kitchen.pos, glm::vec3(5.f, 3.f, 1.72f)));
+		
 		furnitureBBs.push_back(BoundingBox("cauldron",	cauldron.pos, glm::vec3(1.f, 1.5f, 1.f)));
 
-		// create ubo needed for the bounding boxes (debug)
+		// Create ubo needed for the bounding boxes (debug)
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			UBO_boundingBox.push_back(UniformBufferObject());
 		}
 
 		// Descriptor Layouts [what will be passed to the shaders]
-		DSL.init(this, {
+		DSL_Global.init(this, {
 			// this array contains the bindings:
 			// first  element : the binding number
-			// second element : the type of element (buffer or texture)
-			//                  using the corresponding Vulkan constant
-			// third  element : the pipeline stage where it will be used
-			//                  using the corresponding Vulkan constant
+			// second element : the type of element (buffer or texture) using the corresponding Vulkan constant
+			// third  element : the pipeline stage where it will be used using the corresponding Vulkan constant
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
+		});
+
+		DSL.init(this, {
 			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
 			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
-			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-			{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}			// Binding for emissive color
-			});
+			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}			// Binding for emissive color
+		});
 
 		DSL_skyBox.init(this, {
 			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},			// Uniform buffer for MVP matrix
 			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},	// Combined image sampler for skybox texture
 			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}			// Uniform buffer for time
-			});
+		});
 
 		DSL_steam.init(this, {
 			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},				// Steam UBO binding
 			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}	// Steam texture binding
-			});
+		});
 
 		DSL_boundingBox.init(this, {
-				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
-			});
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
+		});
 
 		DSL_overlay.init(this, {
-				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
-				{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
-			});
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+		});
 
 		DSL_ward.init(this, {
-				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-				{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
-				{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-				{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-				{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
-				{5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
-			});
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+			{3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+			{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+		});
 
 		DSL_DRN.init(this, {
-				{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-				{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
-				{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-				{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-				{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
-				{5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
-			});
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},	
+			{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+			{3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+			{4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+		});
 
 		// Vertex descriptors
 		VD.init(this, {
 			// this array contains the bindings
 			// first  element : the binding number
 			// second element : the stride of this binging
-			// third  element : whether this parameter change per vertex or per instance
-			//                  using the corresponding Vulkan constant
+			// third  element : whether this parameter change per vertex or per instance using the corresponding Vulkan constant
 			{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}
-			}, {
-				// this array contains the location
-				// first  element : the binding number
-				// second element : the location number
-				// third  element : the offset of this element in the memory record
-				// fourth element : the data type of the element
-				//                  using the corresponding Vulkan constant
-				// fifth  elmenet : the size in byte of the element
-				// sixth  element : a constant defining the element usage
-				//                   POSITION - a vec3 with the position
-				//                   NORMAL   - a vec3 with the normal vector
-				//                   UV       - a vec2 with a UV coordinate
-				//                   COLOR    - a vec4 with a RGBA color
-				//                   TANGENT  - a vec4 with the tangent vector
-				//                   OTHER    - anything else
-				//
-				// ***************** DOUBLE CHECK ********************
-				//    That the Vertex data structure you use in the "offsetoff" and
-				//	in the "sizeof" in the previous array, refers to the correct one,
-				//	if you have more than one vertex format!
-				// ***************************************************
-				{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
-					   sizeof(glm::vec3), POSITION},
-				{0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, UV),
-					   sizeof(glm::vec2), UV},
-				{0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm),
-					   sizeof(glm::vec3), NORMAL}
-			});
+		}, {
+			// this array contains the location
+			// first  element : the binding number
+			// second element : the location number
+			// third  element : the offset of this element in the memory record
+			// fourth element : the data type of the element the corresponding Vulkan constant
+			// fifth  elmenet : the size in byte of the element
+			// sixth  element : a constant defining the element usage
+			//                   POSITION - a vec3 with the position
+			//                   NORMAL   - a vec3 with the normal vector
+			//                   UV       - a vec2 with a UV coordinate
+			//                   COLOR    - a vec4 with a RGBA color
+			//                   TANGENT  - a vec4 with the tangent vector
+			//                   OTHER    - anything else
+			//
+			// ***************** DOUBLE CHECK ********************
+			//  That the Vertex data structure you use in the "offsetoff" and in the "sizeof" in the previous array, refers to the correct one, if you have more than one vertex format!
+			// ***************************************************
+			{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
+				sizeof(glm::vec3), POSITION},
+			{0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, UV),
+				sizeof(glm::vec2), UV},
+			{0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm),
+				sizeof(glm::vec3), NORMAL}
+		});
 
 		VD_skyBox.init(this, {
-				{0, sizeof(skyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}
-			}, {
-				{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(skyBoxVertex, pos),
-					sizeof(glm::vec3), POSITION}
-			});
+			{0, sizeof(skyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}
+		}, {
+			{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(skyBoxVertex, pos),
+				sizeof(glm::vec3), POSITION}
+		});
 
 		VD_boundingBox.init(this, {
-				{0, sizeof(VertexBoundingBox), VK_VERTEX_INPUT_RATE_VERTEX}
-			}, {
-				{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexBoundingBox, pos),
-					sizeof(glm::vec3), POSITION}
-			});
+			{0, sizeof(VertexBoundingBox), VK_VERTEX_INPUT_RATE_VERTEX}
+		}, {
+			{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexBoundingBox, pos),
+				sizeof(glm::vec3), POSITION}
+		});
 
 		VD_overlay.init(this, {
-				{0, sizeof(VertexOverlay), VK_VERTEX_INPUT_RATE_VERTEX}
-			}, {
-				{0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, pos),
-					sizeof(glm::vec2), OTHER},
-				{0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, UV),
-					sizeof(glm::vec2), UV}
-			});
+			{0, sizeof(VertexOverlay), VK_VERTEX_INPUT_RATE_VERTEX}
+		}, {
+			{0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, pos),
+				sizeof(glm::vec2), OTHER},
+			{0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, UV),
+				sizeof(glm::vec2), UV}
+		});
 
 		VD_tangent.init(this, {
-				{0, sizeof(VertexTan), VK_VERTEX_INPUT_RATE_VERTEX}
-			}, {
-				{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexTan, pos),
-					sizeof(glm::vec3), POSITION},
-				{0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexTan, normal),
-					sizeof(glm::vec3), NORMAL},
-				{0, 2, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VertexTan, tangent),
-					sizeof(glm::vec4), TANGENT},
-				{0, 3, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexTan, texCoord),
-					sizeof(glm::vec2), UV}
-			});
+			{0, sizeof(VertexTan), VK_VERTEX_INPUT_RATE_VERTEX}
+		}, {
+			{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexTan, pos),
+				sizeof(glm::vec3), POSITION},
+			{0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexTan, normal),
+				sizeof(glm::vec3), NORMAL},
+			{0, 2, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VertexTan, tangent),
+				sizeof(glm::vec4), TANGENT},
+			{0, 3, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexTan, texCoord),
+				sizeof(glm::vec2), UV}
+		});
 
 		// Pipelines [Shader couples]
 		// The second parameter is the pointer to the vertex definition
 		// Third and fourth parameters are respectively the vertex and fragment shaders
-		// The last array, is a vector of pointer to the layouts of the sets that will
-		// be used in this pipeline. The first element will be set 0, and so on..
-		P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL });
+		// The last array, is a vector of pointer to the layouts of the sets that will be used in this pipeline. The first element will be set 0, and so on..
+		P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL, &DSL_Global });
 		P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, true);
 
 		P_skyBox.init(this, &VD_skyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSL_skyBox });
@@ -341,10 +336,10 @@ public:
 		P_overlay.init(this, &VD_overlay, "shaders/OverlayVert.spv", "shaders/OverlayFrag.spv", { &DSL_overlay });
 		P_overlay.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
 
-		P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_ward });
+		P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_ward, &DSL_Global });
 		P_ward.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
-		P_DRN.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/DRNFrag.spv", { &DSL_DRN });
+		P_DRN.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/DRNFrag.spv", { &DSL_DRN, &DSL_Global });
 		P_DRN.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
@@ -520,273 +515,244 @@ public:
 		P_ward.create();
 		P_DRN.create();
 
-		DS_skyBox.init(this, &DSL_skyBox, {
-						{0, UNIFORM, sizeof(SkyBoxUniformBufferObject), nullptr},
-						{1, TEXTURE, 0, &T_skyBox},
-						{2, UNIFORM, sizeof(float), nullptr}
-			});
-
 		// Here you define the data set
-		DS_bed.init(this, &DSL, {
-			// the second parameter, is a pointer to the Uniform Set Layout of this set
-			// the last parameter is an array, with one element per binding of the set.
+		// the second parameter, is a pointer to the Uniform Set Layout of this set
+		// the last parameter is an array, with one element per binding of the set.
+		DS_global.init(this, &DSL_Global, {
 			// first  elmenet : the binding number
 			// second element : UNIFORM or TEXTURE (an enum) depending on the type
 			// third  element : only for UNIFORMs, the size of the corresponding C++ object. For texture, just put 0
 			// fourth element : only for TEXTUREs, the pointer to the corresponding texture object. For uniforms, use nullptr
-						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-						{1, TEXTURE, 0, &T_textures},
-						{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-						{3, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
-			});
+			{0, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+		});
+
+		DS_skyBox.init(this, &DSL_skyBox, {
+			{0, UNIFORM, sizeof(SkyBoxUniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_skyBox},
+			{2, UNIFORM, sizeof(float), nullptr}
+		});
+
+		DS_bed.init(this, &DSL, {
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},		 
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}  // Emissive color binding
+		});
 		DS_closet.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_closet},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_closet},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_nighttable.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 
 		DS_bathtub.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 
 		DS_bidet.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_sink.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},	 
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_toilet.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 
 		DS_bone.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},	 
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_crystal.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_eye.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_eye},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_eye},	 
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_feather.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_feather},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_feather},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_leaf.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_potion1.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_potion2.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 
 		DS_chair.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_fridge.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_kitchen.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_kitchentable.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures}, 
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 
 		DS_cauldron.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},	 
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_stonechair.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},		 
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_chest.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_shelf1.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},	 
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_shelf2.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_stonetable.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_web.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_steam.init(this, &DSL_steam, {
-					{0, UNIFORM, sizeof(SteamUniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_steam}
-			});
+			{0, UNIFORM, sizeof(SteamUniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_steam}
+		});
 		DS_fire.init(this, &DSL_steam, {
-					{0, UNIFORM, sizeof(SteamUniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_fire}
-			});
+			{0, UNIFORM, sizeof(SteamUniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_fire}
+		});
 
 		DS_sofa.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},	 
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_table.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_tv.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_textures},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_textures},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_knight.init(this, &DSL_ward, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_knight[0]},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr},
-					{4, TEXTURE, 0, &T_knight[1]},
-					{5, TEXTURE, 0, &T_knight[2]}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_knight[0]},
+			{2, UNIFORM, sizeof(glm::vec3), nullptr},
+			{3, TEXTURE, 0, &T_knight[1]},
+			{4, TEXTURE, 0, &T_knight[2]}
+		});
 
 		DS_cat.init(this, &DSL, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_catDiffuseGhost},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_catDiffuseGhost},	 
+			{2, UNIFORM, sizeof(glm::vec3), nullptr}
+		});
 		DS_catFainted.init(this, &DSL_DRN, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_cat[0]},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr},
-					{4, TEXTURE, 0, &T_cat[1]},
-					{5, TEXTURE, 0, &T_cat[2]}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_cat[0]},	 
+			{2, UNIFORM, sizeof(glm::vec3), nullptr},
+			{3, TEXTURE, 0, &T_cat[1]},
+			{4, TEXTURE, 0, &T_cat[2]}
+		});
 
 		DS_floor.init(this, &DSL_DRN, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_floor[0]},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr},
-					{4, TEXTURE, 0, &T_floor[1]},
-					{5, TEXTURE, 0, &T_floor[2]}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_floor[0]},	 
+			{2, UNIFORM, sizeof(glm::vec3), nullptr},
+			{3, TEXTURE, 0, &T_floor[1]},
+			{4, TEXTURE, 0, &T_floor[2]}
+		});
 		DS_walls.init(this, &DSL_DRN, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T_wall[0]},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-					{3, UNIFORM, sizeof(glm::vec3), nullptr},
-					{4, TEXTURE, 0, &T_wall[1]},
-					{5, TEXTURE, 0, &T_wall[2]}
-			});
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &T_wall[0]},	 
+			{2, UNIFORM, sizeof(glm::vec3), nullptr},
+			{3, TEXTURE, 0, &T_wall[1]},
+			{4, TEXTURE, 0, &T_wall[2]}
+		});
 
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			DS_boundingBox.push_back(DescriptorSet());
 			DS_boundingBox[i].init(this, &DSL_boundingBox, {
-						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-				});
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			});
 		}
 
 		for (int i = 0; i < 4; i++) {
 			DS_screens[i].init(this, &DSL_overlay, {
-					{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_screens[i]}
-				});
+				{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
+				{1, TEXTURE, 0, &T_screens[i]}
+			});
 		}
 
 		for (int i = 0; i < 5; i++) {
 			DS_timer[i].init(this, &DSL_overlay, {
-					{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_timer[i]}
-				});
+				{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
+				{1, TEXTURE, 0, &T_timer[i]}
+			});
 		}
 
 		DS_scroll.init(this, &DSL_overlay, {
-				{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
-				{1, TEXTURE, 0, &T_scroll}
-			});
+			{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
+			{1, TEXTURE, 0, &T_scroll}
+		});
 
 		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
 			DS_collectibles[i].init(this, &DSL_overlay, {
-					{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
-					{1, TEXTURE, 0, &T_collectibles[i]}
-				});
+				{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
+				{1, TEXTURE, 0, &T_collectibles[i]}
+			});
 		}
 	}
 
@@ -846,6 +812,7 @@ public:
 		DS_walls.cleanup();
 
 		DS_skyBox.cleanup();
+		DS_global.cleanup();
 
 		for (int i = 0; i < COLLECTIBLES_NUM + furnitureBBs.size() + 1; i++) {
 			DS_boundingBox[i].cleanup();
@@ -868,8 +835,7 @@ public:
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
 	// All the object classes defined in Starter.hpp have a method .cleanup() for this purpose
-	// You also have to destroy the pipelines: since they need to be rebuilt, they have two different
-	// methods: .cleanup() recreates them, while .destroy() delete them completely
+	// You also have to destroy the pipelines: since they need to be rebuilt, they have two methods: .cleanup() recreates them, while .destroy() delete them completely
 	void localCleanup() {
 		// Cleanup textures
 		T_textures.cleanup();
@@ -975,6 +941,7 @@ public:
 		DSL_overlay.cleanup();
 		DSL_ward.cleanup();
 		DSL_DRN.cleanup();
+		DSL_Global.cleanup();
 
 		// Destroy the pipelines
 		P.destroy();
@@ -987,12 +954,15 @@ public:
 	}
 
 	// Here it is the creation of the command buffer:
-	// You send to the GPU all the objects you want to draw,
-	// with their buffers and textures
-
+	// You send to the GPU all the objects you want to draw, with their buffers and textures
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
 
+		// P_DRN pipeline
 		P_DRN.bind(commandBuffer);
+
+		// DS_global is binded to P_DRN with set = 1
+		DS_global.bind(commandBuffer, P_DRN, 1, currentImage);
+
 		DS_catFainted.bind(commandBuffer, P_DRN, 0, currentImage);
 		M_catFainted.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_catFainted.indices.size()), 1, 0, 0, 0);
@@ -1005,16 +975,23 @@ public:
 		M_walls.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_walls.indices.size()), 1, 0, 0, 0);
 
+		// P_ward pipeline
 		P_ward.bind(commandBuffer);
+
+		// DS_global is binded to P_ward with set = 1
+		DS_global.bind(commandBuffer, P_ward, 1, currentImage);
+
 		DS_knight.bind(commandBuffer, P_ward, 0, currentImage);
 		M_knight.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_knight.indices.size()), 1, 0, 0, 0);
 
+		// P_skyBox pipeline
 		P_skyBox.bind(commandBuffer);
 		M_skyBox.bind(commandBuffer);
 		DS_skyBox.bind(commandBuffer, P_skyBox, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_skyBox.indices.size()), 1, 0, 0, 0);
 
+		// P_boundingBox pipeline
 		P_boundingBox.bind(commandBuffer);
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
 			M_boundingBox[i].bind(commandBuffer);
@@ -1022,26 +999,24 @@ public:
 			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_boundingBox[i].indices.size()), 1, 0, 0, 0);
 		}
 
-		// binds the pipeline
+		// P pipeline
 		P.bind(commandBuffer);
-		// For a pipeline object, this command binds the corresponing pipeline to the command buffer passed in its parameter
-		// binds the data set
+		// For a pipeline object, this command binds the corresponing pipeline to the command buffer passed in its parameter binds the data set
+
+		// DS_global is binded to P with set = 1
+		DS_global.bind(commandBuffer, P, 1, currentImage);
+
 		DS_bed.bind(commandBuffer, P, 0, currentImage);
-		// For a Dataset object, this command binds the corresponing dataset
-		// to the command buffer and pipeline passed in its first and second parameters.
+		// For a Dataset object, this command binds the corresponing dataset to the command buffer and pipeline passed in its first and second parameters.
 		// The third parameter is the number of the set being bound
 		// As described in the Vulkan tutorial, a different dataset is required for each image in the swap chain.
-		// This is done automatically in file Starter.hpp, however the command here needs also the index
-		// of the current image in the swap chain, passed in its last parameter
-		// binds the model
+		// This is done automatically in file Starter.hpp, however the command here needs also the index of the current image in the swap chain, passed in its last parameter binds the model
 		M_bed.bind(commandBuffer);
 		// For a Model object, this command binds the corresponing index and vertex buffer
 		// to the command buffer passed in its parameter
 		// record the drawing command in the command buffer
-		vkCmdDrawIndexed(commandBuffer,
-			static_cast<uint32_t>(M_bed.indices.size()), 1, 0, 0, 0);
-		// the second parameter is the number of indexes to be drawn. For a Model object,
-		// this can be retrieved with the .indices.size() method.a
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_bed.indices.size()), 1, 0, 0, 0);
+		// the second parameter is the number of indexes to be drawn. For a Model object, this can be retrieved with the .indices.size() method
 
 		DS_closet.bind(commandBuffer, P, 0, currentImage);
 		M_closet.bind(commandBuffer);
@@ -1155,6 +1130,7 @@ public:
 		M_cat.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
 
+		// P_steam pipeline
 		P_steam.bind(commandBuffer);
 		M_steam.bind(commandBuffer);
 		DS_steam.bind(commandBuffer, P_steam, 0, currentImage);
@@ -1164,6 +1140,7 @@ public:
 		DS_fire.bind(commandBuffer, P_steam, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_fire.indices.size()), 1, 0, 0, 0);
 
+		// P_overlay pipeline
 		P_overlay.bind(commandBuffer);
 		for (int i = 0; i < 4; i++) {
 			M_screens[i].bind(commandBuffer);
@@ -1189,8 +1166,7 @@ public:
 
 	}
 
-	// Here is where you update the uniforms.
-	// Very likely this will be where you will be writing the logic of your application.
+	// Here is where you update the uniforms. Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
 		static bool debounce = false;
 		static int curDebounce = 0;
@@ -1202,6 +1178,7 @@ public:
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 
+		// Pressing the Z key toggles the cursor
 		if (glfwGetKey(window, GLFW_KEY_Z) && !showCursor && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_FALSE);
@@ -1222,14 +1199,11 @@ public:
 		bool start = false;
 		getSixAxis(deltaT, m, r, fire, start);
 		// getSixAxis() is defined in Starter.hpp in the base class.
-		// It fills the float point variable passed in its first parameter with the time
-		// since the last call to the procedure.
-		// It fills vec3 in the second parameters, with three values in the -1,1 range corresponding
-		// to motion (with left stick of the gamepad, or ASWD + RF keys on the keyboard)
-		// It fills vec3 in the third parameters, with three values in the -1,1 range corresponding
-		// to motion (with right stick of the gamepad, or Arrow keys + QE keys on the keyboard, or mouse)
-		// If fills the last boolean variable with true if fire has been pressed:
-		//          SPACE on the keyboard, A or B button on the Gamepad, Right mouse button
+		// It fills the float point variable passed in its first parameter with the time since the last call to the procedure.
+		// It fills vec3 in the second parameters, with three values in the -1,1 range corresponding to motion (with left stick of the gamepad, or ASWD + RF keys on the keyboard)
+		// It fills vec3 in the third parameters, with three values in the -1,1 range corresponding to motion (with right stick of the gamepad, or Arrow keys + QE keys on the keyboard, or mouse)
+		// If fills the fourth boolean variable with true if fire has been pressed: SPACE on the keyboard, A or B button on the Gamepad, Right mouse button
+		// If fills the last boolean variable with true if start has been pressed: ENTER on the keyboard
 
 		glm::mat4 World;
 		glm::mat4 ViewPrj;
@@ -1338,10 +1312,8 @@ public:
 			camPitch = glm::clamp(camPitch, minPitch, maxPitch);
 
 			float minRoll = -M_PI_2;
-			float maxRoll = M_PI_2;
+			float maxRoll =  M_PI_2;
 			camRoll = glm::clamp(camRoll, minRoll, maxRoll);
-
-			// camYaw = glm::clamp(camYaw, -M_PI, M_PI);
 
 			// Redefine camera forward and right vectors
 			cameraForward = glm::normalize(glm::vec3(sin(camYaw), 0.0f, cos(camYaw)));
@@ -1380,12 +1352,10 @@ public:
 			// Check if game is over because time has run out
 			if (totalElapsedTime >= GAME_DURATION) {
 				gameState = GAME_STATE_GAME_LOSE;
-			}
-			else if (static_cast<int>(timeLeft) != lastDisplayedTime) {
+			} else if (static_cast<int>(timeLeft) != lastDisplayedTime) {
 				std::cout << "Time remaining: " << static_cast<int>(timeLeft) << std::endl;
 				lastDisplayedTime = static_cast<int>(timeLeft);
 			}
-
 		}					//******************************************** END GAME PLAY **********************************************
 		
 		
@@ -1457,7 +1427,7 @@ public:
 
 		gubo.lightPos[7] = glm::vec3(0.0f, 0.0f, 0.0f);						// position: null
 		gubo.lightDir[7] = glm::vec3(-0.5, 1.0, 0.5);						// (sun) light from outside
-		gubo.lightColor[7] = glm::vec4(glm::vec3(1.0f, 0.95f, 0.8f), 2.0f); // color: warm white
+		gubo.lightColor[7] = glm::vec4(glm::vec3(0.2f), 2.0f);				// color: white
 
 		gubo.lightPos[8] = glm::vec3(-6.0f, 1.5f, -8.3f);					// position: witch lair - cauldron
 		gubo.lightColor[8] = glm::vec4(glm::vec3(0.1f, 0.1f, 1.0f), 20.0f);	// color: blue
@@ -1477,6 +1447,8 @@ public:
 		gubo.lightOn = lightOn;
 		gubo.gameOver = gameOver;
 
+		DS_global.map(currentImage, &gubo, sizeof(gubo), 0);
+
 		// Sky Box UBO update
 		SkyBoxUniformBufferObject sbubo{};
 		sbubo.mvpMat = M * glm::mat4(glm::mat3(Mv));
@@ -1486,7 +1458,7 @@ public:
 		// Steam UBO update
 		SteamUniformBufferObject subo = {};
 		World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 1.7f, 0)) *		// Steam plane position - over the cauldron
-			glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Steam plane rotation - always face the camera
+				glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Steam plane rotation - always face the camera
 		subo.mvpMat = ViewPrj * World;
 		subo.mMat = World;
 		subo.nMat = glm::transpose(glm::inverse(World));
@@ -1496,7 +1468,7 @@ public:
 
 		// Fire UBO update
 		World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 0.3f, 0.1f)) *	// Fire plane position - under the cauldron
-			glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Fire plane rotation - always face the camera
+				glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Fire plane rotation - always face the camera
 		subo.mvpMat = ViewPrj * World;
 		subo.mMat = World;
 		subo.nMat = glm::transpose(glm::inverse(World));
@@ -1556,81 +1528,81 @@ public:
 
 
 		// Placing ghost cat
-		placeEntity(UBO_cat, gubo, catPosition, glm::vec3(0, catYaw, 0), FIRST_PERSON ? glm::vec3(0.0f) : glm::vec3(1.f), glm::vec3(3.0f), ViewPrj, DS_cat, currentImage, DEBUG, 16);
+		placeEntity(UBO_cat, catPosition, glm::vec3(0, catYaw, 0), FIRST_PERSON ? glm::vec3(0.0f) : glm::vec3(1.f), glm::vec3(3.0f), ViewPrj, DS_cat, currentImage, DEBUG, 16);
 		catBox = BoundingBox("cat", catPosition, catDimensions);
 
 		// House
-		placeEntity(UBO_floor, gubo, houseFloor.pos, houseFloor.rot, houseFloor.scale, glm::vec3(0.0f), ViewPrj, DS_floor, currentImage, false);
-		placeEntity(UBO_walls, gubo, walls.pos, walls.rot, walls.scale, glm::vec3(0.0f), ViewPrj, DS_walls, currentImage, false);
+		placeEntity(UBO_floor, houseFloor.pos, houseFloor.rot, houseFloor.scale, glm::vec3(0.0f), ViewPrj, DS_floor, currentImage, false);
+		placeEntity(UBO_walls, walls.pos, walls.rot, walls.scale, glm::vec3(0.0f), ViewPrj, DS_walls, currentImage, false);
 
 		// Bedroom
-		placeEntity(UBO_closet, gubo, closet.pos, closet.rot, closet.scale, glm::vec3(0.0f), ViewPrj, DS_closet, currentImage, DEBUG, 8);
-		placeEntity(UBO_bed, gubo, bed.pos, bed.rot, bed.scale, glm::vec3(0.0f), ViewPrj, DS_bed, currentImage, DEBUG, 9);
-		placeEntity(UBO_nightTable, gubo, nightTable.pos, nightTable.rot, nightTable.scale, glm::vec3(0.0f), ViewPrj, DS_nighttable, currentImage, DEBUG, 10);
+		placeEntity(UBO_closet, closet.pos, closet.rot, closet.scale, glm::vec3(0.0f), ViewPrj, DS_closet, currentImage, DEBUG, 8);
+		placeEntity(UBO_bed, bed.pos, bed.rot, bed.scale, glm::vec3(0.0f), ViewPrj, DS_bed, currentImage, DEBUG, 9);
+		placeEntity(UBO_nightTable, nightTable.pos, nightTable.rot, nightTable.scale, glm::vec3(0.0f), ViewPrj, DS_nighttable, currentImage, DEBUG, 10);
 
 		// Kitchen
-		placeEntity(UBO_kitchen, gubo, kitchen.pos, kitchen.rot, kitchen.scale, glm::vec3(0.0f), ViewPrj, DS_kitchen, currentImage, DEBUG, 14);
-		placeEntity(UBO_fridge, gubo, fridge.pos, fridge.rot, fridge.scale, glm::vec3(0.0f), ViewPrj, DS_fridge, currentImage, DEBUG, 13);
-		placeEntity(UBO_kitchenTable, gubo, kitchenTable.pos, kitchenTable.rot, kitchenTable.scale, glm::vec3(0.0f), ViewPrj, DS_kitchentable, currentImage, false);
-		placeEntity(UBO_chair, gubo, chair.pos, chair.rot, chair.scale, glm::vec3(0.0f), ViewPrj, DS_chair, currentImage, false);
+		placeEntity(UBO_kitchen, kitchen.pos, kitchen.rot, kitchen.scale, glm::vec3(0.0f), ViewPrj, DS_kitchen, currentImage, DEBUG, 14);
+		placeEntity(UBO_fridge, fridge.pos, fridge.rot, fridge.scale, glm::vec3(0.0f), ViewPrj, DS_fridge, currentImage, DEBUG, 13);
+		placeEntity(UBO_kitchenTable, kitchenTable.pos, kitchenTable.rot, kitchenTable.scale, glm::vec3(0.0f), ViewPrj, DS_kitchentable, currentImage, false);
+		placeEntity(UBO_chair, chair.pos, chair.rot, chair.scale, glm::vec3(0.0f), ViewPrj, DS_chair, currentImage, false);
 
 		// Living room
-		placeEntity(UBO_sofa, gubo, sofa.pos, sofa.rot, sofa.scale, glm::vec3(0.0f), ViewPrj, DS_sofa, currentImage, DEBUG, 12);
-		placeEntity(UBO_table, gubo, table.pos, table.rot, table.scale, glm::vec3(0.0f), ViewPrj, DS_table, currentImage, false);
-		placeEntity(UBO_tv, gubo, tv.pos, tv.rot, tv.scale, glm::vec3(0.0f), ViewPrj, DS_tv, currentImage, false);
-		placeEntity(UBO_knight, gubo, knight.pos, knight.rot, knight.scale, glm::vec3(0.0f), ViewPrj, DS_knight, currentImage, false);
+		placeEntity(UBO_sofa, sofa.pos, sofa.rot, sofa.scale, glm::vec3(0.0f), ViewPrj, DS_sofa, currentImage, DEBUG, 12);
+		placeEntity(UBO_table, table.pos, table.rot, table.scale, glm::vec3(0.0f), ViewPrj, DS_table, currentImage, false);
+		placeEntity(UBO_tv, tv.pos, tv.rot, tv.scale, glm::vec3(0.0f), ViewPrj, DS_tv, currentImage, false);
+		placeEntity(UBO_knight, knight.pos, knight.rot, knight.scale, glm::vec3(0.0f), ViewPrj, DS_knight, currentImage, false);
 
 		// Witch lair
-		placeEntity(UBO_chest, gubo, chest.pos, chest.rot, chest.scale, glm::vec3(0.0f), ViewPrj, DS_chest, currentImage, DEBUG, 11);
-		placeEntity(UBO_stoneTable, gubo, stoneTable.pos, stoneTable.rot, stoneTable.scale, glm::vec3(0.0f), ViewPrj, DS_stonetable, currentImage, false);
-		placeEntity(UBO_stoneChair, gubo, stoneChair.pos, stoneChair.rot, stoneChair.scale, glm::vec3(0.0f), ViewPrj, DS_stonechair, currentImage, false);
-		placeEntity(UBO_cauldron, gubo, cauldron.pos, cauldron.rot, cauldron.scale, glm::vec3(0.0f), ViewPrj, DS_cauldron, currentImage, DEBUG, 15);
-		placeEntity(UBO_shelf1, gubo, shelf1.pos, shelf1.rot, shelf1.scale, glm::vec3(0.0f), ViewPrj, DS_shelf1, currentImage, false);
-		placeEntity(UBO_shelf2, gubo, shelf2.pos, shelf2.rot, shelf2.scale, glm::vec3(0.0f), ViewPrj, DS_shelf2, currentImage, false);
-		placeEntity(UBO_web, gubo, web.pos, web.rot, web.scale, glm::vec3(0.0f), ViewPrj, DS_web, currentImage, false);
-		placeEntity(UBO_catFainted, gubo, catFainted.pos, catFainted.rot, catFainted.scale, glm::vec3(0.0f), ViewPrj, DS_catFainted, currentImage, false);
+		placeEntity(UBO_chest, chest.pos, chest.rot, chest.scale, glm::vec3(0.0f), ViewPrj, DS_chest, currentImage, DEBUG, 11);
+		placeEntity(UBO_stoneTable, stoneTable.pos, stoneTable.rot, stoneTable.scale, glm::vec3(0.0f), ViewPrj, DS_stonetable, currentImage, false);
+		placeEntity(UBO_stoneChair, stoneChair.pos, stoneChair.rot, stoneChair.scale, glm::vec3(0.0f), ViewPrj, DS_stonechair, currentImage, false);
+		placeEntity(UBO_cauldron, cauldron.pos, cauldron.rot, cauldron.scale, glm::vec3(0.0f), ViewPrj, DS_cauldron, currentImage, DEBUG, 15);
+		placeEntity(UBO_shelf1, shelf1.pos, shelf1.rot, shelf1.scale, glm::vec3(0.0f), ViewPrj, DS_shelf1, currentImage, false);
+		placeEntity(UBO_shelf2, shelf2.pos, shelf2.rot, shelf2.scale, glm::vec3(0.0f), ViewPrj, DS_shelf2, currentImage, false);
+		placeEntity(UBO_web, web.pos, web.rot, web.scale, glm::vec3(0.0f), ViewPrj, DS_web, currentImage, false);
+		placeEntity(UBO_catFainted, catFainted.pos, catFainted.rot, catFainted.scale, glm::vec3(0.0f), ViewPrj, DS_catFainted, currentImage, false);
 
 		// Bathroom
-		placeEntity(UBO_bathtub, gubo, bathtub.pos, bathtub.rot, bathtub.scale, glm::vec3(0.0f), ViewPrj, DS_bathtub, currentImage, DEBUG, 7);
-		placeEntity(UBO_toilet, gubo, toilet.pos, toilet.rot, toilet.scale, glm::vec3(0.0f), ViewPrj, DS_toilet, currentImage, false);
-		placeEntity(UBO_bidet, gubo, bidet.pos, bidet.rot, bidet.scale, glm::vec3(0.0f), ViewPrj, DS_bidet, currentImage, false);
-		placeEntity(UBO_sink, gubo, sink.pos, sink.rot, sink.scale, glm::vec3(0.0f), ViewPrj, DS_sink, currentImage, false);
+		placeEntity(UBO_bathtub, bathtub.pos, bathtub.rot, bathtub.scale, glm::vec3(0.0f), ViewPrj, DS_bathtub, currentImage, DEBUG, 7);
+		placeEntity(UBO_toilet, toilet.pos, toilet.rot, toilet.scale, glm::vec3(0.0f), ViewPrj, DS_toilet, currentImage, false);
+		placeEntity(UBO_bidet, bidet.pos, bidet.rot, bidet.scale, glm::vec3(0.0f), ViewPrj, DS_bidet, currentImage, false);
+		placeEntity(UBO_sink, sink.pos, sink.rot, sink.scale, glm::vec3(0.0f), ViewPrj, DS_sink, currentImage, false);
 
 		// Collectibles
 		if (!collectiblesMap["crystal"]) {
-			placeEntity(UBO_crystal, gubo, collectiblesRandomPosition[0], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage, DEBUG, 0);
+			placeEntity(UBO_crystal, collectiblesRandomPosition[0], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage, DEBUG, 0);
 		} else {
-			removeCollectible(UBO_crystal, gubo, ViewPrj, DS_crystal, currentImage, 0);	// it actually scales to zero -> not efficient
+			removeCollectible(UBO_crystal, ViewPrj, DS_crystal, currentImage, 0);	// it actually scales to zero -> not efficient
 		}
 		if (!collectiblesMap["eye"]) {
-			placeEntity(UBO_eye, gubo, collectiblesRandomPosition[1], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage, DEBUG, 1);
+			placeEntity(UBO_eye, collectiblesRandomPosition[1], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage, DEBUG, 1);
 		} else {
-			removeCollectible(UBO_eye, gubo, ViewPrj, DS_eye, currentImage, 1);
+			removeCollectible(UBO_eye, ViewPrj, DS_eye, currentImage, 1);
 		}
 		if (!collectiblesMap["feather"]) {
-			placeEntity(UBO_feather, gubo, collectiblesRandomPosition[2], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage, DEBUG, 2);
+			placeEntity(UBO_feather, collectiblesRandomPosition[2], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_feather, currentImage, DEBUG, 2);
 		} else {
-			removeCollectible(UBO_feather, gubo, ViewPrj, DS_feather, currentImage, 2);
+			removeCollectible(UBO_feather, ViewPrj, DS_feather, currentImage, 2);
 		}
 		if (!collectiblesMap["leaf"]) {
-			placeEntity(UBO_leaf, gubo, collectiblesRandomPosition[3], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage, DEBUG, 3);
+			placeEntity(UBO_leaf, collectiblesRandomPosition[3], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_leaf, currentImage, DEBUG, 3);
 		} else {
-			removeCollectible(UBO_leaf, gubo, ViewPrj, DS_leaf, currentImage, 3);
+			removeCollectible(UBO_leaf, ViewPrj, DS_leaf, currentImage, 3);
 		}
 		if (!collectiblesMap["potion1"]) {
-			placeEntity(UBO_potion1, gubo, collectiblesRandomPosition[4], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage, DEBUG, 4);
+			placeEntity(UBO_potion1, collectiblesRandomPosition[4], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_potion1, currentImage, DEBUG, 4);
 		} else {
-			removeCollectible(UBO_potion1, gubo, ViewPrj, DS_potion1, currentImage, 4);
+			removeCollectible(UBO_potion1, ViewPrj, DS_potion1, currentImage, 4);
 		}
 		if (!collectiblesMap["potion2"]) {
-			placeEntity(UBO_potion2, gubo, collectiblesRandomPosition[5], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage, DEBUG, 5);
+			placeEntity(UBO_potion2, collectiblesRandomPosition[5], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_potion2, currentImage, DEBUG, 5);
 		} else {
-			removeCollectible(UBO_potion2, gubo, ViewPrj, DS_potion2, currentImage, 5);
+			removeCollectible(UBO_potion2, ViewPrj, DS_potion2, currentImage, 5);
 		}
 		if (!collectiblesMap["bone"]) {
-			placeEntity(UBO_bone, gubo, collectiblesRandomPosition[6], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(0.3f), ViewPrj, DS_bone, currentImage, DEBUG, 6);
+			placeEntity(UBO_bone, collectiblesRandomPosition[6], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(0.3f), ViewPrj, DS_bone, currentImage, DEBUG, 6);
 		} else {
-			removeCollectible(UBO_bone, gubo, ViewPrj, DS_bone, currentImage, 6);
+			removeCollectible(UBO_bone, ViewPrj, DS_bone, currentImage, 6);
 		}
 
 		// Check for collisions with the collectibles
@@ -1646,13 +1618,13 @@ public:
 				if (collectiblesMap["crystal"] && collectiblesMap["eye"] && collectiblesMap["feather"] &&
 					collectiblesMap["leaf"] && collectiblesMap["potion1"] && collectiblesMap["potion2"] && collectiblesMap["bone"]) {
 
-					std::cout << "\nALL COLLECTIBLES COLLECTED!" << std::endl;
-					std::cout << "Now go to the cauldron" << std::endl;
+					std::cout << "\nALL COLLECTIBLES COLLECTED! Now go to the cauldron" << std::endl;
 					gameOver = true;
 				}
 			}
 		}
 
+		// Check for collisions with the furniture
 		for (int j = 0; j < furnitureBBs.size(); j++) {
 			if (catBox.intersects(furnitureBBs[j])) {
 				if (furnitureBBs[j].getName() == "cauldron") {
@@ -1663,7 +1635,6 @@ public:
 					}
 				}
 				catPosition += cameraForward * m.z * MOVE_SPEED * deltaT;
-				//catPosition.y -= m.y * MOVE_SPEED * deltaT;
 				catPosition -= cameraRight * m.x * MOVE_SPEED * deltaT;
 
 				std::cout << "Collision with " << furnitureBBs[j].getName() << std::endl;
@@ -1671,7 +1642,7 @@ public:
 		}
 	}
 
-	void placeEntity(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
+	void placeEntity(UniformBufferObject ubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 		glm::vec3 emissiveColor, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id = 0) {
 
 		glm::mat4 World = glm::translate(glm::mat4(1), position) *
@@ -1686,37 +1657,34 @@ public:
 		drawBoundingBox(hasBoundingBox, position, rotation, scale, ViewPrj, UBO_boundingBox[id], DS_boundingBox[id], currentImage);
 
 		ds.map(currentImage, &ubo, sizeof(ubo), 0);
-
-		ds.map(currentImage, &gubo, sizeof(gubo), 2);
-
 		// the .map() method of a DataSet object, requires the current image of the swap chain as first parameter
 		// the second parameter is the pointer to the C++ data structure to transfer to the GPU
 		// the third parameter is its size
 		// the fourth parameter is the location inside the descriptor set of this uniform block
 
-		ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 3);
+		ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 2);
 	}
 
-	void removeCollectible(UniformBufferObject ubo, GlobalUniformBufferObject gubo, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, int id) {
+	void removeCollectible(UniformBufferObject ubo, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, int id) {
 		glm::mat4 World = glm::mat4(0.f);
 		ubo.mvpMat = ViewPrj * World;
 		ubo.mMat = World;
 		ubo.nMat = glm::transpose(glm::inverse(World));
 
 		ds.map(currentImage, &ubo, sizeof(ubo), 0);
-		ds.map(currentImage, &gubo, sizeof(gubo), 2);
 
-		// update bounding box matrices
+		// Update bounding box matrices
 		UBO_boundingBox[id].mvpMat = ViewPrj * World;
 		UBO_boundingBox[id].mMat = World;
 		UBO_boundingBox[id].nMat = glm::inverse(glm::transpose(World));
 		DS_boundingBox[id].map(currentImage, &UBO_boundingBox[id], sizeof(UBO_boundingBox[id]), 0);
 
-		// erase the bounding box from the map
+		// Remove bounding box from the array of BBs
 		collectiblesBBs[id].erase();
 	}
 
 	void checkPressedButton(float* MOVE_SPEED, float* ROT_SPEED, bool* debounce, int* curDebounce) {
+
 		// Press P to toggle debug mode
 		if (glfwGetKey(window, GLFW_KEY_P) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
 			DEBUG = !DEBUG;
@@ -1772,8 +1740,7 @@ public:
 				*curDebounce = GLFW_KEY_1;
 				lightOn.x = 1 - lightOn.x;
 			}
-		}
-		else if ((*curDebounce == GLFW_KEY_1) && *debounce) {
+		} else if ((*curDebounce == GLFW_KEY_1) && *debounce) {
 			*debounce = false;
 			*curDebounce = 0;
 		}
@@ -1785,8 +1752,7 @@ public:
 				*curDebounce = GLFW_KEY_2;
 				lightOn.y = 1 - lightOn.y;
 			}
-		}
-		else if ((*curDebounce == GLFW_KEY_2) && *debounce) {
+		} else if ((*curDebounce == GLFW_KEY_2) && *debounce) {
 			*debounce = false;
 			*curDebounce = 0;
 		}
@@ -1798,8 +1764,7 @@ public:
 				*curDebounce = GLFW_KEY_3;
 				lightOn.z = 1 - lightOn.z;
 			}
-		}
-		else if ((*curDebounce == GLFW_KEY_3) && *debounce) {
+		} else if ((*curDebounce == GLFW_KEY_3) && *debounce) {
 			*debounce = false;
 			*curDebounce = 0;
 		}
@@ -1811,13 +1776,11 @@ public:
 				*curDebounce = GLFW_KEY_4;
 				lightOn.w = 1 - lightOn.w;
 			}
-		}
-		else if ((*curDebounce == GLFW_KEY_4) && *debounce) {
+		} else if ((*curDebounce == GLFW_KEY_4) && *debounce) {
 			*debounce = false;
 			*curDebounce = 0;
 		}
 	}
-
 };
 
 
