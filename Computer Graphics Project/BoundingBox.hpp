@@ -117,12 +117,12 @@ void fillBBList(std::vector<BoundingBox>* BBList, glm::vec3* BBPosition) {
 
 	srand(static_cast<unsigned int>(time(0)));
 	for (int i = 0; i < COLLECTIBLES_NUM; ++i) {
-		glm::vec3 randomPosition = generateRandomPosition(10.3f);
+		glm::vec3 randomPosition = generateRandomPosition(9.8f);
 
 		// make sure collectibles are not spawned in the same position or too close to each other
 		for (int j = 0; j < i; ++j) {
 			if (glm::distance(randomPosition, BBPosition[j]) < 2.0f) {
-				randomPosition = generateRandomPosition(10.3f);
+				randomPosition = generateRandomPosition(9.8f);
 				j = -1;
 			}
 		}
