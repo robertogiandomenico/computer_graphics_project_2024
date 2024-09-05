@@ -50,6 +50,7 @@ protected:
 	bool OVERLAY = false;						// to display the overlay
 	bool FIRST_PERSON = false;					// to switch between first and third person view
 	bool gameOver = false;						// to determine when all the collectibles have been collected
+	bool cursorShowed = true;					// to show/hide the cursor
 	int gameState = GAME_STATE_START_SCREEN;	// initially state of the game = start screen
 	glm::vec4 lightOn = glm::vec4(1, 1, 0, 1);	// initially all types of light are on, except spot
 
@@ -1171,26 +1172,11 @@ public:
 		static bool debounce = false;
 		static int curDebounce = 0;
 		static bool showInstruction = false;
-		static bool showCursor = false;
 
 		// Standard procedure to quit when the ESC key is pressed
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
-
-		// Pressing the Z key toggles the cursor
-		if (glfwGetKey(window, GLFW_KEY_Z) && !showCursor && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_FALSE);
-			showCursor = true;
-			lastPressTime = totalElapsedTime;
-		} else if (glfwGetKey(window, GLFW_KEY_Z) && showCursor && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-			glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
-			showCursor = false;
-			lastPressTime = totalElapsedTime;
-		}
-
 
 		// Integration with the timers and the controllers
 		float deltaT;
@@ -1203,7 +1189,7 @@ public:
 		// It fills vec3 in the second parameters, with three values in the -1,1 range corresponding to motion (with left stick of the gamepad, or ASWD + RF keys on the keyboard)
 		// It fills vec3 in the third parameters, with three values in the -1,1 range corresponding to motion (with right stick of the gamepad, or Arrow keys + QE keys on the keyboard, or mouse)
 		// If fills the fourth boolean variable with true if fire has been pressed: SPACE on the keyboard, A or B button on the Gamepad, Right mouse button
-		// If fills the last boolean variable with true if start has been pressed: ENTER on the keyboard
+		// If fills the last boolean variable with true if start has been pressed: ENTER on the keyboard or Start button on the Gamepad
 
 		glm::mat4 World;
 		glm::mat4 ViewPrj;
@@ -1233,6 +1219,8 @@ public:
 			DEBUG = false;
 			gameOver = false;
 
+			showCursor();
+
 			lightOn = glm::vec4(1, 1, 0, 1);	// Turn off all spot lights
 
 			if (gameState == GAME_STATE_START_SCREEN && !showInstruction) {
@@ -1250,7 +1238,6 @@ public:
 			for (auto& element : collectiblesMap) {
 				element.second = false;
 			}
-
 
 			if (start) {	// Setting the variables ready to start the game
 				OVERLAY = true;
@@ -1277,6 +1264,8 @@ public:
 				}
 
 				lightOn = glm::vec4(1, 1, 1, 1);
+
+				hideCursor();
 
 				gameState = GAME_STATE_PLAY;
 			}
@@ -1360,7 +1349,7 @@ public:
 		
 		
 		// Press I to show instruction screen
-		if (glfwGetKey(window, GLFW_KEY_I) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+		if (glfwGetKey(window, GLFW_KEY_I) && (pressDelay())) {
 			UBO_screens[3].visible = 1.0f - UBO_screens[3].visible;
 			
 			UBO_screens[0].visible = UBO_screens[1].visible = UBO_screens[2].visible = 0.f;
@@ -1686,19 +1675,19 @@ public:
 	void checkPressedButton(float* MOVE_SPEED, float* ROT_SPEED, bool* debounce, int* curDebounce) {
 
 		// Press P to toggle debug mode
-		if (glfwGetKey(window, GLFW_KEY_P) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+		if (glfwGetKey(window, GLFW_KEY_P) && pressDelay()) {
 			DEBUG = !DEBUG;
 			lastPressTime = totalElapsedTime;
 		}
 
 		// Press O to toggle overlay
-		if (glfwGetKey(window, GLFW_KEY_O) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+		if (glfwGetKey(window, GLFW_KEY_O) && pressDelay()) {
 			OVERLAY = !OVERLAY;
 			lastPressTime = totalElapsedTime;
 		}
 
 		// Press L to reset the camera view
-		if (glfwGetKey(window, GLFW_KEY_L) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+		if (glfwGetKey(window, GLFW_KEY_L) && pressDelay()) {
 			camRoll = 0.0f;
 			camPitch = glm::radians(-10.0f);
 			camDist = 3.0f;
@@ -1712,7 +1701,7 @@ public:
 		}
 
 		// Press V to switch between 1st and 3rd person view
-		if (glfwGetKey(window, GLFW_KEY_V) && (totalElapsedTime - lastPressTime > minimumPressDelay)) {
+		if (glfwGetKey(window, GLFW_KEY_V) && pressDelay()) {
 			FIRST_PERSON = !FIRST_PERSON;
 			lastPressTime = totalElapsedTime;
 		}
@@ -1731,6 +1720,18 @@ public:
 		// Press M to reach lose screen
 		if (glfwGetKey(window, GLFW_KEY_M)) {
 			gameState = GAME_STATE_GAME_LOSE;
+		}
+
+		// Press Z to toggle the cursor
+		if (glfwGetKey(window, GLFW_KEY_Z) && pressDelay()) {
+			if (cursorShowed) {
+				hideCursor();
+			}
+			else {
+				showCursor();
+			}
+			cursorShowed = !cursorShowed;
+			lastPressTime = totalElapsedTime;
 		}
 
 		// Turn on/off point lights
@@ -1780,6 +1781,20 @@ public:
 			*debounce = false;
 			*curDebounce = 0;
 		}
+	}
+
+	void showCursor() {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_FALSE);
+	}
+
+	void hideCursor() {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
+	}
+
+	bool pressDelay() {
+		return (totalElapsedTime - lastPressTime > minimumPressDelay);
 	}
 };
 

@@ -408,7 +408,6 @@ protected:
 
 		glfwSetWindowPos(window, 50, 50);	// reposition the window
 		glfwSetWindowAspectRatio(window, 1200, 800);	// set a fixed aspect ratio
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);	// hide the cursor
 
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
@@ -1768,7 +1767,7 @@ std::cout << "Starting createInstance()\n"  << std::flush;
 	
 	
 	// Control Wrapper
-	void handleGamePad(int id,  glm::vec3 &m, glm::vec3 &r, bool &fire) {
+	void handleGamePad(int id,  glm::vec3 &m, glm::vec3 &r, bool &fire, bool& start) {
 		const float deadZone = 0.1f;
 		
 		if(glfwJoystickIsGamepad(id)) {
@@ -1796,6 +1795,7 @@ std::cout << "Starting createInstance()\n"  << std::flush;
 				r.z += state.buttons[GLFW_GAMEPAD_BUTTON_LEFT_BUMPER] ? 1.0f : 0.0f;
 				r.z -= state.buttons[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER] ? 1.0f : 0.0f;
 				fire = fire | (bool)state.buttons[GLFW_GAMEPAD_BUTTON_A] | (bool)state.buttons[GLFW_GAMEPAD_BUTTON_B];
+				start = start | (bool)state.buttons[GLFW_GAMEPAD_BUTTON_START];
 			}
 		}
 	}
@@ -1817,14 +1817,8 @@ std::cout << "Starting createInstance()\n"  << std::flush;
 		double m_dy = ypos - old_ypos;
 		old_xpos = xpos; old_ypos = ypos;
 
-		const float MOUSE_RES = 100.0f;				
-		glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
-		if(glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
-			r.y = m_dx / MOUSE_RES;
-			r.x = m_dy / MOUSE_RES;
-		}
-
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !(glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)) {
+		const float MOUSE_RES = 70.0f;
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS || glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
 			r.y = -m_dx / MOUSE_RES;
 			r.x = -m_dy / MOUSE_RES;
 		}
@@ -1870,10 +1864,10 @@ std::cout << "Starting createInstance()\n"  << std::flush;
 		
 		fire = glfwGetKey(window, GLFW_KEY_SPACE) | glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
 		start = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS;
-		handleGamePad(GLFW_JOYSTICK_1,m,r,fire);
-		handleGamePad(GLFW_JOYSTICK_2,m,r,fire);
-		handleGamePad(GLFW_JOYSTICK_3,m,r,fire);
-		handleGamePad(GLFW_JOYSTICK_4,m,r,fire);
+		handleGamePad(GLFW_JOYSTICK_1, m, r, fire, start);
+		handleGamePad(GLFW_JOYSTICK_2, m, r, fire, start);
+		handleGamePad(GLFW_JOYSTICK_3, m, r, fire, start);
+		handleGamePad(GLFW_JOYSTICK_4, m, r, fire, start);
 	}
 	
 	// Public part of the base class
