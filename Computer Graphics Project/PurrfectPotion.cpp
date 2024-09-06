@@ -1,4 +1,4 @@
-	// This has been adapted from the Vulkan tutorial
+// This has been adapted from the Vulkan tutorial
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <vector>
@@ -318,7 +318,7 @@ protected:
 		// The second parameter is the pointer to the vertex definition
 		// Third and fourth parameters are respectively the vertex and fragment shaders
 		// The last array, is a vector of pointer to the layouts of the sets that will be used in this pipeline. The first element will be set 0, and so on..
-		P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL, &DSL_Global });
+		P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL_Global, &DSL });
 		P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, true);
 
 		P_skyBox.init(this, &VD_skyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSL_skyBox });
@@ -333,10 +333,10 @@ protected:
 		P_overlay.init(this, &VD_overlay, "shaders/OverlayVert.spv", "shaders/OverlayFrag.spv", { &DSL_overlay });
 		P_overlay.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
 
-		P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_ward, &DSL_Global });
+		P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_Global, &DSL_ward });
 		P_ward.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
-		P_DRN.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/DRNFrag.spv", { &DSL_DRN, &DSL_Global });
+		P_DRN.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/DRNFrag.spv", { &DSL_Global, &DSL_DRN });
 		P_DRN.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
@@ -957,28 +957,28 @@ protected:
 		// P_DRN pipeline
 		P_DRN.bind(commandBuffer);
 
-		// DS_global is binded to P_DRN with set = 1
-		DS_global.bind(commandBuffer, P_DRN, 1, currentImage);
+		// DS_global is binded to P_DRN with set = 0
+		DS_global.bind(commandBuffer, P_DRN, 0, currentImage);
 
-		DS_catFainted.bind(commandBuffer, P_DRN, 0, currentImage);
+		DS_catFainted.bind(commandBuffer, P_DRN, 1, currentImage);
 		M_catFainted.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_catFainted.indices.size()), 1, 0, 0, 0);
 
-		DS_floor.bind(commandBuffer, P_DRN, 0, currentImage);
+		DS_floor.bind(commandBuffer, P_DRN, 1, currentImage);
 		M_floor.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_floor.indices.size()), 1, 0, 0, 0);
 
-		DS_walls.bind(commandBuffer, P_DRN, 0, currentImage);
+		DS_walls.bind(commandBuffer, P_DRN, 1, currentImage);
 		M_walls.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_walls.indices.size()), 1, 0, 0, 0);
 
 		// P_ward pipeline
 		P_ward.bind(commandBuffer);
 
-		// DS_global is binded to P_ward with set = 1
-		DS_global.bind(commandBuffer, P_ward, 1, currentImage);
+		// DS_global is binded to P_ward with set = 0
+		DS_global.bind(commandBuffer, P_ward, 0, currentImage);
 
-		DS_knight.bind(commandBuffer, P_ward, 0, currentImage);
+		DS_knight.bind(commandBuffer, P_ward, 1, currentImage);
 		M_knight.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_knight.indices.size()), 1, 0, 0, 0);
 
@@ -1000,10 +1000,10 @@ protected:
 		P.bind(commandBuffer);
 		// For a pipeline object, this command binds the corresponing pipeline to the command buffer passed in its parameter binds the data set
 
-		// DS_global is binded to P with set = 1
-		DS_global.bind(commandBuffer, P, 1, currentImage);
+		// DS_global is binded to P with set = 0
+		DS_global.bind(commandBuffer, P, 0, currentImage);
 
-		DS_bed.bind(commandBuffer, P, 0, currentImage);
+		DS_bed.bind(commandBuffer, P, 1, currentImage);
 		// For a Dataset object, this command binds the corresponing dataset to the command buffer and pipeline passed in its first and second parameters.
 		// The third parameter is the number of the set being bound
 		// As described in the Vulkan tutorial, a different dataset is required for each image in the swap chain.
@@ -1015,115 +1015,115 @@ protected:
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_bed.indices.size()), 1, 0, 0, 0);
 		// the second parameter is the number of indexes to be drawn. For a Model object, this can be retrieved with the .indices.size() method
 
-		DS_closet.bind(commandBuffer, P, 0, currentImage);
+		DS_closet.bind(commandBuffer, P, 1, currentImage);
 		M_closet.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_closet.indices.size()), 1, 0, 0, 0);
 
-		DS_nighttable.bind(commandBuffer, P, 0, currentImage);
+		DS_nighttable.bind(commandBuffer, P, 1, currentImage);
 		M_nighttable.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_nighttable.indices.size()), 1, 0, 0, 0);
 
-		DS_bathtub.bind(commandBuffer, P, 0, currentImage);
+		DS_bathtub.bind(commandBuffer, P, 1, currentImage);
 		M_bathtub.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_bathtub.indices.size()), 1, 0, 0, 0);
 
-		DS_bidet.bind(commandBuffer, P, 0, currentImage);
+		DS_bidet.bind(commandBuffer, P, 1, currentImage);
 		M_bidet.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_bidet.indices.size()), 1, 0, 0, 0);
 
-		DS_sink.bind(commandBuffer, P, 0, currentImage);
+		DS_sink.bind(commandBuffer, P, 1, currentImage);
 		M_sink.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_sink.indices.size()), 1, 0, 0, 0);
 
-		DS_toilet.bind(commandBuffer, P, 0, currentImage);
+		DS_toilet.bind(commandBuffer, P, 1, currentImage);
 		M_toilet.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_toilet.indices.size()), 1, 0, 0, 0);
 
-		DS_bone.bind(commandBuffer, P, 0, currentImage);
+		DS_bone.bind(commandBuffer, P, 1, currentImage);
 		M_bone.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_bone.indices.size()), 1, 0, 0, 0);
 
-		DS_crystal.bind(commandBuffer, P, 0, currentImage);
+		DS_crystal.bind(commandBuffer, P, 1, currentImage);
 		M_crystal.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_crystal.indices.size()), 1, 0, 0, 0);
 
-		DS_eye.bind(commandBuffer, P, 0, currentImage);
+		DS_eye.bind(commandBuffer, P, 1, currentImage);
 		M_eye.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_eye.indices.size()), 1, 0, 0, 0);
 
-		DS_feather.bind(commandBuffer, P, 0, currentImage);
+		DS_feather.bind(commandBuffer, P, 1, currentImage);
 		M_feather.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_feather.indices.size()), 1, 0, 0, 0);
 
-		DS_leaf.bind(commandBuffer, P, 0, currentImage);
+		DS_leaf.bind(commandBuffer, P, 1, currentImage);
 		M_leaf.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_leaf.indices.size()), 1, 0, 0, 0);
 
-		DS_potion1.bind(commandBuffer, P, 0, currentImage);
+		DS_potion1.bind(commandBuffer, P, 1, currentImage);
 		M_potion1.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_potion1.indices.size()), 1, 0, 0, 0);
 
-		DS_potion2.bind(commandBuffer, P, 0, currentImage);
+		DS_potion2.bind(commandBuffer, P, 1, currentImage);
 		M_potion2.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_potion2.indices.size()), 1, 0, 0, 0);
 
-		DS_chair.bind(commandBuffer, P, 0, currentImage);
+		DS_chair.bind(commandBuffer, P, 1, currentImage);
 		M_chair.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_chair.indices.size()), 1, 0, 0, 0);
 
-		DS_fridge.bind(commandBuffer, P, 0, currentImage);
+		DS_fridge.bind(commandBuffer, P, 1, currentImage);
 		M_fridge.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_fridge.indices.size()), 1, 0, 0, 0);
 
-		DS_kitchen.bind(commandBuffer, P, 0, currentImage);
+		DS_kitchen.bind(commandBuffer, P, 1, currentImage);
 		M_kitchen.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_kitchen.indices.size()), 1, 0, 0, 0);
 
-		DS_kitchentable.bind(commandBuffer, P, 0, currentImage);
+		DS_kitchentable.bind(commandBuffer, P, 1, currentImage);
 		M_kitchentable.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_kitchentable.indices.size()), 1, 0, 0, 0);
 
-		DS_cauldron.bind(commandBuffer, P, 0, currentImage);
+		DS_cauldron.bind(commandBuffer, P, 1, currentImage);
 		M_cauldron.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cauldron.indices.size()), 1, 0, 0, 0);
 
-		DS_stonechair.bind(commandBuffer, P, 0, currentImage);
+		DS_stonechair.bind(commandBuffer, P, 1, currentImage);
 		M_stonechair.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_stonechair.indices.size()), 1, 0, 0, 0);
 
-		DS_chest.bind(commandBuffer, P, 0, currentImage);
+		DS_chest.bind(commandBuffer, P, 1, currentImage);
 		M_chest.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_chest.indices.size()), 1, 0, 0, 0);
 
-		DS_shelf1.bind(commandBuffer, P, 0, currentImage);
+		DS_shelf1.bind(commandBuffer, P, 1, currentImage);
 		M_shelf1.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_shelf1.indices.size()), 1, 0, 0, 0);
 
-		DS_shelf2.bind(commandBuffer, P, 0, currentImage);
+		DS_shelf2.bind(commandBuffer, P, 1, currentImage);
 		M_shelf2.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_shelf2.indices.size()), 1, 0, 0, 0);
 
-		DS_stonetable.bind(commandBuffer, P, 0, currentImage);
+		DS_stonetable.bind(commandBuffer, P, 1, currentImage);
 		M_stonetable.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_stonetable.indices.size()), 1, 0, 0, 0);
 
-		DS_web.bind(commandBuffer, P, 0, currentImage);
+		DS_web.bind(commandBuffer, P, 1, currentImage);
 		M_web.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_web.indices.size()), 1, 0, 0, 0);
 
-		DS_sofa.bind(commandBuffer, P, 0, currentImage);
+		DS_sofa.bind(commandBuffer, P, 1, currentImage);
 		M_sofa.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_sofa.indices.size()), 1, 0, 0, 0);
 
-		DS_table.bind(commandBuffer, P, 0, currentImage);
+		DS_table.bind(commandBuffer, P, 1, currentImage);
 		M_table.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_table.indices.size()), 1, 0, 0, 0);
 
-		DS_tv.bind(commandBuffer, P, 0, currentImage);
+		DS_tv.bind(commandBuffer, P, 1, currentImage);
 		M_tv.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_tv.indices.size()), 1, 0, 0, 0);
 
-		DS_cat.bind(commandBuffer, P, 0, currentImage);
+		DS_cat.bind(commandBuffer, P, 1, currentImage);
 		M_cat.bind(commandBuffer);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
 
