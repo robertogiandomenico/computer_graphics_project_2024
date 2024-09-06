@@ -81,24 +81,6 @@ struct VertexTan {
 	glm::vec2 UV;
 };
 
-std::string collectiblesNames[COLLECTIBLES_NUM] = {
-	"crystal",
-	"eye",
-	"feather",
-	"leaf",
-	"potion1",
-	"potion2",
-	"bone"
-};
+extern std::string collectiblesNames[COLLECTIBLES_NUM];
 
-glm::vec3 generateRandomPosition(float squareSide) {
-	glm::vec3 randomPosition;
-
-	randomPosition = glm::vec3(
-		-squareSide + fmod(rand(), squareSide * 2 + 1),
-		0.4f,
-		-squareSide + fmod(rand(), squareSide * 2 + 1)
-	);
-
-	return randomPosition;
-}
+glm::vec3 generateRandomPosition(float squareSide);

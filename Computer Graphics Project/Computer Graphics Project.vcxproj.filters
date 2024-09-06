@@ -18,21 +18,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="PurrfectPotion.cpp">
+    <ClCompile Include="src\PurrfectPotion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="World.hpp">
+    <ClCompile Include="src\Utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Starter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Starter.hpp">
+    <ClInclude Include="src\Starter.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="BoundingBox.hpp">
+    <ClInclude Include="src\BoundingBox.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Utils.hpp">
+    <ClInclude Include="src\Utils.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -75,6 +81,9 @@
     </None>
     <None Include="shaders\DRN.frag">
       <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\README.md">
+      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
 </Project>

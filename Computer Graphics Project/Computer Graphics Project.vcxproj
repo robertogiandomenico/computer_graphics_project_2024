@@ -19,15 +19,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="PurrfectPotion.cpp" />
-    <ClCompile Include="World.hpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\PurrfectPotion.cpp" />
+    <ClCompile Include="src\Starter.cpp" />
+    <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BoundingBox.hpp" />
-    <ClInclude Include="Starter.hpp" />
-    <ClInclude Include="Utils.hpp" />
+    <ClInclude Include="src\BoundingBox.hpp" />
+    <ClInclude Include="src\Starter.hpp" />
+    <ClInclude Include="src\Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\README.md" />
     <None Include="shaders\BoundingBox.frag" />
     <None Include="shaders\BoundingBox.vert" />
     <None Include="shaders\DRN.frag" />
@@ -98,7 +101,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.283.0\Include;C:\Users\robig\Documents\Visual Studio 2022\Libraries\glm;C:\Users\robig\Documents\Visual Studio 2022\Libraries\glfw-3.4.bin.WIN64\include;C:\Users\robig\Documents\Visual Studio 2022\Projects\Computer Graphics Project\Computer Graphics Project\headers;C:\VulkanSDK\1.3.275.0\Include;C:\Users\fragr\Documents\Visual Studio 2022\Libraries\glm;C:\Users\fragr\Documents\Visual Studio 2022\Libraries\glfw-3.4.bin.WIN64\include;C:\Users\fragr\source\repos\computer_graphics_project_2024\Computer Graphics Project\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -116,7 +119,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.283.0\Include;C:\Users\robig\Documents\Visual Studio 2022\Libraries\glm;C:\Users\robig\Documents\Visual Studio 2022\Libraries\glfw-3.4.bin.WIN64\include;C:\Users\robig\Documents\Visual Studio 2022\Projects\Computer Graphics Project\Computer Graphics Project\headers;C:\VulkanSDK\1.3.275.0\Include;C:\Users\fragr\Documents\Visual Studio 2022\Libraries\glm;C:\Users\fragr\Documents\Visual Studio 2022\Libraries\glfw-3.4.bin.WIN64\include;C:\Users\fragr\source\repos\computer_graphics_project_2024\Computer Graphics Project\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -134,7 +137,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.283.0\Include;C:\Users\robig\Documents\Visual Studio 2022\Libraries\glm;C:\Users\robig\Documents\Visual Studio 2022\Libraries\glfw-3.4.bin.WIN64\include;C:\Users\robig\Documents\Visual Studio 2022\Projects\Computer Graphics Project\Computer Graphics Project\headers;C:\VulkanSDK\1.3.275.0\Include;C:\Users\fragr\Documents\Visual Studio 2022\Libraries\glm;C:\Users\fragr\Documents\Visual Studio 2022\Libraries\glfw-3.4.bin.WIN64\include;C:\Users\fragr\source\repos\computer_graphics_project_2024\Computer Graphics Project\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -152,7 +155,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.283.0\Include;C:\Users\robig\Documents\Visual Studio 2022\Libraries\glm;C:\Users\robig\Documents\Visual Studio 2022\Libraries\glfw-3.4.bin.WIN64\include;C:\Users\robig\Documents\Visual Studio 2022\Projects\Computer Graphics Project\Computer Graphics Project\headers;C:\VulkanSDK\1.3.275.0\Include;C:\Users\fragr\Documents\Visual Studio 2022\Libraries\glm;C:\Users\fragr\Documents\Visual Studio 2022\Libraries\glfw-3.4.bin.WIN64\include;C:\Users\fragr\source\repos\computer_graphics_project_2024\Computer Graphics Project\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
