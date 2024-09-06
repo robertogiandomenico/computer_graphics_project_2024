@@ -10,14 +10,7 @@ layout(location = 2) in vec3 fragPos;
 
 layout(location = 0) out vec4 outColor;
 
-layout(set = 0, binding = 1) uniform sampler2D texSampler;
-
-// Uniform for emissive color
-layout(set = 0, binding = 2) uniform EmissiveUniformBufferObject {
-    vec3 emissiveColor;  // Emissive color of the object
-} eubo;
-
-layout(set = 1, binding = 0) uniform GlobalUniformBufferObject {
+layout(set = 0, binding = 0) uniform GlobalUniformBufferObject {
     vec3 lightDir[LIGHTS_NUM];                  // Direction of the lights
     vec3 lightPos[LIGHTS_NUM];                  // Position of the lights
     vec4 lightColor[LIGHTS_NUM];                // Color of the lights
@@ -27,6 +20,13 @@ layout(set = 1, binding = 0) uniform GlobalUniformBufferObject {
 	float cosOut;                               // Spot light outer cone angle
     bool gameOver;                              // Game over flag
 } gubo;
+
+layout(set = 1, binding = 1) uniform sampler2D texSampler;
+
+// Uniform for emissive color
+layout(set = 1, binding = 2) uniform EmissiveUniformBufferObject {
+    vec3 emissiveColor;  // Emissive color of the object
+} eubo;
 
 // Direct light
 vec3 direct_light_dir(vec3 fragPos, int i) {
