@@ -1383,9 +1383,17 @@ protected:
 
 		// Update rotation angle of the collectibles
 		collectibleRotationAngle += collectibleRotationSpeed * deltaT;
-		if (collectibleRotationAngle >= 2 * M_PI) {
+		/*if (collectibleRotationAngle >= 2 * M_PI) {
 			collectibleRotationAngle -= 2 * M_PI;
+		}*/
+
+		// Update the collectibles' vertical position for floating effect
+		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
+			collectiblesRandomPosition[i].y = 0.3f + 0.05f * sin((totalElapsedTime + i) * 3);
 		}
+
+		// Update cat's vertical position for slight floating effect
+		catPosition.y = 0.05f + 0.01f * sin(totalElapsedTime * 3);
 
 		GlobalUniformBufferObject gubo = {};
 		// Set light properties
