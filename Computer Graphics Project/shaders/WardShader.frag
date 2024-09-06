@@ -97,9 +97,10 @@ Paramters:
 	alphaT - Roughness along the tangent direction
 	alphaB - Roughness along the bitangent direction
 */ 
+	// Lambert
 	vec3 Diffuse = Md * clamp(dot(N, L),0.0,1.0);
 
-    // ward anisotropic specular
+    // Ward anisotropic specular
     vec3 H = normalize(V + L);
     float h_t = dot(H, T);
     float h_b = dot(H, B);

@@ -16,6 +16,7 @@ vec3 hueRotate(vec3 color, float angle) {
     float cosAngle = cos(angle);
     float sinAngle = sin(angle);
 
+    // Rotate the hue of the texture keeping the luminance the same
     mat3 rotationMatrix = mat3(
         0.299, 0.587, 0.114,
         0.299, 0.587, 0.114,
@@ -34,6 +35,7 @@ vec3 hueRotate(vec3 color, float angle) {
 }
 
 void main() {
+	// To calculate which part of the skybox to sample, we need to convert the fragment's texture coordinates to yaw and pitch
     float yaw = -(atan(fragTexCoord.x, fragTexCoord.z) / 6.2831853 + 0.5);
     float pitch = -(atan(fragTexCoord.y, sqrt(fragTexCoord.x * fragTexCoord.x + fragTexCoord.z * fragTexCoord.z)) / 3.14159265 + 0.5);
     

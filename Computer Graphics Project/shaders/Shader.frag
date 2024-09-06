@@ -81,8 +81,10 @@ vec3 spot_light_color(vec3 fragPos, int i) {
 vec3 BRDF(vec3 Albedo, vec3 Norm, vec3 EyeDir, vec3 LD) {
 // Compute the BRDF, with a given color <Albedo>, in a given position characterized by a given normal vector <Norm>,
 // for a light direct according to <LD>, and viewed from a direction <EyeDir>
-	vec3 Diffuse = Albedo * max(dot(Norm, LD), 0.0f);
-	vec3 Specular = vec3(pow(max(dot(EyeDir, -reflect(LD, Norm)), 0.0f), 32));
+	// Lambert
+    vec3 Diffuse = Albedo * max(dot(Norm, LD), 0.0f);
+	// Phong
+    vec3 Specular = vec3(pow(max(dot(EyeDir, -reflect(LD, Norm)), 0.0f), 32));
 	
 	return Diffuse + Specular;
 }

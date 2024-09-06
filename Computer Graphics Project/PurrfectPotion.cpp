@@ -1,4 +1,4 @@
-// This has been adapted from the Vulkan tutorial
+	// This has been adapted from the Vulkan tutorial
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <vector>
@@ -25,11 +25,6 @@ protected:
 	float camRoll;
 	float camDist;
 	glm::vec3 CamTargetDelta = glm::vec3(0.0f);
-	
-	// Collectibles parameters
-	float collectibleRotationAngle = 0.0f;						 // rotation angle
-	const float collectibleRotationSpeed = glm::radians(45.0f);  // rotation speed: 45 degrees per second
-	glm::vec3 collectiblesRandomPosition[COLLECTIBLES_NUM];		 // position
 
 	// Cat position and orientation
 	glm::vec3 catPosition;
@@ -54,23 +49,22 @@ protected:
 	int gameState = GAME_STATE_START_SCREEN;	// initially state of the game = start screen
 	glm::vec4 lightOn = glm::vec4(1, 1, 0, 1);	// initially all types of light are on, except spot
 
-public:
+	// Collectibles parameters
+	float collectibleRotationAngle = 0.0f;						 // rotation angle
+	const float collectibleRotationSpeed = glm::radians(45.0f);  // rotation speed: 45 degrees per second
+	glm::vec3 collectiblesRandomPosition[COLLECTIBLES_NUM];		 // position
+
 	std::map<std::string, bool> collectiblesMap;
-	std::map<std::string, int> collectiblesHUD;
+	std::map<std::string, int> collectiblesHUD = {
+		{"crystal", 0},
+		{"eye",		1},
+		{"feather", 2},
+		{"leaf",	3},
+		{"potion1", 4},
+		{"potion2", 5},
+		{"bone",	6}
+	};
 	std::vector<BoundingBox> collectiblesBBs;
-
-	PurrfectPotion() {
-
-		collectiblesHUD = {
-			{"crystal", 0},
-			{"eye",		1},
-			{"feather", 2},
-			{"leaf",	3},
-			{"potion1", 4},
-			{"potion2", 5},
-			{"bone",	6}
-		};
-	}
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward, DSL_boundingBox, DSL_DRN, DSL_Global;
@@ -162,9 +156,9 @@ public:
 		initialBackgroundColor = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 		// Descriptor pool sizes
-		uniformBlocksInPool = 200; //30 but works with >= 93
-		texturesInPool = 100;	  //5 but works with >= 29
-		setsInPool = 200;		  //31
+		uniformBlocksInPool = 97;  //105 with all furniture
+		texturesInPool = 61;	   //61
+		setsInPool = 63;		   //71 with all furniture
 
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
@@ -182,16 +176,18 @@ public:
 		// Create bounding boxes for collectibles and furniture
 		fillBBList(&collectiblesBBs, collectiblesRandomPosition);
 
-		furnitureBBs.push_back(BoundingBox("bathtub",	bathtub.pos, glm::vec3(3.3f, 1.7f, 1.4f)));
-		furnitureBBs.push_back(BoundingBox("closet",	closet.pos, glm::vec3(5.6f, 6.f, 1.f)));
+
+		furnitureBBs.push_back(BoundingBox("cauldron", cauldron.pos, glm::vec3(1.f, 1.5f, 1.f)));
+		/*
+		furnitureBBs.push_back(BoundingBox("closet", closet.pos, glm::vec3(5.6f, 6.f, 1.f)));
 		furnitureBBs.push_back(BoundingBox("bed",		bed.pos, glm::vec3(2.f, 1.2f, 4.5f)));
 		furnitureBBs.push_back(BoundingBox("nightTable",nightTable.pos, glm::vec3(0.88, 1.3f, 1.1f)));
-		furnitureBBs.push_back(BoundingBox("chest",		chest.pos, glm::vec3(1.4f, 1.4f, 0.7f)));
-		furnitureBBs.push_back(BoundingBox("sofa",		sofa.pos, glm::vec3(1.f, 1.5f, 3.f)));
-		furnitureBBs.push_back(BoundingBox("fridge",	fridge.pos, glm::vec3(1.5f, 3.5f, 1.6f)));
 		furnitureBBs.push_back(BoundingBox("kitchen",	kitchen.pos, glm::vec3(5.f, 3.f, 1.72f)));
-		
-		furnitureBBs.push_back(BoundingBox("cauldron",	cauldron.pos, glm::vec3(1.f, 1.5f, 1.f)));
+		furnitureBBs.push_back(BoundingBox("fridge",	fridge.pos, glm::vec3(1.5f, 3.5f, 1.6f)));
+		furnitureBBs.push_back(BoundingBox("sofa",		sofa.pos, glm::vec3(1.f, 1.5f, 3.f)));
+		furnitureBBs.push_back(BoundingBox("chest",		chest.pos, glm::vec3(1.4f, 1.4f, 0.7f)));
+		furnitureBBs.push_back(BoundingBox("bathtub",	bathtub.pos, glm::vec3(3.3f, 1.7f, 1.4f)));
+		*/
 
 		// Create ubo needed for the bounding boxes (debug)
 		for (int i = 0; i < collectiblesBBs.size() + furnitureBBs.size() + 1; i++) {
@@ -314,7 +310,7 @@ public:
 				sizeof(glm::vec3), NORMAL},
 			{0, 2, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VertexTan, tangent),
 				sizeof(glm::vec4), TANGENT},
-			{0, 3, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexTan, texCoord),
+			{0, 3, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexTan, UV),
 				sizeof(glm::vec2), UV}
 		});
 
@@ -416,7 +412,7 @@ public:
 		float w = 2.f;
 		float h = 2.f;
 		for (int i = 0; i < 4; i++) {
-			M_screens[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
+			M_screens[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},		// { vulkan coordinates, UV coordinates }
 									  {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
 			M_screens[i].indices = { 0, 1, 2,    1, 2, 3 };
 			M_screens[i].initMesh(this, &VD_overlay);
@@ -447,7 +443,7 @@ public:
 		w = 0.15f;
 		h = w * Ar;
 		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
-			anchor = anchor + (glm::vec2(0.f, 0.2f));
+			anchor = anchor + (glm::vec2(0.f, 0.2f));	// vertically shifting the anchor for each collectible
 
 			M_collectibles[i].vertices = { {{anchor.x, anchor.y}, {0.0f,0.0f}}, {{anchor.x, anchor.y + h}, {0.0f,1.0f}},
 										   {{anchor.x + w, anchor.y}, {1.0f,0.0f}}, {{ anchor.x + w, anchor.y + h}, {1.0f,1.0f}} };
@@ -473,13 +469,13 @@ public:
 		T_floor[2].init(this,	"textures/floor/floor_roughness.jpg");
 
 		T_knight[0].init(this, "textures/knight/knight_diffuse.png");
-		T_knight[1].init(this, "textures/knight/knight_metallic.png");
+		T_knight[1].init(this, "textures/knight/knight_specular.png");
 		T_knight[2].init(this, "textures/knight/knight_normal.png", VK_FORMAT_R8G8B8A8_UNORM);
 
 		T_catDiffuseGhost.init(this,"textures/cat/cat_diffuse_ghost.png");
 		T_cat[0].init(this,			"textures/cat/cat_diffuse.png");
 		T_cat[1].init(this,			"textures/cat/cat_normal.jpg", VK_FORMAT_R8G8B8A8_UNORM);
-		T_cat[2].init(this,			"textures/cat/cat_roughness1.jpg");
+		T_cat[2].init(this,			"textures/cat/cat_roughness.jpg");
 
 		T_skyBox.init(this,		"textures/sky_Texture.jpg");
 
@@ -1328,7 +1324,6 @@ public:
 				// camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;	// uncomment to enable R and F keys
 				camPos = camPos + MOVE_SPEED * m.z * uz * deltaT;
 
-				camPos.x -= 0.5f;
 				camPos.y += 0.9f;
 			} else {
 				// Third person camera position
@@ -1517,7 +1512,7 @@ public:
 
 
 		// Placing ghost cat
-		placeEntity(UBO_cat, catPosition, glm::vec3(0, catYaw, 0), FIRST_PERSON ? glm::vec3(0.0f) : glm::vec3(1.f), glm::vec3(3.0f), ViewPrj, DS_cat, currentImage, DEBUG, 16);
+		placeEntity(UBO_cat, catPosition, glm::vec3(0, catYaw, 0), FIRST_PERSON ? glm::vec3(0.0f) : glm::vec3(1.f), glm::vec3(3.0f), ViewPrj, DS_cat, currentImage, DEBUG, 8);// 16);
 		catBox = BoundingBox("cat", catPosition, catDimensions);
 
 		// House
@@ -1525,34 +1520,34 @@ public:
 		placeEntity(UBO_walls, walls.pos, walls.rot, walls.scale, glm::vec3(0.0f), ViewPrj, DS_walls, currentImage, false);
 
 		// Bedroom
-		placeEntity(UBO_closet, closet.pos, closet.rot, closet.scale, glm::vec3(0.0f), ViewPrj, DS_closet, currentImage, DEBUG, 8);
-		placeEntity(UBO_bed, bed.pos, bed.rot, bed.scale, glm::vec3(0.0f), ViewPrj, DS_bed, currentImage, DEBUG, 9);
-		placeEntity(UBO_nightTable, nightTable.pos, nightTable.rot, nightTable.scale, glm::vec3(0.0f), ViewPrj, DS_nighttable, currentImage, DEBUG, 10);
+		placeEntity(UBO_closet, closet.pos, closet.rot, closet.scale, glm::vec3(0.0f), ViewPrj, DS_closet, currentImage, false); //, DEBUG, 8);
+		placeEntity(UBO_bed, bed.pos, bed.rot, bed.scale, glm::vec3(0.0f), ViewPrj, DS_bed, currentImage, false); // , DEBUG, 9);
+		placeEntity(UBO_nightTable, nightTable.pos, nightTable.rot, nightTable.scale, glm::vec3(0.0f), ViewPrj, DS_nighttable, currentImage, false); // , DEBUG, 10);
 
 		// Kitchen
-		placeEntity(UBO_kitchen, kitchen.pos, kitchen.rot, kitchen.scale, glm::vec3(0.0f), ViewPrj, DS_kitchen, currentImage, DEBUG, 14);
-		placeEntity(UBO_fridge, fridge.pos, fridge.rot, fridge.scale, glm::vec3(0.0f), ViewPrj, DS_fridge, currentImage, DEBUG, 13);
+		placeEntity(UBO_kitchen, kitchen.pos, kitchen.rot, kitchen.scale, glm::vec3(0.0f), ViewPrj, DS_kitchen, currentImage, false); // , DEBUG, 11);
+		placeEntity(UBO_fridge, fridge.pos, fridge.rot, fridge.scale, glm::vec3(0.0f), ViewPrj, DS_fridge, currentImage, false); // DEBUG, 12);
 		placeEntity(UBO_kitchenTable, kitchenTable.pos, kitchenTable.rot, kitchenTable.scale, glm::vec3(0.0f), ViewPrj, DS_kitchentable, currentImage, false);
 		placeEntity(UBO_chair, chair.pos, chair.rot, chair.scale, glm::vec3(0.0f), ViewPrj, DS_chair, currentImage, false);
 
 		// Living room
-		placeEntity(UBO_sofa, sofa.pos, sofa.rot, sofa.scale, glm::vec3(0.0f), ViewPrj, DS_sofa, currentImage, DEBUG, 12);
+		placeEntity(UBO_sofa, sofa.pos, sofa.rot, sofa.scale, glm::vec3(0.0f), ViewPrj, DS_sofa, currentImage, false); // DEBUG, 13);
 		placeEntity(UBO_table, table.pos, table.rot, table.scale, glm::vec3(0.0f), ViewPrj, DS_table, currentImage, false);
 		placeEntity(UBO_tv, tv.pos, tv.rot, tv.scale, glm::vec3(0.0f), ViewPrj, DS_tv, currentImage, false);
 		placeEntity(UBO_knight, knight.pos, knight.rot, knight.scale, glm::vec3(0.0f), ViewPrj, DS_knight, currentImage, false);
 
 		// Witch lair
-		placeEntity(UBO_chest, chest.pos, chest.rot, chest.scale, glm::vec3(0.0f), ViewPrj, DS_chest, currentImage, DEBUG, 11);
+		placeEntity(UBO_chest, chest.pos, chest.rot, chest.scale, glm::vec3(0.0f), ViewPrj, DS_chest, currentImage, false); // DEBUG, 14);
 		placeEntity(UBO_stoneTable, stoneTable.pos, stoneTable.rot, stoneTable.scale, glm::vec3(0.0f), ViewPrj, DS_stonetable, currentImage, false);
 		placeEntity(UBO_stoneChair, stoneChair.pos, stoneChair.rot, stoneChair.scale, glm::vec3(0.0f), ViewPrj, DS_stonechair, currentImage, false);
-		placeEntity(UBO_cauldron, cauldron.pos, cauldron.rot, cauldron.scale, glm::vec3(0.0f), ViewPrj, DS_cauldron, currentImage, DEBUG, 15);
+		placeEntity(UBO_cauldron, cauldron.pos, cauldron.rot, cauldron.scale, glm::vec3(0.0f), ViewPrj, DS_cauldron, currentImage, DEBUG, 7);
 		placeEntity(UBO_shelf1, shelf1.pos, shelf1.rot, shelf1.scale, glm::vec3(0.0f), ViewPrj, DS_shelf1, currentImage, false);
 		placeEntity(UBO_shelf2, shelf2.pos, shelf2.rot, shelf2.scale, glm::vec3(0.0f), ViewPrj, DS_shelf2, currentImage, false);
 		placeEntity(UBO_web, web.pos, web.rot, web.scale, glm::vec3(0.0f), ViewPrj, DS_web, currentImage, false);
 		placeEntity(UBO_catFainted, catFainted.pos, catFainted.rot, catFainted.scale, glm::vec3(0.0f), ViewPrj, DS_catFainted, currentImage, false);
 
 		// Bathroom
-		placeEntity(UBO_bathtub, bathtub.pos, bathtub.rot, bathtub.scale, glm::vec3(0.0f), ViewPrj, DS_bathtub, currentImage, DEBUG, 7);
+		placeEntity(UBO_bathtub, bathtub.pos, bathtub.rot, bathtub.scale, glm::vec3(0.0f), ViewPrj, DS_bathtub, currentImage, false); // DEBUG, 15);
 		placeEntity(UBO_toilet, toilet.pos, toilet.rot, toilet.scale, glm::vec3(0.0f), ViewPrj, DS_toilet, currentImage, false);
 		placeEntity(UBO_bidet, bidet.pos, bidet.rot, bidet.scale, glm::vec3(0.0f), ViewPrj, DS_bidet, currentImage, false);
 		placeEntity(UBO_sink, sink.pos, sink.rot, sink.scale, glm::vec3(0.0f), ViewPrj, DS_sink, currentImage, false);
@@ -1665,7 +1660,7 @@ public:
 		// Update bounding box matrices
 		UBO_boundingBox[id].mvpMat = ViewPrj * World;
 		UBO_boundingBox[id].mMat = World;
-		UBO_boundingBox[id].nMat = glm::inverse(glm::transpose(World));
+		UBO_boundingBox[id].nMat = glm::transpose(glm::inverse(World));
 		DS_boundingBox[id].map(currentImage, &UBO_boundingBox[id], sizeof(UBO_boundingBox[id]), 0);
 
 		// Remove bounding box from the array of BBs

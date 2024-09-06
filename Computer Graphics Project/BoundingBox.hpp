@@ -14,10 +14,8 @@ struct BoundingBox {
 		this->name = name;
 		glm::vec3 halfSize = size / 2.0f;
 
-		glm::vec3 shiftedCenter = center; // + glm::vec3(0, halfSize.y, 0);
-
-		min = shiftedCenter - halfSize;
-		max = shiftedCenter + halfSize;
+		min = center - halfSize;
+		max = center + halfSize;
 	}
 
 	// Check if this bounding box intersects with another
@@ -25,13 +23,6 @@ struct BoundingBox {
 		return (min.x <= other.max.x && max.x >= other.min.x) &&
 			(min.y <= other.max.y && max.y >= other.min.y) &&
 			(min.z <= other.max.z && max.z >= other.min.z);
-	}
-
-	// Update the position of the bounding box
-	void updatePosition(const glm::vec3& center) {
-		glm::vec3 halfSize = (max - min) / 2.0f;
-		min = center - halfSize;
-		max = center + halfSize;
 	}
 
 	// Update the size of the bounding box
@@ -105,7 +96,7 @@ void drawBoundingBox(bool hasBoundingBox, glm::vec3 position, glm::vec3 rotation
 	UBO_boundingBox.mvpMat = ViewPrj * World;
 	UBO_boundingBox.mvpMat = ViewPrj * World;
 	UBO_boundingBox.mMat = World;
-	UBO_boundingBox.nMat = glm::inverse(glm::transpose(World));
+	UBO_boundingBox.nMat = glm::transpose(glm::inverse(World));
 	DS_boundingBox.map(currentImage, &UBO_boundingBox, sizeof(UBO_boundingBox), 0);
 }
 

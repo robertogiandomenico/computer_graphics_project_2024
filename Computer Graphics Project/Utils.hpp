@@ -3,7 +3,6 @@
 #include <glm/glm.hpp>
 #include <string>
 
-#define COLLECTIBLES_NUM 7
 #define GAME_STATE_START_SCREEN 0
 #define GAME_STATE_PLAY 1
 #define GAME_STATE_GAME_WIN 2
@@ -79,7 +78,7 @@ struct VertexTan {
 	glm::vec3 pos;
 	glm::vec3 normal;
 	glm::vec4 tangent;
-	glm::vec2 texCoord;
+	glm::vec2 UV;
 };
 
 std::string collectiblesNames[COLLECTIBLES_NUM] = {

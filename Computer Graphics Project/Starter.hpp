@@ -2788,6 +2788,10 @@ void DescriptorSetLayout::cleanup() {
     	vkDestroyDescriptorSetLayout(BP->device, descriptorSetLayout, nullptr);	
 }
 
+// static int uniforms = 0;
+// static int textures = 0;
+// static int dss = 0;
+
 void DescriptorSet::init(BaseProject *bp, DescriptorSetLayout *DSL,
 						 std::vector<DescriptorSetElement> E) {
 	BP = bp;
@@ -2829,11 +2833,12 @@ void DescriptorSet::init(BaseProject *bp, DescriptorSetLayout *DSL,
 		PrintVkError(result);
 		throw std::runtime_error("failed to allocate descriptor sets!");
 	}
-	
+
 	for (size_t i = 0; i < BP->swapChainImages.size(); i++) {
 		std::vector<VkWriteDescriptorSet> descriptorWrites(E.size());
 		std::vector<VkDescriptorBufferInfo> bufferInfo(E.size());
 		std::vector<VkDescriptorImageInfo> imageInfo(E.size());
+
 		for (int j = 0; j < E.size(); j++) {
 			if(E[j].type == UNIFORM) {
 				bufferInfo[j].buffer = uniformBuffers[j][i];
@@ -2847,6 +2852,7 @@ void DescriptorSet::init(BaseProject *bp, DescriptorSetLayout *DSL,
 				descriptorWrites[j].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 				descriptorWrites[j].descriptorCount = 1;
 				descriptorWrites[j].pBufferInfo = &bufferInfo[j];
+				// uniforms++;
 			} else if(E[j].type == TEXTURE) {
 				imageInfo[j].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 				imageInfo[j].imageView = E[j].tex->textureImageView;
@@ -2860,8 +2866,10 @@ void DescriptorSet::init(BaseProject *bp, DescriptorSetLayout *DSL,
 											VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 				descriptorWrites[j].descriptorCount = 1;
 				descriptorWrites[j].pImageInfo = &imageInfo[j];
+				// textures++;
 			}
-		}		
+		}
+		// dss++;
 		vkUpdateDescriptorSets(BP->device,
 						static_cast<uint32_t>(descriptorWrites.size()),
 						descriptorWrites.data(), 0, nullptr);

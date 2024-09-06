@@ -85,10 +85,10 @@ vec3 spot_light_color(vec3 fragPos, int i) {
 
 // BRDF function
 vec3 BRDF(vec3 Albedo, vec3 Norm, vec3 EyeDir, vec3 LightDir, float Roughness) {
-    // Compute diffuse component
+    // Lambert diffuse component
     vec3 Diffuse = Albedo * max(dot(Norm, LightDir), 0.0f);
 
-    // Compute specular component
+    // Blinn specular component
     vec3 halfwayDir = normalize(LightDir + EyeDir);
     float cos_alpha = dot(Norm, halfwayDir);
     float gamma = mix(1.0, 128.0, 1.0 - Roughness); // Dynamic specular power based on roughness
