@@ -37,15 +37,12 @@ protected:
 	float timeLeft = GAME_DURATION;
 	int lastDisplayedTime = static_cast<int>(GAME_DURATION);
 
-	float minimumPressDelay = 0.1f;
-	float lastPressTime = 0.0f;
-
 	// Game state variables
 	bool DEBUG = false;							// to display bounding boxes for debugging
 	bool OVERLAY = false;						// to display the overlay
 	bool FIRST_PERSON = false;					// to switch between first and third person view
 	bool gameOver = false;						// to determine when all the collectibles have been collected
-	bool cursorShowed = true;					// to show/hide the cursor
+	bool cursorShowed = false;					// to show/hide the cursor
 	int gameState = GAME_STATE_START_SCREEN;	// initially state of the game = start screen
 	glm::vec4 lightOn = glm::vec4(1, 1, 0, 1);	// initially all types of light are on, except spot
 
@@ -55,6 +52,7 @@ protected:
 	glm::vec3 collectiblesRandomPosition[COLLECTIBLES_NUM];		 // position
 
 	std::map<std::string, bool> collectiblesMap;
+	std::vector<BoundingBox> collectiblesBBs;
 	std::map<std::string, int> collectiblesHUD = {
 		{"crystal", 0},
 		{"eye",		1},
@@ -64,7 +62,6 @@ protected:
 		{"potion2", 5},
 		{"bone",	6}
 	};
-	std::vector<BoundingBox> collectiblesBBs;
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward, DSL_boundingBox, DSL_DRN, DSL_Global;
@@ -113,8 +110,9 @@ protected:
 					// Living room
 					DS_sofa, DS_table, DS_tv, DS_knight,
 					// Other
-					DS_cat, DS_floor, DS_walls, DS_global,
-					DS_skyBox, DS_timer[5], DS_screens[4], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
+					DS_cat, DS_floor, DS_walls, DS_global, DS_skyBox,
+					// HUD
+					DS_timer[5], DS_screens[4], DS_scroll, DS_collectibles[COLLECTIBLES_NUM];
 
 	std::vector<DescriptorSet> DS_boundingBox;
 
@@ -156,9 +154,9 @@ protected:
 		initialBackgroundColor = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 		// Descriptor pool sizes
-		uniformBlocksInPool = 97;  //105 with all furniture
+		uniformBlocksInPool = 97;  //105 with all furniture BBs
 		texturesInPool = 61;	   //61
-		setsInPool = 63;		   //71 with all furniture
+		setsInPool = 63;		   //71 with all furniture BBs
 
 		Ar = (float)windowWidth / (float)windowHeight;
 	}
@@ -175,7 +173,6 @@ protected:
 		
 		// Create bounding boxes for collectibles and furniture
 		fillBBList(&collectiblesBBs, collectiblesRandomPosition);
-
 
 		furnitureBBs.push_back(BoundingBox("cauldron", cauldron.pos, glm::vec3(1.f, 1.5f, 1.f)));
 		/*
@@ -455,8 +452,8 @@ protected:
 		// The second parameter is the file name
 		T_textures.init(this,	"textures/palette.png");
 		T_closet.init(this,		"textures/closet.png");
-		T_eye.init(this,		"textures/collectibles/eye_diffuse.jpg");
-		T_feather.init(this,	"textures/collectibles/feather_diffuse.jpg");
+		T_eye.init(this,		"textures/collectibles/eye_diffuse.png");
+		T_feather.init(this,	"textures/collectibles/feather_diffuse.png");
 		T_steam.init(this,		"textures/lair/steam.png");
 		T_fire.init(this,		"textures/lair/fire.png");
 
@@ -1251,7 +1248,6 @@ protected:
 				catYaw = 0.0f;
 
 				totalElapsedTime = 0.0f;
-				lastPressTime = 0.0f;
 
 				emptyBBList(&collectiblesBBs);
 
@@ -1344,14 +1340,19 @@ protected:
 		
 		
 		// Press I to show instruction screen
-		if (glfwGetKey(window, GLFW_KEY_I) && (pressDelay())) {
-			UBO_screens[3].visible = 1.0f - UBO_screens[3].visible;
-			
-			UBO_screens[0].visible = UBO_screens[1].visible = UBO_screens[2].visible = 0.f;
-
-			lastPressTime = totalElapsedTime;
-			showInstruction = !showInstruction;
-			OVERLAY = (gameState == GAME_STATE_PLAY) ? !OVERLAY : false;
+		if (glfwGetKey(window, GLFW_KEY_I)) {
+			if (!debounce) {
+				debounce = true;
+				curDebounce = GLFW_KEY_I;
+				UBO_screens[3].visible = 1.0f - UBO_screens[3].visible;
+				UBO_screens[0].visible = UBO_screens[1].visible = UBO_screens[2].visible = 0.f;
+				showInstruction = !showInstruction;
+				OVERLAY = (gameState == GAME_STATE_PLAY) ? !OVERLAY : false;
+				cursorShowed = !cursorShowed;
+			}
+		} else if ((curDebounce == GLFW_KEY_I) && debounce) {
+			debounce = false;
+			curDebounce = 0;
 		}
 
 		// Limit the cat's movement to the house
@@ -1397,36 +1398,36 @@ protected:
 
 		GlobalUniformBufferObject gubo = {};
 		// Set light properties
-		gubo.lightPos[0] = glm::vec3(6.0f, 2.0f, 8.0f);			// position: kitchen
-		gubo.lightColor[0] = glm::vec4(glm::vec3(1.4f), 2.0f);	// color: white
+		gubo.lightPos[0] = glm::vec3(6.0f, 2.0f, 8.0f);							// position: kitchen
+		gubo.lightColor[0] = glm::vec4(glm::vec3(1.4f), 2.0f);					// color: white
 
-		gubo.lightPos[1] = glm::vec3(-8.f, 2.0f, -8.f);						// position: witch lair
-		gubo.lightColor[1] = glm::vec4(glm::vec3(0.4f, 0.f, 0.8f), 2.0f);	// color: purple
+		gubo.lightPos[1] = glm::vec3(-8.f, 2.0f, -8.f);							// position: witch lair
+		gubo.lightColor[1] = glm::vec4(glm::vec3(0.4f, 0.f, 0.8f), 2.0f);		// color: purple
 
 		gubo.lightPos[2] = glm::vec3(-6.0f, 1.3f, -8.3f);						// position: witch lair - cauldron potion
 		gubo.lightColor[2] = glm::vec4(glm::vec3(0.02f, 0.07f, 0.02f), 2.0f);	// color: green
 		gubo.lightPos[3] = glm::vec3(-6.0f, 0.2f, -8.3f);						// position: witch lair - cauldron fire
 		gubo.lightColor[3] = glm::vec4(glm::vec3(0.14f, 0.08f, 0.f), 2.0f);		// color: orange
 
-		gubo.lightPos[4] = glm::vec3(11.9f, 1.0f, -4.f);					// position: bedroom
-		gubo.lightColor[4] = glm::vec4(glm::vec3(0.6f, 0.5f, 0.f), 2.0f);	// color: yellow
+		gubo.lightPos[4] = glm::vec3(11.9f, 1.0f, -4.f);						// position: bedroom
+		gubo.lightColor[4] = glm::vec4(glm::vec3(0.6f, 0.5f, 0.f), 2.0f);		// color: yellow
 
-		gubo.lightPos[5] = glm::vec3(-7.0f, 2.0f, 7.f);						// position: living room
-		gubo.lightColor[5] = glm::vec4(glm::vec3(0.2f, 1.0f, 0.2f), 2.0f);	// color: green
+		gubo.lightPos[5] = glm::vec3(-7.0f, 2.0f, 7.f);							// position: living room
+		gubo.lightColor[5] = glm::vec4(glm::vec3(0.2f, 1.0f, 0.2f), 2.0f);		// color: green
 
-		gubo.lightPos[6] = glm::vec3(0.f, 2.5f, -8.f);						// position: bathroom
-		gubo.lightColor[6] = glm::vec4(glm::vec3(0.50f, 0.25f, 0.f), 2.0f);	// color: orange
+		gubo.lightPos[6] = glm::vec3(0.f, 2.5f, -8.f);							// position: bathroom
+		gubo.lightColor[6] = glm::vec4(glm::vec3(0.50f, 0.25f, 0.f), 2.0f);		// color: orange
 
-		gubo.lightPos[7] = glm::vec3(0.0f, 0.0f, 0.0f);						// position: null
-		gubo.lightDir[7] = glm::vec3(-0.5, 1.0, 0.5);						// (sun) light from outside
-		gubo.lightColor[7] = glm::vec4(glm::vec3(0.2f), 2.0f);				// color: white
+		gubo.lightPos[7] = glm::vec3(0.0f, 0.0f, 0.0f);							// position: null
+		gubo.lightDir[7] = glm::vec3(-0.5, 1.0, 0.5);							// (sun) light from outside
+		gubo.lightColor[7] = glm::vec4(glm::vec3(0.2f), 2.0f);					// color: white
 
-		gubo.lightPos[8] = glm::vec3(-6.0f, 1.5f, -8.3f);					// position: witch lair - cauldron
-		gubo.lightColor[8] = glm::vec4(glm::vec3(0.1f, 0.1f, 1.0f), 20.0f);	// color: blue
-		gubo.lightDir[8] = glm::vec3(0, 1, 0);								// light from above
+		gubo.lightPos[8] = glm::vec3(-6.0f, 1.5f, -8.3f);						// position: witch lair - cauldron
+		gubo.lightColor[8] = glm::vec4(glm::vec3(0.1f, 0.1f, 1.0f), 20.0f);		// color: blue
+		gubo.lightDir[8] = glm::vec3(0, 1, 0);									// light from above
 
-		gubo.cosIn = glm::cos(glm::radians(35.0f));							// cos of the inner angle of the spot light
-		gubo.cosOut = glm::cos(glm::radians(45.0f));						// cos of the outer angle of the spot light
+		gubo.cosIn = glm::cos(glm::radians(35.0f));								// cos of the inner angle of the spot light
+		gubo.cosOut = glm::cos(glm::radians(45.0f));							// cos of the outer angle of the spot light
 
 		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
 			gubo.lightPos[i + 9] = collectiblesRandomPosition[i] + glm::vec3(0.f, 0.5f, 0.f);
@@ -1678,24 +1679,42 @@ protected:
 	void checkPressedButton(float* MOVE_SPEED, float* ROT_SPEED, bool* debounce, int* curDebounce) {
 
 		// Press P to toggle debug mode
-		if (glfwGetKey(window, GLFW_KEY_P) && pressDelay()) {
-			DEBUG = !DEBUG;
-			lastPressTime = totalElapsedTime;
+		if (glfwGetKey(window, GLFW_KEY_P)) {
+			if (!*debounce) {
+				*debounce = true;
+				*curDebounce = GLFW_KEY_P;
+				DEBUG = !DEBUG;
+			}
+		} else if ((*curDebounce == GLFW_KEY_P) && *debounce) {
+			*debounce = false;
+			*curDebounce = 0;
 		}
 
 		// Press O to toggle overlay
-		if (glfwGetKey(window, GLFW_KEY_O) && pressDelay()) {
-			OVERLAY = !OVERLAY;
-			lastPressTime = totalElapsedTime;
+		if (glfwGetKey(window, GLFW_KEY_O)) {
+			if (!*debounce) {
+				*debounce = true;
+				*curDebounce = GLFW_KEY_O;
+				OVERLAY = !OVERLAY;
+			}
+		} else if ((*curDebounce == GLFW_KEY_O) && *debounce) {
+			*debounce = false;
+			*curDebounce = 0;
 		}
 
 		// Press L to reset the camera view
-		if (glfwGetKey(window, GLFW_KEY_L) && pressDelay()) {
-			camRoll = 0.0f;
-			camPitch = glm::radians(-10.0f);
-			camDist = 3.0f;
-			camYaw = catYaw + glm::radians(90.0f);
-			lastPressTime = totalElapsedTime;
+		if (glfwGetKey(window, GLFW_KEY_L)) {
+			if (!*debounce) {
+				*debounce = true;
+				*curDebounce = GLFW_KEY_L;
+				camRoll = 0.0f;
+				camPitch = glm::radians(-10.0f);
+				camDist = 3.0f;
+				camYaw = catYaw + glm::radians(90.0f);
+			}
+		} else if ((*curDebounce == GLFW_KEY_L) && *debounce) {
+			*debounce = false;
+			*curDebounce = 0;
 		}
 
 		// Press K to switch between 1st and 3rd person view
@@ -1704,9 +1723,15 @@ protected:
 		}
 
 		// Press V to switch between 1st and 3rd person view
-		if (glfwGetKey(window, GLFW_KEY_V) && pressDelay()) {
-			FIRST_PERSON = !FIRST_PERSON;
-			lastPressTime = totalElapsedTime;
+		if (glfwGetKey(window, GLFW_KEY_V)) {
+			if (!*debounce) {
+				*debounce = true;
+				*curDebounce = GLFW_KEY_V;
+				FIRST_PERSON = !FIRST_PERSON;
+			}
+		} else if ((*curDebounce == GLFW_KEY_V) && *debounce) {
+			*debounce = false;
+			*curDebounce = 0;
 		}
 
 		// Press SHIFT key to sprint
@@ -1726,18 +1751,23 @@ protected:
 		}
 
 		// Press Z to toggle the cursor
-		if (glfwGetKey(window, GLFW_KEY_Z) && pressDelay()) {
-			if (cursorShowed) {
-				hideCursor();
+		if (glfwGetKey(window, GLFW_KEY_Z)) {
+			if (!*debounce) {
+				*debounce = true;
+				*curDebounce = GLFW_KEY_Z;
+				if (cursorShowed) {
+					hideCursor();
+				} else {
+					showCursor();
+				}
+				cursorShowed = !cursorShowed;
 			}
-			else {
-				showCursor();
-			}
-			cursorShowed = !cursorShowed;
-			lastPressTime = totalElapsedTime;
+		} else if ((*curDebounce == GLFW_KEY_Z) && *debounce) {
+			*debounce = false;
+			*curDebounce = 0;
 		}
 
-		// Turn on/off point lights
+		// Press 1 to turn on/off point lights
 		if (glfwGetKey(window, GLFW_KEY_1)) {
 			if (!*debounce) {
 				*debounce = true;
@@ -1749,7 +1779,7 @@ protected:
 			*curDebounce = 0;
 		}
 
-		// Turn on/off directional lights
+		// Press 2 to turn on/off directional lights
 		if (glfwGetKey(window, GLFW_KEY_2)) {
 			if (!*debounce) {
 				*debounce = true;
@@ -1761,7 +1791,7 @@ protected:
 			*curDebounce = 0;
 		}
 
-		// Turn on/off spot lights
+		// Press 3 to turn on/off spot lights
 		if (glfwGetKey(window, GLFW_KEY_3)) {
 			if (!*debounce) {
 				*debounce = true;
@@ -1773,7 +1803,7 @@ protected:
 			*curDebounce = 0;
 		}
 
-		// Turn on/off ambient lights
+		// Press 4 to turn on/off ambient lights
 		if (glfwGetKey(window, GLFW_KEY_4)) {
 			if (!*debounce) {
 				*debounce = true;
@@ -1794,10 +1824,6 @@ protected:
 	void hideCursor() {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
-	}
-
-	bool pressDelay() {
-		return (totalElapsedTime - lastPressTime > minimumPressDelay);
 	}
 };
 
