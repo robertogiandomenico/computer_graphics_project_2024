@@ -17,3 +17,6 @@ glslc WardShader.frag -o WardFrag.spv
 glslc TanShader.vert -o TanVert.spv
 
 glslc DRN.frag -o DRNFrag.spv
+
+glslc CatShader.frag -o CatFrag.spv
+glslc CatShader.vert -o CatVert.spv

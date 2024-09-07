@@ -22,6 +22,10 @@ protected:
 	float camRoll;
 	float camDist;
 	glm::vec3 CamTargetDelta = glm::vec3(0.0f);
+	float minPitch = glm::radians(-20.0f);
+	float maxPitch = M_PI_2 - 0.1f;
+	float minRoll = -M_PI_2;
+	float maxRoll = M_PI_2;
 
 	// Cat position and orientation
 	glm::vec3 catPosition;
@@ -66,13 +70,13 @@ protected:
 	glm::vec3 cameraRight;
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward, DSL_boundingBox, DSL_DRN, DSL_Global;
+	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward, DSL_boundingBox, DSL_DRN, DSL_global;
 
 	// Vertex formats
 	VertexDescriptor VD, VD_skyBox, VD_overlay, VD_tangent, VD_boundingBox;
 
 	// Pipelines [Shader couples]
-	Pipeline P, P_skyBox, P_steam, P_overlay, P_ward, P_boundingBox, P_DRN;
+	Pipeline P, P_skyBox, P_steam, P_overlay, P_ward, P_boundingBox, P_DRN, P_cat;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	// Please note that Model objects depends on the corresponding vertex structure
@@ -136,10 +140,10 @@ protected:
 		// Living room
 		UBO_sofa, UBO_table, UBO_tv, UBO_knight,
 		// Other
-		UBO_cat, UBO_floor, UBO_walls;
+		UBO_floor, UBO_walls;
 
 	std::vector<UniformBufferObject> UBO_boundingBox;
-	SteamUniformBufferObject UBO_steam, UBO_fire;
+	SteamUniformBufferObject UBO_steam, UBO_fire, UBO_cat;
 	OverlayUniformBlock UBO_timer[5], UBO_screens[4], UBO_scroll, UBO_collectibles[COLLECTIBLES_NUM];
 
 	// To display the bounding boxes for debugging
@@ -175,19 +179,19 @@ protected:
 	// Here is where you update the uniforms. Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage);
 
-	void placeEntities(const glm::vec3& catNewPos, const glm::mat4& ViewPrj, uint32_t currentImage);
+	void worldSetUp(const glm::vec3& catNewPos, const glm::mat4& ViewPrj, uint32_t currentImage);
 
 	void checkCollisions(uint32_t currentImage, glm::vec3& m, float deltaT);
 
 	void updateOverlay(uint32_t currentImage);
 
-	void updateCampingFire(glm::mat4& World, glm::mat4& ViewPrj, uint32_t currentImage);
+	void updateSteamAndFire(glm::mat4& World, glm::mat4& ViewPrj, uint32_t currentImage);
 
-	void updateLight(uint32_t currentImage);
+	void updateLights(uint32_t currentImage);
 
-	void updateFixedScreen(bool start, uint32_t currentImage);
+	void updateMenuScene(bool start, uint32_t currentImage);
 
-	void updateGameState(bool& debounce, int& curDebounce, float& deltaT, glm::vec3& m, glm::vec3& r, uint32_t currentImage);
+	void updateGame(bool& debounce, int& curDebounce, float& deltaT, glm::vec3& m, glm::vec3& r, uint32_t currentImage);
 
 	void placeEntity(UniformBufferObject ubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 		glm::vec3 emissiveColor, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id = 0);

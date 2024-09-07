@@ -16,8 +16,6 @@ layout(location = 1) out vec3 fragNorm;
 layout(location = 2) out vec3 fragPos;
 
 void main() {
-    vec3 pos = inPos;
-
     fragUV = inUV;
     fragNorm = mat3(ubo.nMat) * inNorm;  // Transforming normal with the normal matrix
     fragPos = vec3(ubo.mMat * vec4(inPos, 1.0)); // Position in world space

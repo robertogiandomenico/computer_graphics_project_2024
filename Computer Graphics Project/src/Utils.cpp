@@ -29,6 +29,7 @@ glm::vec3 generateRandomPosition(float squareSide) {
 	return randomPosition;
 }
 
+// Constructor
 BoundingBox::BoundingBox(const std::string& name, const glm::vec3 center, const glm::vec3 size) {
 	this->name = name;
 	glm::vec3 halfSize = size / 2.0f;
@@ -106,7 +107,6 @@ void drawBoundingBox(bool hasBoundingBox, glm::vec3 position, glm::vec3 rotation
 	else {
 		World = glm::scale(glm::mat4(1), glm::vec3(0.0f));	// scale to zero to not display the bounding box
 	}
-	UBO_boundingBox.mvpMat = ViewPrj * World;
 	UBO_boundingBox.mvpMat = ViewPrj * World;
 	UBO_boundingBox.mMat = World;
 	UBO_boundingBox.nMat = glm::transpose(glm::inverse(World));

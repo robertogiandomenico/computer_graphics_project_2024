@@ -1,5 +1,9 @@
 #include "PurrfectPotion.hpp"
 
+static bool debounce = false;
+static int curDebounce = 0;
+static bool showInstruction = false;
+
 // Here you set the main application parameters
 void PurrfectPotion::setWindowParameters() {
 	// Window size, title and initial background
@@ -48,7 +52,7 @@ void PurrfectPotion::localInit() {
 	}
 
 	// Descriptor Layouts [what will be passed to the shaders]
-	DSL_Global.init(this, {
+	DSL_global.init(this, {
 		// this array contains the bindings:
 		// first  element : the binding number
 		// second element : the type of element (buffer or texture) using the corresponding Vulkan constant
@@ -171,8 +175,8 @@ void PurrfectPotion::localInit() {
 	// The second parameter is the pointer to the vertex definition
 	// Third and fourth parameters are respectively the vertex and fragment shaders
 	// The last array, is a vector of pointer to the layouts of the sets that will be used in this pipeline. The first element will be set 0, and so on..
-	P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL_Global, &DSL });
-	P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, true);
+	P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL_global, &DSL });
+	P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
 	P_skyBox.init(this, &VD_skyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSL_skyBox });
 	P_skyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
@@ -186,11 +190,14 @@ void PurrfectPotion::localInit() {
 	P_overlay.init(this, &VD_overlay, "shaders/OverlayVert.spv", "shaders/OverlayFrag.spv", { &DSL_overlay });
 	P_overlay.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
 
-	P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_Global, &DSL_ward });
+	P_ward.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/WardFrag.spv", { &DSL_global, &DSL_ward });
 	P_ward.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
-	P_DRN.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/DRNFrag.spv", { &DSL_Global, &DSL_DRN });
+	P_DRN.init(this, &VD_tangent, "shaders/TanVert.spv", "shaders/DRNFrag.spv", { &DSL_global, &DSL_DRN });
 	P_DRN.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
+
+	P_cat.init(this, &VD, "shaders/CatVert.spv", "shaders/CatFrag.spv", { &DSL_global, &DSL });
+	P_cat.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, true);
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 
@@ -364,11 +371,12 @@ void PurrfectPotion::pipelinesAndDescriptorSetsInit() {
 	P_overlay.create();
 	P_ward.create();
 	P_DRN.create();
+	P_cat.create();
 
 	// Here you define the data set
 	// the second parameter, is a pointer to the Uniform Set Layout of this set
 	// the last parameter is an array, with one element per binding of the set.
-	DS_global.init(this, &DSL_Global, {
+	DS_global.init(this, &DSL_global, {
 		// first  elmenet : the binding number
 		// second element : UNIFORM or TEXTURE (an enum) depending on the type
 		// third  element : only for UNIFORMs, the size of the corresponding C++ object. For texture, just put 0
@@ -617,6 +625,7 @@ void PurrfectPotion::pipelinesAndDescriptorSetsCleanup() {
 	P_overlay.cleanup();
 	P_ward.cleanup();
 	P_DRN.cleanup();
+	P_cat.cleanup();
 
 	// Cleanup datasets
 	DS_bathtub.cleanup();
@@ -791,7 +800,7 @@ void PurrfectPotion::localCleanup() {
 	DSL_overlay.cleanup();
 	DSL_ward.cleanup();
 	DSL_DRN.cleanup();
-	DSL_Global.cleanup();
+	DSL_global.cleanup();
 
 	// Destroy the pipelines
 	P.destroy();
@@ -801,6 +810,7 @@ void PurrfectPotion::localCleanup() {
 	P_overlay.destroy();
 	P_ward.destroy();
 	P_DRN.destroy();
+	P_cat.destroy();
 }
 
 // Here it is the creation of the command buffer:
@@ -976,10 +986,6 @@ void PurrfectPotion::populateCommandBuffer(VkCommandBuffer commandBuffer, int cu
 	M_tv.bind(commandBuffer);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_tv.indices.size()), 1, 0, 0, 0);
 
-	DS_cat.bind(commandBuffer, P, 1, currentImage);
-	M_cat.bind(commandBuffer);
-	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
-
 	// P_steam pipeline
 	P_steam.bind(commandBuffer);
 	M_steam.bind(commandBuffer);
@@ -989,6 +995,16 @@ void PurrfectPotion::populateCommandBuffer(VkCommandBuffer commandBuffer, int cu
 	M_fire.bind(commandBuffer);
 	DS_fire.bind(commandBuffer, P_steam, 0, currentImage);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_fire.indices.size()), 1, 0, 0, 0);
+
+	// P_cat pipeline
+	P_cat.bind(commandBuffer);
+
+	// DS_global is binded to P_cat with set = 0
+	DS_global.bind(commandBuffer, P_cat, 0, currentImage);
+
+	DS_cat.bind(commandBuffer, P_cat, 1, currentImage);
+	M_cat.bind(commandBuffer);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
 
 	// P_overlay pipeline
 	P_overlay.bind(commandBuffer);
@@ -1015,10 +1031,6 @@ void PurrfectPotion::populateCommandBuffer(VkCommandBuffer commandBuffer, int cu
 	}
 
 }
-
-static bool debounce = false;
-static int curDebounce = 0;
-static bool showInstruction = false;
 
 // Here is where you update the uniforms. Very likely this will be where you will be writing the logic of your application.
 void PurrfectPotion::updateUniformBuffer(uint32_t currentImage) {
@@ -1056,9 +1068,9 @@ void PurrfectPotion::updateUniformBuffer(uint32_t currentImage) {
 	catNewPos.y = floatingFactor;
 
 	if (gameState == GAME_STATE_START_SCREEN || gameState == GAME_STATE_GAME_WIN || gameState == GAME_STATE_GAME_LOSE) {
-		updateFixedScreen(start, currentImage);
+		updateMenuScene(start, currentImage);
 	} else if (gameState == GAME_STATE_PLAY) {
-		updateGameState(debounce, curDebounce, deltaT, m, r, currentImage);
+		updateGame(debounce, curDebounce, deltaT, m, r, currentImage);
 	}
 	
 	// Press I to show instruction screen
@@ -1112,7 +1124,7 @@ void PurrfectPotion::updateUniformBuffer(uint32_t currentImage) {
 		collectiblesRandomPosition[i].y = 0.3f + 0.05f * sin((totalElapsedTime + i) * 3);
 	}
 
-	updateLight(currentImage);
+	updateLights(currentImage);
 
 	// Sky Box UBO update
 	SkyBoxUniformBufferObject sbubo{};
@@ -1120,16 +1132,16 @@ void PurrfectPotion::updateUniformBuffer(uint32_t currentImage) {
 	sbubo.time = totalElapsedTime;
 	DS_skyBox.map(currentImage, &sbubo, sizeof(sbubo), 0);
 
-	updateCampingFire(World, ViewPrj, currentImage);
+	updateSteamAndFire(World, ViewPrj, currentImage);
 
 	updateOverlay(currentImage);
 
-	placeEntities(catNewPos, ViewPrj, currentImage);
+	worldSetUp(catNewPos, ViewPrj, currentImage);
 
 	checkCollisions(currentImage, m, deltaT);
 }
 
-void PurrfectPotion::placeEntities(const glm::vec3& catNewPos, const glm::mat4& ViewPrj, uint32_t currentImage) {
+void PurrfectPotion::worldSetUp(const glm::vec3& catNewPos, const glm::mat4& ViewPrj, uint32_t currentImage) {
 
 	// Placing ghost cat
 	placeEntity(UBO_cat, catNewPos, glm::vec3(0, catYaw, 0), FIRST_PERSON ? glm::vec3(0.0f) : glm::vec3(1.f), glm::vec3(3.0f), ViewPrj, DS_cat, currentImage, DEBUG, 8);// 16);
@@ -1231,7 +1243,7 @@ void PurrfectPotion::checkCollisions(uint32_t currentImage, glm::vec3& m, float 
 			if (collectiblesMap["crystal"] && collectiblesMap["eye"] && collectiblesMap["feather"] &&
 				collectiblesMap["leaf"] && collectiblesMap["potion1"] && collectiblesMap["potion2"] && collectiblesMap["bone"]) {
 
-				std::cout << "\nALL COLLECTIBLES COLLECTED! Now go to the cauldron" << std::endl;
+				std::cout << "\nALL COLLECTIBLES COLLECTED! Now go to the cauldron!" << std::endl;
 				gameOver = true;
 			}
 		}
@@ -1243,8 +1255,7 @@ void PurrfectPotion::checkCollisions(uint32_t currentImage, glm::vec3& m, float 
 			if (furnitureBBs[j].getName() == "cauldron") {
 				if (gameOver) {
 					gameState = GAME_STATE_GAME_WIN;
-				}
-				else {
+				} else {
 					break;
 				}
 			}
@@ -1257,7 +1268,7 @@ void PurrfectPotion::checkCollisions(uint32_t currentImage, glm::vec3& m, float 
 }
 
 void PurrfectPotion::updateOverlay(uint32_t currentImage) {
-	// Overlays updates
+
 	if (OVERLAY) {
 		// Timer
 		if (timeLeft >= GAME_DURATION * 3 / 4) {
@@ -1311,7 +1322,7 @@ void PurrfectPotion::updateOverlay(uint32_t currentImage) {
 	}
 }
 
-void PurrfectPotion::updateCampingFire(glm::mat4& World, glm::mat4& ViewPrj, uint32_t currentImage) {
+void PurrfectPotion::updateSteamAndFire(glm::mat4& World, glm::mat4& ViewPrj, uint32_t currentImage) {
 	// Steam UBO update
 	SteamUniformBufferObject subo = {};
 	World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 1.7f, 0)) *		// Steam plane position - over the cauldron
@@ -1334,7 +1345,8 @@ void PurrfectPotion::updateCampingFire(glm::mat4& World, glm::mat4& ViewPrj, uin
 	DS_fire.map(currentImage, &subo, sizeof(subo), 0);
 }
 
-void PurrfectPotion::updateLight(uint32_t currentImage) {
+void PurrfectPotion::updateLights(uint32_t currentImage) {
+
 	GlobalUniformBufferObject gubo = {};
 	// Set light properties
 	gubo.lightPos[0] = glm::vec3(6.0f, 2.0f, 8.0f);							// position: kitchen
@@ -1369,9 +1381,9 @@ void PurrfectPotion::updateLight(uint32_t currentImage) {
 	gubo.cosOut = glm::cos(glm::radians(45.0f));							// cos of the outer angle of the spot light
 
 	for (int i = 0; i < COLLECTIBLES_NUM; i++) {
-		gubo.lightPos[i + 9] = collectiblesRandomPosition[i] + glm::vec3(0.f, 0.5f, 0.f);
-		gubo.lightDir[i + 9] = glm::vec3(0, 1, 0);
-		gubo.lightColor[i + 9] = collectiblesMap[collectiblesNames[i]] ? glm::vec4(glm::vec3(0.0f), 0.0f) : glm::vec4(glm::vec3(0.7f, 0.1f, 1.0f), 10.0f);
+		gubo.lightPos[i + LIGHTS_NUM - COLLECTIBLES_NUM] = collectiblesRandomPosition[i] + glm::vec3(0.f, 0.5f, 0.f);
+		gubo.lightDir[i + LIGHTS_NUM - COLLECTIBLES_NUM] = glm::vec3(0, 1, 0);
+		gubo.lightColor[i + LIGHTS_NUM - COLLECTIBLES_NUM] = collectiblesMap[collectiblesNames[i]] ? glm::vec4(glm::vec3(0.0f), 0.0f) : glm::vec4(glm::vec3(0.7f, 0.1f, 1.0f), 10.0f);
 	}
 
 	gubo.eyePos = camPos; // Camera position
@@ -1382,7 +1394,7 @@ void PurrfectPotion::updateLight(uint32_t currentImage) {
 	DS_global.map(currentImage, &gubo, sizeof(gubo), 0);
 }
 
-void PurrfectPotion::updateFixedScreen(bool start, uint32_t currentImage) {
+void PurrfectPotion::updateMenuScene(bool start, uint32_t currentImage) {
 	camPos = glm::vec3(-5.5f, 2.6f, -2.8f);
 	camYaw = glm::radians(40.0f);
 	camPitch = glm::radians(-20.0f);
@@ -1452,7 +1464,7 @@ void PurrfectPotion::updateFixedScreen(bool start, uint32_t currentImage) {
 	}
 }
 
-void PurrfectPotion::updateGameState(bool& debounce, int& curDebounce, float& deltaT, glm::vec3& m, glm::vec3& r, uint32_t currentImage) {
+void PurrfectPotion::updateGame(bool& debounce, int& curDebounce, float& deltaT, glm::vec3& m, glm::vec3& r, uint32_t currentImage) {
 
 	// Update DS screens overlay
 	for (int i = 0; i < 4; i++) {
@@ -1472,16 +1484,10 @@ void PurrfectPotion::updateGameState(bool& debounce, int& curDebounce, float& de
 
 	// Limit the distance from the cat and the pitch to avoid gimbal lock
 	camDist = glm::clamp(camDist, 1.5f, 4.0f);
-
-	float minPitch = glm::radians(-20.0f);
-	float maxPitch = M_PI_2 - 0.1f;
 	camPitch = glm::clamp(camPitch, minPitch, maxPitch);
-
-	float minRoll = -M_PI_2;
-	float maxRoll = M_PI_2;
 	camRoll = glm::clamp(camRoll, minRoll, maxRoll);
 
-	// Redefine camera forward and right vectors
+	// Redefine camera forward and right vectors when camera rotates
 	cameraForward = glm::normalize(glm::vec3(sin(camYaw), 0.0f, cos(camYaw)));
 	cameraRight = glm::normalize(glm::vec3(cos(camYaw), 0.0f, -sin(camYaw)));
 
@@ -1502,7 +1508,6 @@ void PurrfectPotion::updateGameState(bool& debounce, int& curDebounce, float& de
 		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0)) * glm::vec4(0, 0, -1, 1);
 
 		camPos = catPosition + MOVE_SPEED * m.x * ux * deltaT;
-		// camPos = camPos + MOVE_SPEED * m.y * glm::vec3(0, 1, 0) * deltaT;	// uncomment to enable R and F keys
 		camPos = camPos + MOVE_SPEED * m.z * uz * deltaT;
 
 		camPos.y += 0.9f;
@@ -1510,8 +1515,8 @@ void PurrfectPotion::updateGameState(bool& debounce, int& curDebounce, float& de
 		// Third person camera position
 		glm::vec3 camTarget = catPosition + CamTargetDelta;
 		camPos = camTarget + glm::vec3(glm::rotate(glm::mat4(1), camYaw, glm::vec3(0, 1, 0)) *
-			glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
-			glm::vec4(0, 0, camDist, 1));
+				glm::rotate(glm::mat4(1), -camPitch, glm::vec3(1, 0, 0)) *
+				glm::vec4(0, 0, camDist, 1));
 	}
 
 	// Check if game is over because time has run out
