@@ -72,7 +72,7 @@ void PurrfectPotion::localInit() {
 		{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}			// Uniform buffer for time
 	});
 
-	DSL_steam.init(this, {
+	DSL_animated.init(this, {
 		{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},				// Steam UBO binding
 		{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}	// Steam texture binding
 	});
@@ -175,14 +175,14 @@ void PurrfectPotion::localInit() {
 	// The second parameter is the pointer to the vertex definition
 	// Third and fourth parameters are respectively the vertex and fragment shaders
 	// The last array, is a vector of pointer to the layouts of the sets that will be used in this pipeline. The first element will be set 0, and so on..
-	P.init(this, &VD, "shaders/ShaderVert.spv", "shaders/ShaderFrag.spv", { &DSL_global, &DSL });
+	P.init(this, &VD, "shaders/PhongVert.spv", "shaders/PhongFrag.spv", { &DSL_global, &DSL });
 	P.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
 	P_skyBox.init(this, &VD_skyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSL_skyBox });
 	P_skyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
-	P_steam.init(this, &VD, "shaders/SteamVert.spv", "shaders/SteamFrag.spv", { &DSL_steam });
-	P_steam.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
+	P_animated.init(this, &VD, "shaders/AnimatedVert.spv", "shaders/AnimatedFrag.spv", { &DSL_animated });
+	P_animated.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, true);
 
 	P_boundingBox.init(this, &VD_boundingBox, "shaders/BoundingBoxVert.spv", "shaders/BoundingBoxFrag.spv", { &DSL_boundingBox });
 	P_boundingBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_LINE, VK_CULL_MODE_BACK_BIT, false);
@@ -366,7 +366,7 @@ void PurrfectPotion::pipelinesAndDescriptorSetsInit() {
 	// This creates a new pipeline (with the current surface), using its shaders
 	P.create();
 	P_skyBox.create();
-	P_steam.create();
+	P_animated.create();
 	P_boundingBox.create();
 	P_overlay.create();
 	P_ward.create();
@@ -520,12 +520,12 @@ void PurrfectPotion::pipelinesAndDescriptorSetsInit() {
 		{1, TEXTURE, 0, &T_textures},
 		{2, UNIFORM, sizeof(glm::vec3), nullptr}
 	});
-	DS_steam.init(this, &DSL_steam, {
-		{0, UNIFORM, sizeof(SteamUniformBufferObject), nullptr},
+	DS_steam.init(this, &DSL_animated, {
+		{0, UNIFORM, sizeof(AnimatedUniformBufferObject), nullptr},
 		{1, TEXTURE, 0, &T_steam}
 	});
-	DS_fire.init(this, &DSL_steam, {
-		{0, UNIFORM, sizeof(SteamUniformBufferObject), nullptr},
+	DS_fire.init(this, &DSL_animated, {
+		{0, UNIFORM, sizeof(AnimatedUniformBufferObject), nullptr},
 		{1, TEXTURE, 0, &T_fire}
 	});
 
@@ -553,7 +553,7 @@ void PurrfectPotion::pipelinesAndDescriptorSetsInit() {
 	});
 
 	DS_cat.init(this, &DSL, {
-		{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+		{0, UNIFORM, sizeof(AnimatedUniformBufferObject), nullptr},
 		{1, TEXTURE, 0, &T_catDiffuseGhost},	 
 		{2, UNIFORM, sizeof(glm::vec3), nullptr}
 	});
@@ -620,7 +620,7 @@ void PurrfectPotion::pipelinesAndDescriptorSetsCleanup() {
 	// Cleanup pipelines
 	P.cleanup();
 	P_skyBox.cleanup();
-	P_steam.cleanup();
+	P_animated.cleanup();
 	P_boundingBox.cleanup();
 	P_overlay.cleanup();
 	P_ward.cleanup();
@@ -795,7 +795,7 @@ void PurrfectPotion::localCleanup() {
 	// Cleanup descriptor set layouts
 	DSL.cleanup();
 	DSL_skyBox.cleanup();
-	DSL_steam.cleanup();
+	DSL_animated.cleanup();
 	DSL_boundingBox.cleanup();
 	DSL_overlay.cleanup();
 	DSL_ward.cleanup();
@@ -805,7 +805,7 @@ void PurrfectPotion::localCleanup() {
 	// Destroy the pipelines
 	P.destroy();
 	P_skyBox.destroy();
-	P_steam.destroy();
+	P_animated.destroy();
 	P_boundingBox.destroy();
 	P_overlay.destroy();
 	P_ward.destroy();
@@ -986,14 +986,14 @@ void PurrfectPotion::populateCommandBuffer(VkCommandBuffer commandBuffer, int cu
 	M_tv.bind(commandBuffer);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_tv.indices.size()), 1, 0, 0, 0);
 
-	// P_steam pipeline
-	P_steam.bind(commandBuffer);
+	// P_animated pipeline
+	P_animated.bind(commandBuffer);
 	M_steam.bind(commandBuffer);
-	DS_steam.bind(commandBuffer, P_steam, 0, currentImage);
+	DS_steam.bind(commandBuffer, P_animated, 0, currentImage);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_steam.indices.size()), 1, 0, 0, 0);
 
 	M_fire.bind(commandBuffer);
-	DS_fire.bind(commandBuffer, P_steam, 0, currentImage);
+	DS_fire.bind(commandBuffer, P_animated, 0, currentImage);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_fire.indices.size()), 1, 0, 0, 0);
 
 	// P_cat pipeline
@@ -1062,11 +1062,6 @@ void PurrfectPotion::updateUniformBuffer(uint32_t currentImage) {
 
 	totalElapsedTime += deltaT;
 
-	// Update cat's vertical position for slight floating effect
-	float floatingFactor = 0.02f * sin(totalElapsedTime * 2);
-	glm::vec3 catNewPos = catPosition;
-	catNewPos.y = floatingFactor;
-
 	if (gameState == GAME_STATE_START_SCREEN || gameState == GAME_STATE_GAME_WIN || gameState == GAME_STATE_GAME_LOSE) {
 		updateMenuScene(start, currentImage);
 	} else if (gameState == GAME_STATE_PLAY) {
@@ -1127,26 +1122,25 @@ void PurrfectPotion::updateUniformBuffer(uint32_t currentImage) {
 	updateLights(currentImage);
 
 	// Sky Box UBO update
-	SkyBoxUniformBufferObject sbubo{};
-	sbubo.mvpMat = M * glm::mat4(glm::mat3(Mv));
-	sbubo.time = totalElapsedTime;
-	DS_skyBox.map(currentImage, &sbubo, sizeof(sbubo), 0);
+	UBO_skyBox.mvpMat = M * glm::mat4(glm::mat3(Mv));
+	UBO_skyBox.time = totalElapsedTime;
+	DS_skyBox.map(currentImage, &UBO_skyBox, sizeof(UBO_skyBox), 0);
 
 	updateSteamAndFire(World, ViewPrj, currentImage);
 
 	updateOverlay(currentImage);
 
-	worldSetUp(catNewPos, ViewPrj, currentImage);
+	worldSetUp(catPosition, ViewPrj, currentImage);
 
 	checkCollisions(currentImage, m, deltaT);
 }
 
-void PurrfectPotion::worldSetUp(const glm::vec3& catNewPos, const glm::mat4& ViewPrj, uint32_t currentImage) {
+void PurrfectPotion::worldSetUp(const glm::vec3& catPosition, const glm::mat4& ViewPrj, uint32_t currentImage) {
 
 	// Placing ghost cat
-	placeEntity(UBO_cat, catNewPos, glm::vec3(0, catYaw, 0), FIRST_PERSON ? glm::vec3(0.0f) : glm::vec3(1.f), glm::vec3(3.0f), ViewPrj, DS_cat, currentImage, DEBUG, 8);// 16);
+	placeGhostCat(UBO_cat, catPosition, glm::vec3(0, catYaw, 0), FIRST_PERSON ? glm::vec3(0.0f) : glm::vec3(1.f), glm::vec3(3.0f), ViewPrj, DS_cat, currentImage, DEBUG, 8); // 16);
 	catBox = BoundingBox("cat", catPosition, catDimensions);
-
+	
 	// House
 	placeEntity(UBO_floor, houseFloor.pos, houseFloor.rot, houseFloor.scale, glm::vec3(0.0f), ViewPrj, DS_floor, currentImage, false);
 	placeEntity(UBO_walls, walls.pos, walls.rot, walls.scale, glm::vec3(0.0f), ViewPrj, DS_walls, currentImage, false);
@@ -1227,6 +1221,27 @@ void PurrfectPotion::worldSetUp(const glm::vec3& catNewPos, const glm::mat4& Vie
 	else {
 		removeCollectible(UBO_bone, ViewPrj, DS_bone, currentImage, 6);
 	}
+}
+
+void PurrfectPotion::placeGhostCat(AnimatedUniformBufferObject ubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 emissiveColor,
+									glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id)
+{
+
+	glm::mat4 World = glm::translate(glm::mat4(1), position) *
+		glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *
+		glm::rotate(glm::mat4(1), rotation.y, glm::vec3(0, 1, 0)) *
+		glm::rotate(glm::mat4(1), rotation.z, glm::vec3(0, 0, 1)) *
+		glm::scale(glm::mat4(1), scale);
+	ubo.mvpMat = ViewPrj * World;
+	ubo.mMat = World;
+	ubo.nMat = glm::transpose(glm::inverse(World));
+	ubo.time = totalElapsedTime;
+	ubo.speed = 2.0f;
+
+	drawBoundingBox(hasBoundingBox, position, rotation, scale, ViewPrj, UBO_boundingBox[id], DS_boundingBox[id], currentImage);
+
+	ds.map(currentImage, &ubo, sizeof(ubo), 0);
+	ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 2);
 }
 
 void PurrfectPotion::checkCollisions(uint32_t currentImage, glm::vec3& m, float deltaT) {
@@ -1324,74 +1339,72 @@ void PurrfectPotion::updateOverlay(uint32_t currentImage) {
 
 void PurrfectPotion::updateSteamAndFire(glm::mat4& World, glm::mat4& ViewPrj, uint32_t currentImage) {
 	// Steam UBO update
-	SteamUniformBufferObject subo = {};
 	World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 1.7f, 0)) *		// Steam plane position - over the cauldron
 			glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Steam plane rotation - always face the camera
-	subo.mvpMat = ViewPrj * World;
-	subo.mMat = World;
-	subo.nMat = glm::transpose(glm::inverse(World));
-	subo.time = totalElapsedTime;
-	subo.speed = 0.7f;
-	DS_steam.map(currentImage, &subo, sizeof(subo), 0);
+	UBO_steam.mvpMat = ViewPrj * World;
+	UBO_steam.mMat = World;
+	UBO_steam.nMat = glm::transpose(glm::inverse(World));
+	UBO_steam.time = totalElapsedTime;
+	UBO_steam.speed = 0.7f;
+	DS_steam.map(currentImage, &UBO_steam, sizeof(UBO_steam), 0);
 
 	// Fire UBO update
 	World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 0.3f, 0.1f)) *	// Fire plane position - under the cauldron
 			glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Fire plane rotation - always face the camera
-	subo.mvpMat = ViewPrj * World;
-	subo.mMat = World;
-	subo.nMat = glm::transpose(glm::inverse(World));
-	subo.time = totalElapsedTime;
-	subo.speed = 4.f;
-	DS_fire.map(currentImage, &subo, sizeof(subo), 0);
+	UBO_fire.mvpMat = ViewPrj * World;
+	UBO_fire.mMat = World;
+	UBO_fire.nMat = glm::transpose(glm::inverse(World));
+	UBO_fire.time = totalElapsedTime;
+	UBO_fire.speed = 4.f;
+	DS_fire.map(currentImage, &UBO_fire, sizeof(UBO_fire), 0);
 }
 
 void PurrfectPotion::updateLights(uint32_t currentImage) {
 
-	GlobalUniformBufferObject gubo = {};
 	// Set light properties
-	gubo.lightPos[0] = glm::vec3(6.0f, 2.0f, 8.0f);							// position: kitchen
-	gubo.lightColor[0] = glm::vec4(glm::vec3(1.4f), 2.0f);					// color: white
+	GUBO.lightPos[0] = glm::vec3(6.0f, 2.0f, 8.0f);							// position: kitchen
+	GUBO.lightColor[0] = glm::vec4(glm::vec3(1.4f), 2.0f);					// color: white
 
-	gubo.lightPos[1] = glm::vec3(-8.f, 2.0f, -8.f);							// position: witch lair
-	gubo.lightColor[1] = glm::vec4(glm::vec3(0.4f, 0.f, 0.8f), 2.0f);		// color: purple
+	GUBO.lightPos[1] = glm::vec3(-8.f, 2.0f, -8.f);							// position: witch lair
+	GUBO.lightColor[1] = glm::vec4(glm::vec3(0.4f, 0.f, 0.8f), 2.0f);		// color: purple
 
-	gubo.lightPos[2] = glm::vec3(-6.0f, 1.3f, -8.3f);						// position: witch lair - cauldron potion
-	gubo.lightColor[2] = glm::vec4(glm::vec3(0.02f, 0.07f, 0.02f), 2.0f);	// color: green
-	gubo.lightPos[3] = glm::vec3(-6.0f, 0.2f, -8.3f);						// position: witch lair - cauldron fire
-	gubo.lightColor[3] = glm::vec4(glm::vec3(0.14f, 0.08f, 0.f), 2.0f);		// color: orange
+	GUBO.lightPos[2] = glm::vec3(-6.0f, 1.3f, -8.3f);						// position: witch lair - cauldron potion
+	GUBO.lightColor[2] = glm::vec4(glm::vec3(0.02f, 0.07f, 0.02f), 2.0f);	// color: green
+	GUBO.lightPos[3] = glm::vec3(-6.0f, 0.2f, -8.3f);						// position: witch lair - cauldron fire
+	GUBO.lightColor[3] = glm::vec4(glm::vec3(0.14f, 0.08f, 0.f), 2.0f);		// color: orange
 
-	gubo.lightPos[4] = glm::vec3(11.9f, 1.0f, -4.f);						// position: bedroom
-	gubo.lightColor[4] = glm::vec4(glm::vec3(0.6f, 0.5f, 0.f), 2.0f);		// color: yellow
+	GUBO.lightPos[4] = glm::vec3(11.9f, 1.0f, -4.f);						// position: bedroom
+	GUBO.lightColor[4] = glm::vec4(glm::vec3(0.6f, 0.5f, 0.f), 2.0f);		// color: yellow
 
-	gubo.lightPos[5] = glm::vec3(-7.0f, 2.0f, 7.f);							// position: living room
-	gubo.lightColor[5] = glm::vec4(glm::vec3(0.2f, 1.0f, 0.2f), 2.0f);		// color: green
+	GUBO.lightPos[5] = glm::vec3(-7.0f, 2.0f, 7.f);							// position: living room
+	GUBO.lightColor[5] = glm::vec4(glm::vec3(0.2f, 1.0f, 0.2f), 2.0f);		// color: green
 
-	gubo.lightPos[6] = glm::vec3(0.f, 2.5f, -8.f);							// position: bathroom
-	gubo.lightColor[6] = glm::vec4(glm::vec3(0.50f, 0.25f, 0.f), 2.0f);		// color: orange
+	GUBO.lightPos[6] = glm::vec3(0.f, 2.5f, -8.f);							// position: bathroom
+	GUBO.lightColor[6] = glm::vec4(glm::vec3(0.50f, 0.25f, 0.f), 2.0f);		// color: orange
 
-	gubo.lightPos[7] = glm::vec3(0.0f, 0.0f, 0.0f);							// position: null
-	gubo.lightDir[7] = glm::vec3(-0.5, 1.0, 0.5);							// (sun) light from outside
-	gubo.lightColor[7] = glm::vec4(glm::vec3(0.2f), 2.0f);					// color: white
+	GUBO.lightPos[7] = glm::vec3(0.0f, 0.0f, 0.0f);							// position: null
+	GUBO.lightDir[7] = glm::vec3(-0.5, 1.0, 0.5);							// (sun) light from outside
+	GUBO.lightColor[7] = glm::vec4(glm::vec3(0.2f), 2.0f);					// color: white
 
-	gubo.lightPos[8] = glm::vec3(-6.0f, 1.5f, -8.3f);						// position: witch lair - cauldron
-	gubo.lightColor[8] = glm::vec4(glm::vec3(0.1f, 0.1f, 1.0f), 20.0f);		// color: blue
-	gubo.lightDir[8] = glm::vec3(0, 1, 0);									// light from above
+	GUBO.lightPos[8] = glm::vec3(-6.0f, 1.5f, -8.3f);						// position: witch lair - cauldron
+	GUBO.lightColor[8] = glm::vec4(glm::vec3(0.1f, 0.1f, 1.0f), 20.0f);		// color: blue
+	GUBO.lightDir[8] = glm::vec3(0, 1, 0);									// light from above
 
-	gubo.cosIn = glm::cos(glm::radians(35.0f));								// cos of the inner angle of the spot light
-	gubo.cosOut = glm::cos(glm::radians(45.0f));							// cos of the outer angle of the spot light
+	GUBO.cosIn = glm::cos(glm::radians(35.0f));								// cos of the inner angle of the spot light
+	GUBO.cosOut = glm::cos(glm::radians(45.0f));							// cos of the outer angle of the spot light
 
 	for (int i = 0; i < COLLECTIBLES_NUM; i++) {
-		gubo.lightPos[i + LIGHTS_NUM - COLLECTIBLES_NUM] = collectiblesRandomPosition[i] + glm::vec3(0.f, 0.5f, 0.f);
-		gubo.lightDir[i + LIGHTS_NUM - COLLECTIBLES_NUM] = glm::vec3(0, 1, 0);
-		gubo.lightColor[i + LIGHTS_NUM - COLLECTIBLES_NUM] = collectiblesMap[collectiblesNames[i]] ? glm::vec4(glm::vec3(0.0f), 0.0f) : glm::vec4(glm::vec3(0.7f, 0.1f, 1.0f), 10.0f);
+		GUBO.lightPos[i + LIGHTS_NUM - COLLECTIBLES_NUM] = collectiblesRandomPosition[i] + glm::vec3(0.f, 0.5f, 0.f);
+		GUBO.lightDir[i + LIGHTS_NUM - COLLECTIBLES_NUM] = glm::vec3(0, 1, 0);
+		GUBO.lightColor[i + LIGHTS_NUM - COLLECTIBLES_NUM] = collectiblesMap[collectiblesNames[i]] ? glm::vec4(glm::vec3(0.0f), 0.0f) : glm::vec4(glm::vec3(0.7f, 0.1f, 1.0f), 10.0f);
 	}
 
-	gubo.eyePos = camPos; // Camera position
+	GUBO.eyePos = camPos; // Camera position
 
-	gubo.lightOn = lightOn;
-	gubo.gameOver = gameOver;
+	GUBO.lightOn = lightOn;
+	GUBO.gameOver = gameOver;
 
-	DS_global.map(currentImage, &gubo, sizeof(gubo), 0);
+	DS_global.map(currentImage, &GUBO, sizeof(GUBO), 0);
 }
 
 void PurrfectPotion::updateMenuScene(bool start, uint32_t currentImage) {
@@ -1400,7 +1413,7 @@ void PurrfectPotion::updateMenuScene(bool start, uint32_t currentImage) {
 	camPitch = glm::radians(-20.0f);
 	camRoll = 0.0f;
 
-	catPosition = glm::vec3(-7.2f, 0.2f, -9.0f);
+	catPosition = glm::vec3(-7.2f, 0.05f, -9.0f);
 	catYaw = glm::radians(110.0f);
 
 	FIRST_PERSON = false;
@@ -1440,7 +1453,7 @@ void PurrfectPotion::updateMenuScene(bool start, uint32_t currentImage) {
 		camDist = 3.0f;
 		CamTargetDelta = glm::vec3(0.0f, 1.5f, 0.0f);
 
-		catPosition = glm::vec3(6.0f, 0.2f, 0.0f);
+		catPosition = glm::vec3(6.0f, 0.05f, 0.0f);
 		catYaw = 0.0f;
 
 		totalElapsedTime = 0.0f;
@@ -1529,7 +1542,7 @@ void PurrfectPotion::updateGame(bool& debounce, int& curDebounce, float& deltaT,
 }
 
 void PurrfectPotion::placeEntity(UniformBufferObject ubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
-	glm::vec3 emissiveColor, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id) {
+								glm::vec3 emissiveColor, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id) {
 
 	glm::mat4 World = glm::translate(glm::mat4(1), position) *
 						glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *

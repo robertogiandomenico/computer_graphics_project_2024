@@ -1,10 +1,12 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(set = 1, binding = 0) uniform UniformBufferObject {
-    mat4 mvpMat;  // Model-View-Projection matrix
-    mat4 mMat;    // Model matrix
-    mat4 nMat;    // Normal matrix (transpose of the inverse of the model matrix)
+layout(set = 1, binding = 0) uniform AnimatedUniformBufferObject {
+    mat4 mvpMat;
+    mat4 mMat;
+    mat4 nMat;
+    float time;
+    float speed;
 } ubo;
 
 layout(location = 0) in vec3 inPos;
@@ -19,6 +21,12 @@ void main() {
     fragUV = inUV;
     fragNorm = mat3(ubo.nMat) * inNorm;  // Transforming normal with the normal matrix
     fragPos = vec3(ubo.mMat * vec4(inPos, 1.0)); // Position in world space
+    float time = ubo.time;
+    float speed = ubo.speed;
+    vec3 pos = inPos;
 
-    gl_Position = ubo.mvpMat * vec4(inPos, 1.0);
+    pos.y += 0.05 * sin(time * 2);                              // Rigid translation on the y-axis (vertically)
+    pos.z -= sin(time * speed + inPos.x * 3.0) * 0.02;          // Wiggle effect on the z-axis
+
+    gl_Position = ubo.mvpMat * vec4(pos, 1.0);
 }

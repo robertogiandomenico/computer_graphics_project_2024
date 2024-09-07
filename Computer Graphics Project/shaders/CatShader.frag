@@ -95,7 +95,7 @@ void main() {
     
     vec4 texColor = texture(texSampler, fragUV);
     vec3 Albedo = texColor.rgb;
-    float alpha = texColor.a * 0.4f;
+    float alpha = texColor.a * 0.5f;
 
     vec3 result = vec3(0.0); // Initialize result color
     vec3 ambient = vec3(0.0); // Initialize ambient color

@@ -45,7 +45,7 @@ struct SkyBoxUniformBufferObject {
 	alignas(4) float time;				// Field for time
 };
 
-struct SteamUniformBufferObject {
+struct AnimatedUniformBufferObject {
 	alignas(16) glm::mat4 mvpMat;
 	alignas(16) glm::mat4 mMat;
 	alignas(16) glm::mat4 nMat;

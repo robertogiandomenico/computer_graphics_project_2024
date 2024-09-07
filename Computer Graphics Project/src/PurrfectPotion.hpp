@@ -70,13 +70,13 @@ protected:
 	glm::vec3 cameraRight;
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSL, DSL_skyBox, DSL_steam, DSL_overlay, DSL_ward, DSL_boundingBox, DSL_DRN, DSL_global;
+	DescriptorSetLayout DSL, DSL_skyBox, DSL_animated, DSL_overlay, DSL_ward, DSL_boundingBox, DSL_DRN, DSL_global;
 
 	// Vertex formats
 	VertexDescriptor VD, VD_skyBox, VD_overlay, VD_tangent, VD_boundingBox;
 
 	// Pipelines [Shader couples]
-	Pipeline P, P_skyBox, P_steam, P_overlay, P_ward, P_boundingBox, P_DRN, P_cat;
+	Pipeline P, P_skyBox, P_animated, P_overlay, P_ward, P_boundingBox, P_DRN, P_cat;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	// Please note that Model objects depends on the corresponding vertex structure
@@ -143,8 +143,10 @@ protected:
 		UBO_floor, UBO_walls;
 
 	std::vector<UniformBufferObject> UBO_boundingBox;
-	SteamUniformBufferObject UBO_steam, UBO_fire, UBO_cat;
+	AnimatedUniformBufferObject UBO_steam, UBO_fire, UBO_cat;
+	SkyBoxUniformBufferObject UBO_skyBox;
 	OverlayUniformBlock UBO_timer[5], UBO_screens[4], UBO_scroll, UBO_collectibles[COLLECTIBLES_NUM];
+	GlobalUniformBufferObject GUBO;
 
 	// To display the bounding boxes for debugging
 	std::vector<BoundingBox> furnitureBBs;
@@ -180,6 +182,9 @@ protected:
 	void updateUniformBuffer(uint32_t currentImage);
 
 	void worldSetUp(const glm::vec3& catNewPos, const glm::mat4& ViewPrj, uint32_t currentImage);
+
+	void placeGhostCat(AnimatedUniformBufferObject ubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 emissiveColor,
+									glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id);
 
 	void checkCollisions(uint32_t currentImage, glm::vec3& m, float deltaT);
 
