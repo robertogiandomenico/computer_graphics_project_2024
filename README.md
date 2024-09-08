@@ -1,6 +1,6 @@
 # Computer Graphics Project 2024
 
-<img src="github/assets/logo.png" width=500 px align="right" />
+<img src="https://github.com/user-attachments/assets/68168cf8-7df4-49ff-a80e-105b61fff777" width=500 px align="right" />
 
 _Purrfect Potion_ is the final project of "**Computer Graphics**" course held at Politecnico di Milano (2023/2024).
 
@@ -65,26 +65,24 @@ Simple texture have been hand-painted for some models. More complex PBR material
 
 ### Main Menu
 
-![Main Menu](https://github.com/robertogiandomenico/computer_graphics_project_2024/blob/master/github/assets/menu.mp4)
+https://github.com/user-attachments/assets/0b551886-66d0-4f7e-b0c8-ee357e95a682
+
 ### Game
 
-![Gameplay](https://github.com/robertogiandomenico/computer_graphics_project_2024/blob/master/github/assets/gameplay.mp4)
+https://github.com/user-attachments/assets/415b90f8-a898-4f02-8053-2f1404b490f6
 
 ### World
 
-![World](github/assets/world.jpg)
+![World](https://github.com/user-attachments/assets/70fddfa9-0064-49d3-aacc-fe69ea2d665f)
 
 ### Shaders
 
-![Ward Shader](github/assets/ward.jpg)
+![Ward Shader](https://github.com/user-attachments/assets/dd4e9641-1404-4148-9fa1-afaedb297949)
 
-![SkyBox Hue Rotation](https://github.com/robertogiandomenico/computer_graphics_project_2024/blob/master/github/assets/skybox.mp4)
+https://github.com/user-attachments/assets/ae598e23-5d2f-410d-9e21-a4819e8a7306
 
-![Steam and Fire animation](https://github.com/robertogiandomenico/computer_graphics_project_2024/blob/master/github/assets/steam%26fire.mp4)
-
-
+https://github.com/user-attachments/assets/7b5d7559-4fdf-49d9-b86a-0bc42e317383
 
 ### Bounding Boxes
 
-![Bounding Boxes](github/assets/boundingbox.jpg)
-
+![Bounding Boxes](https://github.com/user-attachments/assets/5faf86fe-9cce-4486-b3d7-7116ed93de9e)
