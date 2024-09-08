@@ -986,6 +986,16 @@ void PurrfectPotion::populateCommandBuffer(VkCommandBuffer commandBuffer, int cu
 	M_tv.bind(commandBuffer);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_tv.indices.size()), 1, 0, 0, 0);
 
+	// P_cat pipeline
+	P_cat.bind(commandBuffer);
+
+	// DS_global is binded to P_cat with set = 0
+	DS_global.bind(commandBuffer, P_cat, 0, currentImage);
+
+	DS_cat.bind(commandBuffer, P_cat, 1, currentImage);
+	M_cat.bind(commandBuffer);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
+
 	// P_animated pipeline
 	P_animated.bind(commandBuffer);
 	M_steam.bind(commandBuffer);
@@ -996,15 +1006,6 @@ void PurrfectPotion::populateCommandBuffer(VkCommandBuffer commandBuffer, int cu
 	DS_fire.bind(commandBuffer, P_animated, 0, currentImage);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_fire.indices.size()), 1, 0, 0, 0);
 
-	// P_cat pipeline
-	P_cat.bind(commandBuffer);
-
-	// DS_global is binded to P_cat with set = 0
-	DS_global.bind(commandBuffer, P_cat, 0, currentImage);
-
-	DS_cat.bind(commandBuffer, P_cat, 1, currentImage);
-	M_cat.bind(commandBuffer);
-	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(M_cat.indices.size()), 1, 0, 0, 0);
 
 	// P_overlay pipeline
 	P_overlay.bind(commandBuffer);
