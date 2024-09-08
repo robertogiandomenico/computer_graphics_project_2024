@@ -65,11 +65,10 @@ Simple texture have been hand-painted for some models. More complex PBR material
 
 ### Main Menu
 
-![Main Menu](github/assets/menu.mp4)
-
+![Main Menu](https://github.com/robertogiandomenico/computer_graphics_project_2024/blob/master/github/assets/menu.mp4)
 ### Game
 
-![Gameplay](github/assets/gameplay.mp4)
+![Gameplay](https://github.com/robertogiandomenico/computer_graphics_project_2024/blob/master/github/assets/gameplay.mp4)
 
 ### World
 
@@ -79,9 +78,9 @@ Simple texture have been hand-painted for some models. More complex PBR material
 
 ![Ward Shader](github/assets/ward.jpg)
 
-![SkyBox Hue Rotation](github/assets/skybox.mp4)
+![SkyBox Hue Rotation](https://github.com/robertogiandomenico/computer_graphics_project_2024/blob/master/github/assets/skybox.mp4)
 
-![Steam and Fire animation](github/assets/steam&fire.mp4)
+![Steam and Fire animation](https://github.com/robertogiandomenico/computer_graphics_project_2024/blob/master/github/assets/steam%26fire.mp4)
 
 
 
