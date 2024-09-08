@@ -1,6 +1,6 @@
 # Computer Graphics Project 2024
 
-![logo](github/assets/logo.png)
+<img src="github/assets/logo.png" width=500 px align="right" />
 
 _Purrfect Potion_ is the final project of "**Computer Graphics**" course held at Politecnico di Milano (2023/2024).
 
@@ -16,7 +16,7 @@ _Purrfect Potion_ is the final project of "**Computer Graphics**" course held at
 ### Game plot
 
 The idea of the game is to collect all the ingredients spread through the map to brew a potion in a limited amount of time.
-The player impersonates a ghost cat that needs to get his physical form back.
+The player impersonates a ghost cat that needs to get his physical body back.
 The game is over when the time is up or when the player has collected all the ingredients and taken them to the cauldron.
 
 ### Technical details
@@ -50,14 +50,42 @@ Beyond what is strictly needed for a Vulkan application, here are some of the fe
   - Dynamic HUD
 
 - **Shaders**
-  - Sway of smoke and fire in the vertex shader
+  - Use of different maps to increase realism
+  - Steam and fire animation in the vertex shader
+  - Ghost cat floating animation in the vertex shader
   - Hue rotation of skybox in the fragment shader
 
 ## Assets
 
 All the 3D models used in the project have been created by the group members using [_Blender_](https://www.blender.org).
 
-More complex PBR materials texture have been downloaded freely.
+Simple texture have been hand-painted for some models. More complex PBR materials texture have been downloaded freely.
 
 ## Media
+
+### Main Menu
+
+![Main Menu](github/assets/menu.mp4)
+
+### Game
+
+![Gameplay](github/assets/gameplay.mp4)
+
+### World
+
+![World](github/assets/world.jpg)
+
+### Shaders
+
+![Ward Shader](github/assets/ward.jpg)
+
+![SkyBox Hue Rotation](github/assets/skybox.mp4)
+
+![Steam and Fire animation](github/assets/steam&fire.mp4)
+
+
+
+### Bounding Boxes
+
+![Bounding Boxes](github/assets/boundingbox.jpg)
 
