@@ -181,31 +181,44 @@ protected:
 	// Here is where you update the uniforms. Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage);
 
+	// Check for collisions with collectibles and furniture
+	void checkCollisions(uint32_t currentImage, glm::vec3& m, float deltaT);
+
+	// Position all the objects in the world
 	void worldSetUp(const glm::vec3& catNewPos, const glm::mat4& ViewPrj, uint32_t currentImage);
 
+	// Position ghost cat, draw its bounding box (if DEBUG) and update its uniform
 	void placeGhostCat(AnimatedUniformBufferObject ubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 emissiveColor,
 									glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id);
 
-	void checkCollisions(uint32_t currentImage, glm::vec3& m, float deltaT);
-
-	void updateOverlay(uint32_t currentImage);
-
-	void updateSteamAndFire(glm::mat4& World, glm::mat4& ViewPrj, uint32_t currentImage);
-
-	void updateLights(uint32_t currentImage);
-
-	void updateMenuScene(bool start, uint32_t currentImage);
-
-	void updateGame(bool& debounce, int& curDebounce, float& deltaT, glm::vec3& m, glm::vec3& r, uint32_t currentImage);
-
+	// Position objects (furniture, collectibles, fainted cat), draw their bounding box (if DEBUG) and update their uniforms
 	void placeEntity(UniformBufferObject ubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 		glm::vec3 emissiveColor, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id = 0);
 
+	// Remove a collectible from the scene
 	void removeCollectible(UniformBufferObject ubo, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, int id);
 
+	// Update overlay elements
+	void updateOverlay(uint32_t currentImage);
+
+	// Update steam and fire UBOs
+	void updateSteamAndFire(glm::mat4& World, glm::mat4& ViewPrj, uint32_t currentImage);
+
+	// Setup all the lights in the scene
+	void updateLights(uint32_t currentImage);
+
+	// Create menu scenes placing the cat and the camera in a fixed position
+	void updateMenuScene(bool start, uint32_t currentImage);
+
+	// Update all the game elements (cat and camera position, time), also based on buttons pressed
+	void updateGame(bool& debounce, int& curDebounce, float& deltaT, glm::vec3& m, glm::vec3& r, uint32_t currentImage);
+
+	// Check whether a button is pressed and update the game elements accordingly
 	void checkPressedButton(bool* debounce, int* curDebounce);
 
+	// Show the cursor, unlocking it from the window
 	void showCursor();
 
+	// Hide the cursor, locking it to the window
 	void hideCursor();
 };

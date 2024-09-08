@@ -1136,12 +1136,50 @@ void PurrfectPotion::updateUniformBuffer(uint32_t currentImage) {
 	checkCollisions(currentImage, m, deltaT);
 }
 
+void PurrfectPotion::checkCollisions(uint32_t currentImage, glm::vec3& m, float deltaT) {
+	// Collectibles
+	for (int i = 0; i < collectiblesBBs.size(); i++) {
+		if (catBox.intersects(collectiblesBBs[i])) {
+			collectiblesMap[collectiblesBBs[i].getName()] = true;
+
+			int collectibleIndex = collectiblesHUD[collectiblesBBs[i].getName()];
+
+			UBO_collectibles[collectibleIndex].visible = 0.f;
+			DS_collectibles[collectibleIndex].map(currentImage, &UBO_collectibles[collectibleIndex], sizeof(UBO_collectibles[collectibleIndex]), 0);
+
+			if (collectiblesMap["crystal"] && collectiblesMap["eye"] && collectiblesMap["feather"] &&
+				collectiblesMap["leaf"] && collectiblesMap["potion1"] && collectiblesMap["potion2"] && collectiblesMap["bone"]) {
+
+				std::cout << "\nALL COLLECTIBLES COLLECTED! Now go to the cauldron!" << std::endl;
+				gameOver = true;
+			}
+		}
+	}
+
+	// Furniture
+	for (int j = 0; j < furnitureBBs.size(); j++) {
+		if (catBox.intersects(furnitureBBs[j])) {
+			if (furnitureBBs[j].getName() == "cauldron") {
+				if (gameOver) {
+					gameState = GAME_STATE_GAME_WIN;
+				} else {
+					break;
+				}
+			}
+			catPosition += cameraForward * m.z * MOVE_SPEED * deltaT;
+			catPosition -= cameraRight * m.x * MOVE_SPEED * deltaT;
+
+			std::cout << "Collision with " << furnitureBBs[j].getName() << std::endl;
+		}
+	}
+}
+
 void PurrfectPotion::worldSetUp(const glm::vec3& catPosition, const glm::mat4& ViewPrj, uint32_t currentImage) {
 
 	// Placing ghost cat
 	placeGhostCat(UBO_cat, catPosition, glm::vec3(0, catYaw, 0), FIRST_PERSON ? glm::vec3(0.0f) : glm::vec3(1.f), glm::vec3(3.0f), ViewPrj, DS_cat, currentImage, DEBUG, 8); // 16);
 	catBox = BoundingBox("cat", catPosition, catDimensions);
-	
+
 	// House
 	placeEntity(UBO_floor, houseFloor.pos, houseFloor.rot, houseFloor.scale, glm::vec3(0.0f), ViewPrj, DS_floor, currentImage, false);
 	placeEntity(UBO_walls, walls.pos, walls.rot, walls.scale, glm::vec3(0.0f), ViewPrj, DS_walls, currentImage, false);
@@ -1184,7 +1222,7 @@ void PurrfectPotion::worldSetUp(const glm::vec3& catPosition, const glm::mat4& V
 		placeEntity(UBO_crystal, collectiblesRandomPosition[0], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_crystal, currentImage, DEBUG, 0);
 	}
 	else {
-		removeCollectible(UBO_crystal, ViewPrj, DS_crystal, currentImage, 0);	// it actually scales to zero -> not efficient
+		removeCollectible(UBO_crystal, ViewPrj, DS_crystal, currentImage, 0);
 	}
 	if (!collectiblesMap["eye"]) {
 		placeEntity(UBO_eye, collectiblesRandomPosition[1], glm::vec3(0, collectibleRotationAngle, 0), glm::vec3(gameState == GAME_STATE_PLAY), glm::vec3(1.0f), ViewPrj, DS_eye, currentImage, DEBUG, 1);
@@ -1224,8 +1262,9 @@ void PurrfectPotion::worldSetUp(const glm::vec3& catPosition, const glm::mat4& V
 	}
 }
 
+// Position ghost cat, draw its bounding box (if DEBUG) and update its uniform
 void PurrfectPotion::placeGhostCat(AnimatedUniformBufferObject ubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 emissiveColor,
-									glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id)
+	glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id)
 {
 
 	glm::mat4 World = glm::translate(glm::mat4(1), position) *
@@ -1245,42 +1284,46 @@ void PurrfectPotion::placeGhostCat(AnimatedUniformBufferObject ubo, glm::vec3 po
 	ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 2);
 }
 
-void PurrfectPotion::checkCollisions(uint32_t currentImage, glm::vec3& m, float deltaT) {
-	// Check for collisions with the collectibles
-	for (int i = 0; i < collectiblesBBs.size(); i++) {
-		if (catBox.intersects(collectiblesBBs[i])) {
-			collectiblesMap[collectiblesBBs[i].getName()] = true;
+// Position objects (furniture, collectibles, fainted cat), draw their bounding box (if DEBUG) and update their uniforms
+void PurrfectPotion::placeEntity(UniformBufferObject ubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
+	glm::vec3 emissiveColor, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id) {
 
-			int collectibleIndex = collectiblesHUD[collectiblesBBs[i].getName()];
+	glm::mat4 World = glm::translate(glm::mat4(1), position) *
+		glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *
+		glm::rotate(glm::mat4(1), rotation.y, glm::vec3(0, 1, 0)) *
+		glm::rotate(glm::mat4(1), rotation.z, glm::vec3(0, 0, 1)) *
+		glm::scale(glm::mat4(1), scale);
+	ubo.mvpMat = ViewPrj * World;
+	ubo.mMat = World;
+	ubo.nMat = glm::transpose(glm::inverse(World));
 
-			UBO_collectibles[collectibleIndex].visible = 0.f;
-			DS_collectibles[collectibleIndex].map(currentImage, &UBO_collectibles[collectibleIndex], sizeof(UBO_collectibles[collectibleIndex]), 0);
+	drawBoundingBox(hasBoundingBox, position, rotation, scale, ViewPrj, UBO_boundingBox[id], DS_boundingBox[id], currentImage);
 
-			if (collectiblesMap["crystal"] && collectiblesMap["eye"] && collectiblesMap["feather"] &&
-				collectiblesMap["leaf"] && collectiblesMap["potion1"] && collectiblesMap["potion2"] && collectiblesMap["bone"]) {
+	ds.map(currentImage, &ubo, sizeof(ubo), 0);
+	// the .map() method of a DataSet object, requires the current image of the swap chain as first parameter
+	// the second parameter is the pointer to the C++ data structure to transfer to the GPU
+	// the third parameter is its size
+	// the fourth parameter is the location inside the descriptor set of this uniform block
 
-				std::cout << "\nALL COLLECTIBLES COLLECTED! Now go to the cauldron!" << std::endl;
-				gameOver = true;
-			}
-		}
-	}
+	ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 2);
+}
 
-	// Check for collisions with the furniture
-	for (int j = 0; j < furnitureBBs.size(); j++) {
-		if (catBox.intersects(furnitureBBs[j])) {
-			if (furnitureBBs[j].getName() == "cauldron") {
-				if (gameOver) {
-					gameState = GAME_STATE_GAME_WIN;
-				} else {
-					break;
-				}
-			}
-			catPosition += cameraForward * m.z * MOVE_SPEED * deltaT;
-			catPosition -= cameraRight * m.x * MOVE_SPEED * deltaT;
+void PurrfectPotion::removeCollectible(UniformBufferObject ubo, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, int id) {
+	glm::mat4 World = glm::mat4(0.f);
+	ubo.mvpMat = ViewPrj * World;
+	ubo.mMat = World;
+	ubo.nMat = glm::transpose(glm::inverse(World));
 
-			std::cout << "Collision with " << furnitureBBs[j].getName() << std::endl;
-		}
-	}
+	ds.map(currentImage, &ubo, sizeof(ubo), 0);
+
+	// Update bounding box matrices
+	UBO_boundingBox[id].mvpMat = ViewPrj * World;
+	UBO_boundingBox[id].mMat = World;
+	UBO_boundingBox[id].nMat = glm::transpose(glm::inverse(World));
+	DS_boundingBox[id].map(currentImage, &UBO_boundingBox[id], sizeof(UBO_boundingBox[id]), 0);
+
+	// Remove bounding box from the array of BBs
+	collectiblesBBs[id].erase();
 }
 
 void PurrfectPotion::updateOverlay(uint32_t currentImage) {
@@ -1319,7 +1362,9 @@ void PurrfectPotion::updateOverlay(uint32_t currentImage) {
 		UBO_collectibles[collectiblesHUD["potion1"]].visible = !collectiblesMap["potion1"] ? 1.f : 0.f;
 		UBO_collectibles[collectiblesHUD["potion2"]].visible = !collectiblesMap["potion2"] ? 1.f : 0.f;
 		UBO_collectibles[collectiblesHUD["bone"]].visible = !collectiblesMap["bone"] ? 1.f : 0.f;
+
 	} else {
+		// Hide all overlay elements
 		UBO_timer[0].visible = UBO_timer[1].visible = UBO_timer[2].visible = UBO_timer[3].visible = UBO_timer[4].visible = 0.f;
 		UBO_scroll.visible = 0.f;
 		for (int i = 0; i < COLLECTIBLES_NUM; i++) {
@@ -1327,6 +1372,7 @@ void PurrfectPotion::updateOverlay(uint32_t currentImage) {
 		}
 	}
 
+	// Map the updated UBOs
 	for (int i = 0; i < 5; i++) {
 		DS_timer[i].map(currentImage, &UBO_timer[i], sizeof(UBO_timer[i]), 0);
 	}
@@ -1339,7 +1385,7 @@ void PurrfectPotion::updateOverlay(uint32_t currentImage) {
 }
 
 void PurrfectPotion::updateSteamAndFire(glm::mat4& World, glm::mat4& ViewPrj, uint32_t currentImage) {
-	// Steam UBO update
+	// Steam
 	World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 1.7f, 0)) *		// Steam plane position - over the cauldron
 			glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Steam plane rotation - always face the camera
 	UBO_steam.mvpMat = ViewPrj * World;
@@ -1349,7 +1395,7 @@ void PurrfectPotion::updateSteamAndFire(glm::mat4& World, glm::mat4& ViewPrj, ui
 	UBO_steam.speed = 0.7f;
 	DS_steam.map(currentImage, &UBO_steam, sizeof(UBO_steam), 0);
 
-	// Fire UBO update
+	// Fire
 	World = glm::translate(glm::mat4(1.0f), cauldron.pos + glm::vec3(0, 0.3f, 0.1f)) *	// Fire plane position - under the cauldron
 			glm::rotate(glm::mat4(1.0f), camYaw, glm::vec3(0, 1, 0));					// Fire plane rotation - always face the camera
 	UBO_fire.mvpMat = ViewPrj * World;
@@ -1361,8 +1407,6 @@ void PurrfectPotion::updateSteamAndFire(glm::mat4& World, glm::mat4& ViewPrj, ui
 }
 
 void PurrfectPotion::updateLights(uint32_t currentImage) {
-
-	// Set light properties
 	GUBO.lightPos[0] = glm::vec3(6.0f, 2.0f, 8.0f);							// position: kitchen
 	GUBO.lightColor[0] = glm::vec4(glm::vec3(1.4f), 2.0f);					// color: white
 
@@ -1383,7 +1427,6 @@ void PurrfectPotion::updateLights(uint32_t currentImage) {
 	GUBO.lightPos[6] = glm::vec3(0.f, 2.5f, -8.f);							// position: bathroom
 	GUBO.lightColor[6] = glm::vec4(glm::vec3(0.50f, 0.25f, 0.f), 2.0f);		// color: orange
 
-	GUBO.lightPos[7] = glm::vec3(0.0f, 0.0f, 0.0f);							// position: null
 	GUBO.lightDir[7] = glm::vec3(-0.5, 1.0, 0.5);							// (sun) light from outside
 	GUBO.lightColor[7] = glm::vec4(glm::vec3(0.2f), 2.0f);					// color: white
 
@@ -1395,8 +1438,8 @@ void PurrfectPotion::updateLights(uint32_t currentImage) {
 	GUBO.cosOut = glm::cos(glm::radians(45.0f));							// cos of the outer angle of the spot light
 
 	for (int i = 0; i < COLLECTIBLES_NUM; i++) {
-		GUBO.lightPos[i + LIGHTS_NUM - COLLECTIBLES_NUM] = collectiblesRandomPosition[i] + glm::vec3(0.f, 0.5f, 0.f);
-		GUBO.lightDir[i + LIGHTS_NUM - COLLECTIBLES_NUM] = glm::vec3(0, 1, 0);
+		GUBO.lightPos[i + LIGHTS_NUM - COLLECTIBLES_NUM] = collectiblesRandomPosition[i] + glm::vec3(0.f, 0.5f, 0.f);	// position: over the collectibles
+		GUBO.lightDir[i + LIGHTS_NUM - COLLECTIBLES_NUM] = glm::vec3(0, 1, 0);											// light from above
 		GUBO.lightColor[i + LIGHTS_NUM - COLLECTIBLES_NUM] = collectiblesMap[collectiblesNames[i]] ? glm::vec4(glm::vec3(0.0f), 0.0f) : glm::vec4(glm::vec3(0.7f, 0.1f, 1.0f), 10.0f);
 	}
 
@@ -1408,6 +1451,7 @@ void PurrfectPotion::updateLights(uint32_t currentImage) {
 	DS_global.map(currentImage, &GUBO, sizeof(GUBO), 0);
 }
 
+// Create menu scenes placing the cat and the camera in a fixed position
 void PurrfectPotion::updateMenuScene(bool start, uint32_t currentImage) {
 	camPos = glm::vec3(-5.5f, 2.6f, -2.8f);
 	camYaw = glm::radians(40.0f);
@@ -1478,6 +1522,7 @@ void PurrfectPotion::updateMenuScene(bool start, uint32_t currentImage) {
 	}
 }
 
+// Update all the game elements (cat and camera position, time), also based on buttons pressed
 void PurrfectPotion::updateGame(bool& debounce, int& curDebounce, float& deltaT, glm::vec3& m, glm::vec3& r, uint32_t currentImage) {
 
 	// Update DS screens overlay
@@ -1540,47 +1585,6 @@ void PurrfectPotion::updateGame(bool& debounce, int& curDebounce, float& deltaT,
 		std::cout << "Time remaining: " << static_cast<int>(timeLeft) << std::endl;
 		lastDisplayedTime = static_cast<int>(timeLeft);
 	}
-}
-
-void PurrfectPotion::placeEntity(UniformBufferObject ubo, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
-								glm::vec3 emissiveColor, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, bool hasBoundingBox, int id) {
-
-	glm::mat4 World = glm::translate(glm::mat4(1), position) *
-						glm::rotate(glm::mat4(1), rotation.x, glm::vec3(1, 0, 0)) *
-						glm::rotate(glm::mat4(1), rotation.y, glm::vec3(0, 1, 0)) *
-						glm::rotate(glm::mat4(1), rotation.z, glm::vec3(0, 0, 1)) *
-						glm::scale(glm::mat4(1), scale);
-	ubo.mvpMat = ViewPrj * World;
-	ubo.mMat = World;
-	ubo.nMat = glm::transpose(glm::inverse(World));
-
-	drawBoundingBox(hasBoundingBox, position, rotation, scale, ViewPrj, UBO_boundingBox[id], DS_boundingBox[id], currentImage);
-
-	ds.map(currentImage, &ubo, sizeof(ubo), 0);
-	// the .map() method of a DataSet object, requires the current image of the swap chain as first parameter
-	// the second parameter is the pointer to the C++ data structure to transfer to the GPU
-	// the third parameter is its size
-	// the fourth parameter is the location inside the descriptor set of this uniform block
-
-	ds.map(currentImage, &emissiveColor, sizeof(emissiveColor), 2);
-}
-
-void PurrfectPotion::removeCollectible(UniformBufferObject ubo, glm::mat4 ViewPrj, DescriptorSet ds, int currentImage, int id) {
-	glm::mat4 World = glm::mat4(0.f);
-	ubo.mvpMat = ViewPrj * World;
-	ubo.mMat = World;
-	ubo.nMat = glm::transpose(glm::inverse(World));
-
-	ds.map(currentImage, &ubo, sizeof(ubo), 0);
-
-	// Update bounding box matrices
-	UBO_boundingBox[id].mvpMat = ViewPrj * World;
-	UBO_boundingBox[id].mMat = World;
-	UBO_boundingBox[id].nMat = glm::transpose(glm::inverse(World));
-	DS_boundingBox[id].map(currentImage, &UBO_boundingBox[id], sizeof(UBO_boundingBox[id]), 0);
-
-	// Remove bounding box from the array of BBs
-	collectiblesBBs[id].erase();
 }
 
 void PurrfectPotion::checkPressedButton(bool* debounce, int* curDebounce) {

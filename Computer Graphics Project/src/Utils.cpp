@@ -7,6 +7,7 @@
 
 #include <vector>
 
+// Data structure to retrieve collectibles names from their index
 std::string collectiblesNames[COLLECTIBLES_NUM] = {
 	"crystal",
 	"eye",
@@ -29,7 +30,9 @@ glm::vec3 generateRandomPosition(float squareSide) {
 	return randomPosition;
 }
 
-// Constructor
+
+// BOUNDING BOX FUNCTIONS
+
 BoundingBox::BoundingBox(const std::string& name, const glm::vec3 center, const glm::vec3 size) {
 	this->name = name;
 	glm::vec3 halfSize = size / 2.0f;
@@ -44,7 +47,6 @@ bool BoundingBox::intersects(BoundingBox& other) {
 		(min.z <= other.max.z && max.z >= other.min.z);
 }
 
-// Update the size of the bounding box
 void BoundingBox::erase() {
 	min = glm::vec3(0);
 	max = glm::vec3(0);

@@ -22,7 +22,6 @@
 //        vec4  : alignas(16)
 //        mat3  : alignas(16)
 //        mat4  : alignas(16)
-// Example:
 struct UniformBufferObject {
 	alignas(16) glm::mat4 mvpMat;
 	alignas(16) glm::mat4 mMat;
@@ -58,7 +57,6 @@ struct OverlayUniformBlock {
 };
 
 // The vertices data structures
-// Example
 struct Vertex {
 	glm::vec3 pos;
 	glm::vec2 UV;
@@ -81,6 +79,8 @@ struct VertexTan {
 	glm::vec2 UV;
 };
 
+// Data structure to retrieve collectibles names from their index
 extern std::string collectiblesNames[COLLECTIBLES_NUM];
 
+// Generate random position for the collectibles
 glm::vec3 generateRandomPosition(float squareSide);

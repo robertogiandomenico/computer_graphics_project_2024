@@ -26,22 +26,26 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BoundingBox.hpp" />
+    <ClInclude Include="src\PurrfectPotion.hpp" />
     <ClInclude Include="src\Starter.hpp" />
     <ClInclude Include="src\Utils.hpp" />
+    <ClInclude Include="src\World.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
+    <None Include="shaders\AnimatedShader.frag" />
+    <None Include="shaders\AnimatedShader.vert" />
     <None Include="shaders\BoundingBox.frag" />
     <None Include="shaders\BoundingBox.vert" />
+    <None Include="shaders\CatShader.frag" />
+    <None Include="shaders\CatShader.vert" />
     <None Include="shaders\DRN.frag" />
     <None Include="shaders\Overlay.frag" />
     <None Include="shaders\Overlay.vert" />
-    <None Include="shaders\Shader.frag" />
-    <None Include="shaders\Shader.vert" />
+    <None Include="shaders\PhongShader.frag" />
+    <None Include="shaders\PhongShader.vert" />
     <None Include="shaders\SkyBoxShader.frag" />
     <None Include="shaders\SkyBoxShader.vert" />
-    <None Include="shaders\SteamShader.frag" />
-    <None Include="shaders\SteamShader.vert" />
     <None Include="shaders\TanShader.vert" />
     <None Include="shaders\WardShader.frag" />
   </ItemGroup>
