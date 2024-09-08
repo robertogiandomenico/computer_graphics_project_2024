@@ -84,12 +84,21 @@ vec3 spot_light_color(vec3 fragPos, int i) {
     return pow(g/length(p - fragPos), beta) * clamp((dot(normalize(p - fragPos), d) - cosout)/(cosin - cosout), 0.0, 1.0) * l;
 }
 
-// BRDF function
 vec3 BRDF(vec3 Albedo, vec3 Norm, vec3 EyeDir, vec3 LightDir, float Roughness) {
-    // Lambert diffuse component
+/* BRDF function: Blinn specular model with Lambert diffuse model
+	
+Parameters:
+    Albedo    - Color of the object
+    Norm      - Normal vector direction
+    EyeDir    - Viewer direction
+    LightDir  - Light direction
+    Roughness - Roughness of the material
+*/
+
+    // Lambert
     vec3 Diffuse = Albedo * max(dot(Norm, LightDir), 0.0f);
 
-    // Blinn specular component
+    // Blinn
     vec3 halfwayDir = normalize(LightDir + EyeDir);
     float cos_alpha = dot(Norm, halfwayDir);
     float gamma = mix(1.0, 128.0, 1.0 - Roughness); // Dynamic specular power based on roughness

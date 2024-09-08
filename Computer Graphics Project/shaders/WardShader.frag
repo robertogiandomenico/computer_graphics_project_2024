@@ -84,9 +84,9 @@ vec3 spot_light_color(vec3 fragPos, int i) {
 }
 
 vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 T, vec3 B, vec3 Md, vec3 Ms, float alphaT, float alphaB) {
-/* This BRDF should perform the Ward anisotropic specular model with the Lambert diffuse model.
+/* BRDF function: Ward anisotropic specular model with Lambert diffuse model
 		 
-Paramters:
+Parameters:
 	V	   - Viewer direction
 	N	   - Normal vector direction
 	L	   - Light direction
@@ -94,13 +94,14 @@ Paramters:
 	B	   - Bitangent vector direction
 	Md	   - Diffuse color
 	Ms	   - Specular color
-	alphaT - Roughness along the tangent direction
-	alphaB - Roughness along the bitangent direction
+	alphaT - Roughness along tangent direction
+	alphaB - Roughness along bitangent direction
 */ 
+
 	// Lambert
 	vec3 Diffuse = Md * clamp(dot(N, L),0.0,1.0);
 
-    // Ward anisotropic specular
+    // Ward
     vec3 H = normalize(V + L);
     float h_t = dot(H, T);
     float h_b = dot(H, B);
@@ -117,7 +118,7 @@ Paramters:
     vec3 Specular = Ms * exp(-exponent) / denominator;
     Specular = max(Specular, epsilon);
 
-	return (Diffuse + Specular);
+	return Diffuse + Specular;
 }
 
 void main() {

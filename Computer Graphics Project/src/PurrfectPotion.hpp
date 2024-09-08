@@ -26,6 +26,11 @@ protected:
 	float maxPitch = M_PI_2 - 0.1f;
 	float minRoll = -M_PI_2;
 	float maxRoll = M_PI_2;
+	glm::vec3 cameraForward;
+	glm::vec3 cameraRight;
+
+	float ROT_SPEED = glm::radians(150.0f);
+	float MOVE_SPEED = 6.0f;
 
 	// Cat position and orientation
 	glm::vec3 catPosition;
@@ -63,11 +68,6 @@ protected:
 		{"potion2", 5},
 		{"bone",	6}
 	};
-
-	float ROT_SPEED = glm::radians(150.0f);
-	float MOVE_SPEED = 6.0f;
-	glm::vec3 cameraForward;
-	glm::vec3 cameraRight;
 
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSL, DSL_skyBox, DSL_animated, DSL_overlay, DSL_ward, DSL_boundingBox, DSL_DRN, DSL_global;

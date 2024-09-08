@@ -1533,7 +1533,6 @@ void BaseProject::getSixAxis(float& deltaT, glm::vec3& m, glm::vec3& r, bool& fi
 		r.x = -m_dy / MOUSE_RES;
 	}
 
-
 	if (glfwGetKey(window, GLFW_KEY_LEFT)) {
 		r.y = -1.0f;
 	}
