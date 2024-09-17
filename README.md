@@ -1,8 +1,10 @@
 # Computer Graphics Project 2024
 
-<img src="https://github.com/user-attachments/assets/68168cf8-7df4-49ff-a80e-105b61fff777" width=500 px align="right" />
+<img src="https://github.com/user-attachments/assets/68168cf8-7df4-49ff-a80e-105b61fff777" width=350 px align="right" />
 
 _Purrfect Potion_ is the final project of "**Computer Graphics**" course held at Politecnico di Milano (2023/2024).
+
+**Score**: 30/30 cum laude 
 
 **Professor**: Gribaudo Marco
 
