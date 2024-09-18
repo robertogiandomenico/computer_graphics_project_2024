@@ -46,7 +46,7 @@ Beyond what is strictly needed for a Vulkan application, here are some of the fe
   - Interactive menus
 
 - **Rendering**
-  - Possibility switch on/off different lights
+  - Possibility to switch on/off different lights
   - Meshes for the bounding boxes that may be displayed as wireframes
   - Partially transparent objects
   - Dynamic HUD
@@ -61,7 +61,7 @@ Beyond what is strictly needed for a Vulkan application, here are some of the fe
 
 All the 3D models used in the project have been created by the group members using [_Blender_](https://www.blender.org).
 
-Simple texture have been hand-painted for some models. More complex PBR materials texture have been downloaded freely.
+Simple textures have been hand-painted for some models. More complex PBR materials textures have been downloaded freely.
 
 ## Media
 
